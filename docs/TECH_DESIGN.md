@@ -31,6 +31,7 @@ src/main.ts
   ├─ items/                       ItemDefinition 与 ItemCatalog
   ├─ inventory/                   纯 Slot/Stack/Weight Inventory
   ├─ interaction/                 Target/Result、事务服务与 Raycast Adapter
+  ├─ crafting/                    Recipe Catalog、Requirement 与 Atomic Transaction
   ├─ world/pickups/               Pickup Registry、Placement 与 Babylon Presentation
   └─ ui/setupFoundationUi.ts      仅 DOM 的基础界面适配
 ```
@@ -56,14 +57,14 @@ src/main.ts
 | `src/inventory` | 纯 ItemStack、固定 Slot、Stack、Weight 和 Partial Add；不含 Container |
 | `src/interaction` | 通用 Target/Result、Pickup Transaction 和 Babylon Raycast 窄适配 |
 | `src/world/pickups` | World Pickup Domain Registry、Scenario Placement 与 Mesh Presentation |
-| `src/crafting` | 未来的配方校验和制作状态 |
+| `src/crafting` | Recipe Runtime Validation、Catalog、Requirement、Plan 与原子制作事务 |
 | `src/building` | 未来的 Ghost、放置校验和 Snap |
 | `src/save` | 未来的版本化 IndexedDB 持久化 |
 | `data` | 按领域划分的未来 JSON 定义 |
 | `public/assets` | 未来的模型、贴图与音频 |
 | `tests` | 纯逻辑测试与高价值集成测试 |
 
-`src/crafting`、`src/building` 和 `src/save` 等其余功能目录在当前阶段仍只是预留边界。
+`src/building` 和 `src/save` 等其余功能目录在当前阶段仍只是预留边界。
 
 ## Interaction、Item 与 Inventory Foundation
 
@@ -72,6 +73,16 @@ src/main.ts
 `data/items/items.json` 定义稳定 `id`、展示字段、`category`、`stackSize`、单件 `weight`、可空 `durability`/`icon` 和 `tags`。`ItemCatalog` 在启动时完成结构、重复 ID 和数值边界校验。`ItemStack` 与 Inventory Snapshot 不可变；Inventory 固定 24 Slot / 30kg，重量每次由 `Σ weight × quantity` 推导，不维护可漂移缓存。
 
 Add 前先同时计算现有 Stack 空位、新 Slot 空位和剩余重量可接受的最大整数数量，然后只写入该数量。允许 Partial Add：Inventory 增加 `acceptedQuantity`，Registry 同步减少 Pickup；只有剩余为 0 时 Presentation 才清除 lookup 并 dispose Mesh。失败结果使用稳定 reason ID，Domain 不操作 DOM 或 Babylon。
+
+## Crafting Foundation
+
+依赖方向为 `RecipeCatalog → CraftingService ← Inventory ← ItemCatalog`。`data/crafting/recipes.json` 与 Item 数据分离，Recipe 只使用稳定 Item ID；启动时校验 Recipe ID、输入/输出、数量、引用、`craftTimeSeconds`、`requiredStation` 和 tags。当前统一使用特殊 Station ID `hand`，没有 Station System。
+
+事务流程为 `Plan → Clone Inventory → Consume Inputs on Draft → Add Outputs on Draft → Validate Final Snapshot → Commit Snapshot`。真实 Inventory 在 Plan 阶段完全不变；材料、Slot、Weight、Station 或耗时语义任一失败都会丢弃草稿。输入消耗释放出的 Slot 和重量自然参与输出容量判断，不使用危险 rollback。
+
+当前配方只有 `stick ×2 + stone ×2 → stone_axe ×1`，且 `craftTimeSeconds=0`。C 键 Debug Panel 读取 `CraftRequirementResult`，不直接查询/修改 Inventory；方向键选择、Enter 制作，面板打开时 E Interaction 被屏蔽。所有 UI/Input listener 均在 dispose 时移除。
+
+Crafting 只定义 `Inventory Items → Inventory Items`。未来 Building 应定义 `Inventory Materials / Placeable Definition → World Building Entity`；除非后续 Issue 明确决定 Placeable Kit，不默认建筑必须先成为 Inventory Item。石斧 Definition 的 durability 只是最大值元数据，未来 Tool Gameplay 引入 Item Instance State 时需另行设计 Runtime Durability。
 
 ## Game Time 与 Runtime
 
@@ -245,15 +256,15 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 
 ## 数据和存档方向
 
-Item 与 Weather 定义已使用 JSON 和稳定 ID；Recipe 与 Loot 仍是未来方向。核心逻辑不得使用展示名称作为业务键。
+Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来方向。核心逻辑不得使用展示名称作为业务键。
 
 未来存档使用 IndexedDB 并携带 Schema Version。规划中的存档外层预留 player、world、time、weather、inventory、buildings 字段，但本阶段不实现这些接口或行为。
 
 ## 测试策略
 
-不对 Babylon 渲染做大量低价值单元测试。Item Catalog、ItemStack、Inventory 容量/重量/Stack/Partial Add、Pickup Transaction 与场景 Placement 已由纯测试覆盖；Recipe、Wetness 和存档仅在未来获得授权时测试。
+不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 21 个测试文件、106 个测试，除既有 Weather/Thermal/Shelter/降水碰撞外，还覆盖 Item 校验、Inventory 边界、Pickup Transaction 和集中输入配置。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项。
+当前共 23 个测试文件、145 个测试，新增覆盖三种失败原子性、Inventory Draft/Commit、释放 Slot/Weight、多 Stack 输入、Stackable/不可堆叠输出、批量制作、Station 和耗时配方边界。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项。
 
 ## Weather Presentation 已知边界
 

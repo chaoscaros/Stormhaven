@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Interaction + Item + Inventory Foundation v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Crafting Foundation v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：在既有 Scene、天气、Thermal 和 Shelter/Heat 之上，已完成通用 Interaction Contract、2.75m 第一人称 Raycast、Item Catalog、24 Slot/30kg Inventory、World Pickup Transaction、Primitive Presentation 和只读 Debug Inventory
-- 明确未实现：Crafting、Building、Campfire Gameplay、Fuel、Item Use/Consumption、Equipment、Durability Gameplay、Drop、Container/Storage UI、Save/IndexedDB、Loot Table、Harvesting
+- 功能状态：在 World Pickup → Interaction → Inventory 基础上，已完成 Recipe Validation/Catalog、Requirement、CraftingPlan、草稿 Inventory 原子事务、Stone Axe Recipe 和 C 键 Crafting Debug UI
+- 明确未实现：Timed Crafting、Craft Queue、Workbench/Station System、Building、Campfire Gameplay、Fuel、Tool Gameplay、Item Use/Equipment、Durability Runtime、Container/Storage UI、Save/IndexedDB
 
 ## 已完成内容
 
@@ -54,12 +54,16 @@
 - HUD 展示庇护、挡风、原始→有效风力及热源加成
 - 暴雪中室外失温、庇护减缓、炉旁回暖及 FPS 一致性 Integration Test
 - 局部降水粒子路径与静态碰撞 Mesh AABB 的 Slab 检测，碰撞后回收粒子
-- JSON 驱动的 8 个 ItemDefinition 和 6 个 First Blizzard Pickup Placement
+- JSON 驱动的 9 个 ItemDefinition 和 6 个 First Blizzard Pickup Placement
 - 纯 `ItemCatalog`、`ItemStack`、Slot/Stack/Weight Inventory 与 Partial Add
 - Camera Forward Ray → Target ID → InteractionService → Inventory/Registry → Presentation
 - `E` 防 Key Repeat 单次拾取、`Tab` 只读背包、Prompt 和结果反馈
 - Pickup 完全消费才 dispose Mesh；容量/重量不足时保留全部或剩余数量
-- 21 个测试文件、106 个单元测试
+- JSON 驱动 Stone Axe Recipe、RecipeCatalog 与完整 Runtime Validation
+- Craft Requirement、Missing Inputs、Max Craftable Count 与稳定 Failure Reason
+- Clone Draft → Consume → Add Output → Validate Final Snapshot → Atomic Commit
+- C/方向键/Enter 键盘式制作面板；打开时屏蔽 E Interaction
+- 23 个测试文件、145 个单元测试
 
 ## 关键架构入口
 
@@ -79,6 +83,11 @@
 | `src/ui/setupFoundationUi.ts` | 指针锁定和基础 DOM 状态 |
 | `src/items/ItemCatalog.ts` | Item JSON 校验、重复 ID 检查与稳定查询 |
 | `src/inventory/Inventory.ts` | Babylon/DOM 无关的 Slot、Stack、Weight 与 Partial Add |
+| `src/crafting/RecipeCatalog.ts` | Recipe JSON 校验、重复/未知 Item 检查与稳定 ID 查询 |
+| `src/crafting/CraftingService.ts` | Requirement、Plan、最大数量与原子 Craft Transaction |
+| `src/crafting/CraftingTypes.ts` | Requirement、Plan、Result 和稳定 Failure Reason 契约 |
+| `src/ui/setupCraftingDebugUi.ts` | C/方向键/Enter 制作面板及 Listener 生命周期 |
+| `data/crafting/recipes.json` | 即时手工石斧配方 |
 | `src/interaction/InteractionService.ts` | Inventory Add 与 Pickup Remaining 的纯事务服务 |
 | `src/interaction/InteractionRaycastController.ts` | Babylon Ray Picking、E 输入与监听器生命周期 |
 | `src/world/pickups/WorldPickupRegistry.ts` | Pickup 剩余数量与消费状态，不持有 Mesh |
@@ -192,10 +201,16 @@ pnpm dev
 - `pnpm test`：21 个测试文件、106 个测试通过
 - `git diff --check`：通过
 
+2026-08-29 完成 Crafting Foundation v0.1 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：23 个测试文件、145 个测试通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
-- Pickup 可见性、Prompt 距离、E 单次拾取、I 面板、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
+- Pickup 可见性、Prompt 距离、E 单次拾取、Tab 面板、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
+- C 面板、材料/产出显示、Enter 单次制作、E 屏蔽、制作后 Tab Inventory 联动均需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
@@ -217,6 +232,8 @@ pnpm dev
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
 - 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭或燃料。
 - Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
+- Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
+- Stone Axe durability 仅是 Definition 最大值；ItemStack 没有实例耐久，石斧不能装备、使用、砍树或挖矿。
 - Raycast 每帧仅测试 interaction-enabled Mesh；当前没有通用 NPC/门/热源交互，也没有复杂 Interaction Framework。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
@@ -226,9 +243,19 @@ pnpm dev
 
 本 Issue 已达到停止条件。不要在当前任务继续开发。
 
-推荐下一独立 Issue：**Crafting Foundation v0.1**，只设计 Recipe Definition、Catalog 和纯逻辑输入/输出校验；是否执行必须由用户另行授权。当前任务不得顺带进入 Crafting、Building、Campfire/Fuel、物品使用、容器或存档。
+推荐下一独立 Issue：**Building Foundation v0.1**，先定义 BuildDefinition、Ghost、Placement Validation 和资源消费边界；是否执行必须由用户另行授权。不得顺带进入 Campfire/Fuel、工具玩法或 Save。
 
 ## 变更记录
+
+### 2026-08-29 — Crafting Foundation v0.1
+
+- 新增 Data Driven RecipeDefinition、RecipeCatalog、稳定 `hand` Station ID 与 Stone Axe 即时配方。
+- 新增 Craft Requirement、缺失材料明细、最大可制作数量、CraftingPlan 和稳定 Result Reason。
+- Inventory 增加独立 Clone 与完整校验后 Snapshot Commit；所有制作先在草稿模拟，失败不修改真实 Inventory。
+- 新增石斧 ItemDefinition（stackSize 1、durability 最大值元数据），但未实现装备、使用或耐久 Runtime。
+- 新增 C 键工业遥测风格 Debug Panel、方向键选择、Enter 制作、结果反馈和 E Interaction 屏蔽。
+- 新增 Recipe/Crafting 与 Inventory Draft/Commit 测试；最终 23 个测试文件、145 个测试通过，TypeScript 严格检查通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；等待用户按 Runbook 手动验收后停止。
 
 ### 2026-08-29 — 背包快捷键调整为 Tab
 

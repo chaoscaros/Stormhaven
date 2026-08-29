@@ -156,7 +156,13 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 28. 重复拾取木材确认 Stack 合并；接近容量上限时，未被接受的世界物品不得消失。
 29. 刷新页面后背包恢复为空，这是当前未实现 Save 的预期行为。
 30. 回归确认 WASD、Shift、Space、Pointer Lock、Weather、雪粒子、木屋碰撞、Shelter HUD 和测试炉热量均正常。
-31. Browser console has no uncaught error.
+31. 拾取至少树枝 ×2、石头 ×2；按 `C` 打开 Crafting Debug Panel，确认石斧配方显示所需数量、持有数量和产出。
+32. 材料不足时状态明确列出缺失材料；拾取补足后重新打开面板，状态变为“可以制作”。
+33. 面板打开时按 `Enter`，确认只制作一次，显示“制作完成：石斧 ×1”，且 E 拾取不会同时触发。
+34. 按 `Tab` 确认树枝/石头减少且石斧增加；石斧不能装备、使用、挥舞或砍树，这是当前预期。
+35. 制作面板打开时用 `C` 或 `Esc` 关闭；释放 Pointer Lock 后面板自动关闭，重新进入不会一次 Enter 制作多次。
+36. 刷新页面后 Inventory 与 Crafting State 清空，这是当前未实现 Save 的预期行为。
+37. Browser console has no uncaught error.
 
 ## CI or reproducible installation
 

@@ -8,6 +8,7 @@ import type { InteractionService } from "./InteractionService";
 import type { InteractionTarget } from "./InteractionTarget";
 
 export interface InteractionCallbacks {
+  readonly isInteractionBlocked?: () => boolean;
   readonly onTargetChanged: (target?: InteractionTarget) => void;
   readonly onInteraction: (
     result: InteractionResult,
@@ -59,6 +60,7 @@ export class InteractionRaycastController {
       event.code !== INTERACTION_CONFIG.interactKeyCode
       || event.repeat
       || document.pointerLockElement !== this.canvas
+      || this.callbacks.isInteractionBlocked?.()
       || !this.#currentTarget
     ) return;
     event.preventDefault();

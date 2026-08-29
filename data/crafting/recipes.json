@@ -1,0 +1,17 @@
+[
+  {
+    "id": "stone_axe",
+    "displayName": "石斧",
+    "description": "将两根树枝与两块石头组合成一把简单石斧。",
+    "inputs": [
+      { "itemId": "stick", "quantity": 2 },
+      { "itemId": "stone", "quantity": 2 }
+    ],
+    "outputs": [
+      { "itemId": "stone_axe", "quantity": 1 }
+    ],
+    "craftTimeSeconds": 0,
+    "requiredStation": "hand",
+    "tags": ["tool", "hand_crafting"]
+  }
+]

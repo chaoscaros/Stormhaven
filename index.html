@@ -37,6 +37,7 @@
             <span><kbd>SHIFT</kbd> 奔跑</span>
             <span><kbd>E</kbd> 拾取</span>
             <span><kbd>TAB</kbd> 背包</span>
+            <span><kbd>C</kbd> 制作</span>
           </p>
         </div>
         <p class="start-screen__footer">WEATHER PRESENTATION ONLINE // F1–F4 视觉预览</p>
@@ -111,6 +112,28 @@
             </div>
           </dl>
         </aside>
+        <aside id="crafting-panel" class="crafting-panel" aria-label="制作调试面板" hidden>
+          <header>
+            <span>FIELD CRAFTING</span>
+            <strong id="crafting-recipe-position">1 / 1</strong>
+          </header>
+          <div class="crafting-panel__body">
+            <p class="crafting-panel__eyebrow">即时手工制作</p>
+            <h2 id="crafting-recipe-name">石斧</h2>
+            <p id="crafting-recipe-description" class="crafting-panel__description"></p>
+            <section>
+              <h3>所需材料</h3>
+              <ul id="crafting-requirements" class="crafting-panel__requirements"></ul>
+            </section>
+            <section class="crafting-panel__output">
+              <h3>产出</h3>
+              <strong id="crafting-output">石斧 ×1</strong>
+            </section>
+            <p id="crafting-status" class="crafting-panel__status">检查材料中</p>
+            <p id="crafting-feedback" class="crafting-panel__feedback" role="status" hidden></p>
+          </div>
+          <footer><span>↑ ↓ 选择</span><strong>ENTER 制作 · C 关闭</strong></footer>
+        </aside>
         <aside id="inventory-panel" class="inventory-panel" aria-label="背包调试面板" hidden>
           <header>
             <span>FIELD INVENTORY</span>
@@ -127,7 +150,7 @@
         <div id="pickup-feedback" class="pickup-feedback" role="status" hidden></div>
         <div id="crosshair" class="crosshair" aria-hidden="true"></div>
         <div id="interaction-prompt" class="interaction-prompt" hidden></div>
-        <div class="hud__hint">E 交互 · TAB 背包 · F1–F4 天气预览 · F5 跟随计划 · ESC 释放鼠标</div>
+        <div class="hud__hint">E 交互 · TAB 背包 · C 制作 · F1–F4 天气预览 · ESC 释放鼠标</div>
       </div>
 
       <div id="error-screen" class="error-screen" role="alert" hidden>

@@ -86,5 +86,16 @@
     "durability": null,
     "icon": null,
     "tags": ["food", "raw"]
+  },
+  {
+    "id": "stone_axe",
+    "displayName": "石斧",
+    "description": "由树枝和石头制成的简单工具；当前版本不能装备或使用。",
+    "category": "tool",
+    "stackSize": 1,
+    "weight": 1.8,
+    "durability": 100,
+    "icon": null,
+    "tags": ["tool", "crafted"]
   }
 ]

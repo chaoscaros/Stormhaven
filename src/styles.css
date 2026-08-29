@@ -291,10 +291,141 @@ h1 span {
 }
 
 .inventory-panel,
+.crafting-panel,
 .interaction-prompt,
 .pickup-feedback {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-variant-numeric: tabular-nums;
+}
+
+.crafting-panel {
+  position: absolute;
+  top: 112px;
+  left: 30px;
+  width: 300px;
+  color: rgba(232, 239, 240, 0.78);
+  border-top: 2px solid var(--signal);
+  background:
+    linear-gradient(115deg, rgba(210, 166, 96, 0.09), transparent 38%),
+    rgba(10, 17, 19, 0.91);
+  box-shadow: 12px 18px 36px rgba(3, 8, 10, 0.38);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(4px);
+}
+
+.crafting-panel > header,
+.crafting-panel > footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 13px;
+  color: rgba(158, 179, 182, 0.68);
+  font-size: 7px;
+  letter-spacing: 0.13em;
+}
+
+.crafting-panel > header {
+  border-bottom: 1px solid rgba(216, 229, 230, 0.14);
+}
+
+.crafting-panel > header strong,
+.crafting-panel > footer strong {
+  color: var(--signal);
+}
+
+.crafting-panel > footer {
+  border-top: 1px solid rgba(210, 166, 96, 0.28);
+}
+
+.crafting-panel__body {
+  padding: 13px;
+}
+
+.crafting-panel__eyebrow,
+.crafting-panel__description {
+  margin: 0;
+  color: rgba(158, 179, 182, 0.62);
+}
+
+.crafting-panel__eyebrow {
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.crafting-panel h2 {
+  margin: 5px 0 7px;
+  color: var(--ice);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.crafting-panel__description {
+  min-height: 34px;
+  font-size: 9px;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.crafting-panel section {
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(216, 229, 230, 0.09);
+}
+
+.crafting-panel h3 {
+  margin: 0 0 7px;
+  color: rgba(158, 179, 182, 0.62);
+  font-size: 7px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.crafting-panel__requirements {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crafting-panel__requirements li,
+.crafting-panel__output {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--ice);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+}
+
+.crafting-panel__requirements strong[data-satisfied="false"] {
+  color: #efb19e;
+}
+
+.crafting-panel__requirements strong[data-satisfied="true"],
+.crafting-panel__output strong {
+  color: #b9d4d3;
+}
+
+.crafting-panel__status,
+.crafting-panel__feedback {
+  margin: 13px 0 0;
+  padding: 8px 9px;
+  color: #efb19e;
+  border-left: 2px solid #c65345;
+  background: rgba(198, 83, 69, 0.08);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.crafting-panel__status[data-available="true"],
+.crafting-panel__feedback[data-tone="success"] {
+  color: #c5dbd8;
+  border-color: var(--signal);
+  background: rgba(210, 166, 96, 0.08);
 }
 
 .inventory-panel {

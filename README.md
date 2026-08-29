@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source，以及 Interaction + Item + Inventory Foundation v0.1**。玩家可拾取场景物资并在只读 Debug Inventory 中确认结果；Crafting、物品使用、容器、存档和建筑玩法尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source、Interaction + Item + Inventory，以及 Crafting Foundation v0.1**。玩家可拾取树枝与石头，并通过即时手工配方制作石斧；工具使用、存档和建筑玩法尚未实现。
 
 ## 当前完成内容
 
@@ -38,6 +38,10 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup
 - 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
 - `Tab` 键只读 Debug Inventory、拾取反馈与 Pickup Mesh 生命周期同步
+- Data Driven Recipe、Runtime Validation、需求预览与最大可制作数量
+- 草稿 Inventory 模拟输入消耗和输出加入，完整成功后原子提交
+- `C` 键 Crafting Debug Panel、方向键选择、`Enter` 即时制作与失败反馈
+- 石斧真实配方：树枝 ×2 + 石头 ×2 → 石斧 ×1
 - GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup Transaction、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 
@@ -66,6 +70,9 @@ pnpm dev
 | `Shift` | 奔跑 |
 | `E` | 拾取准星对准的物资 |
 | `Tab` | 打开或关闭只读 Debug Inventory |
+| `C` | 打开或关闭 Crafting Debug Panel |
+| `↑` / `↓` | 在 Crafting Panel 中选择配方 |
+| `Enter` | 制作当前配方 1 次 |
 | `Esc` | 释放鼠标 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
 | `F5` | 退出视觉预览，恢复跟随天气计划 |
@@ -91,8 +98,8 @@ pnpm build
 
 `src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager`、`ShelterSystem`、`HeatSourceSystem` 与 `ThermalModel`；相机位置只以普通 `{x,y,z}` 数据进入模拟，不把 Babylon 类型泄漏到领域层。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
 
-Thermal 只输出体热状态，不扣除生命。Interaction 的运行链为 Camera Raycast → Target ID → `InteractionService` → `Inventory`/`WorldPickupRegistry` → Babylon/UI Presentation。Inventory 不依赖 Babylon 或 DOM，World Pickup Domain 不保存 Mesh。
+Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe JSON → `RecipeCatalog` → `CraftingService` → Inventory Draft → Final Snapshot Commit；UI 只读取 Requirement/Result，不直接增删物品。Crafting Domain 不依赖 Babylon 或 DOM。
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要继续扩展 Interaction、Item 或 Inventory；不要顺带实现 Crafting、Building、Campfire、Fuel、物品使用/消耗、装备、耐久玩法、丢弃、容器 UI、存档、Loot Table 或采集。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要继续扩展 Crafting，也不要实现 Building、Campfire、Fuel、Workbench、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。

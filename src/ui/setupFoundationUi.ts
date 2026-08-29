@@ -68,6 +68,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const crosshair = getElement("crosshair");
   const interactionPrompt = getElement("interaction-prompt");
   const inventoryPanel = getElement("inventory-panel");
+  const craftingPanel = getElement("crafting-panel");
   const inventoryItems = getElement<HTMLUListElement>("inventory-items");
   const inventoryWeight = getElement("inventory-weight");
   const inventorySlots = getElement("inventory-slots");
@@ -88,6 +89,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
       canvas.focus({ preventScroll: true });
     } else {
       inventoryPanel.hidden = true;
+      craftingPanel.hidden = true;
     }
   };
   const handleInventoryKeyDown = (event: KeyboardEvent): void => {
@@ -98,6 +100,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
     ) return;
     event.preventDefault();
     inventoryPanel.hidden = !inventoryPanel.hidden;
+    if (!inventoryPanel.hidden) craftingPanel.hidden = true;
   };
   document.addEventListener("pointerlockchange", handlePointerLockChange);
   window.addEventListener("keydown", handleInventoryKeyDown);

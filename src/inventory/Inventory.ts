@@ -47,6 +47,37 @@ export class Inventory {
     });
   }
 
+  /** 为事务规划创建完全独立的草稿；修改草稿不会影响原 Inventory。 */
+  clone(): Inventory {
+    const clone = new Inventory(this.catalog, this.config);
+    clone.replaceWithSnapshot(this.snapshot);
+    return clone;
+  }
+
+  /** 完整校验候选 Snapshot 后一次替换，用作已验证事务的 Commit 边界。 */
+  replaceWithSnapshot(snapshot: InventorySnapshot): void {
+    if (snapshot.slots.length !== this.config.maxSlots) {
+      throw new Error("Inventory Snapshot Slot 数量与配置不一致。");
+    }
+    const nextSlots = snapshot.slots.map((stack, index) => {
+      if (!stack) return undefined;
+      const definition = this.catalog.get(stack.itemId);
+      if (!Number.isInteger(stack.quantity) || stack.quantity <= 0) {
+        throw new Error(`Inventory Snapshot Slot[${index}] quantity 非法。`);
+      }
+      if (stack.quantity > definition.stackSize) {
+        throw new Error(`Inventory Snapshot Slot[${index}] 超过 Stack Size。`);
+      }
+      return createItemStack(stack.itemId, stack.quantity);
+    });
+    const totalWeight = nextSlots.reduce((total, stack) =>
+      total + (stack ? this.catalog.get(stack.itemId).weight * stack.quantity : 0), 0);
+    if (totalWeight > this.config.maxWeightKilograms + Number.EPSILON) {
+      throw new Error("Inventory Snapshot 超过最大负重。");
+    }
+    this.#slots.splice(0, this.#slots.length, ...nextSlots);
+  }
+
   canAddItem(itemId: string, quantity: number): InventoryAddResult {
     assertPositiveQuantity(quantity, "Inventory add quantity");
     const definition = this.catalog.get(itemId);

@@ -117,6 +117,26 @@ describe("Inventory", () => {
     expect(inventory.snapshot.usedSlots).toBeLessThanOrEqual(2);
     expect(inventory.snapshot.totalWeightKilograms).toBeLessThanOrEqual(3);
   });
+
+  it("Clone 是独立事务草稿", () => {
+    const inventory = createInventory();
+    inventory.addItem("wood", 5);
+    const draft = inventory.clone();
+    draft.removeItem("wood", 3);
+    expect(draft.getItemCount("wood")).toBe(2);
+    expect(inventory.getItemCount("wood")).toBe(5);
+  });
+
+  it("非法 Snapshot Commit 失败时原 Inventory 不变", () => {
+    const inventory = createInventory(2, 100);
+    inventory.addItem("wood", 5);
+    const before = inventory.snapshot;
+    expect(() => inventory.replaceWithSnapshot({
+      ...before,
+      slots: [{ itemId: "wood", quantity: 999 }, undefined],
+    })).toThrow("超过 Stack Size");
+    expect(inventory.snapshot).toEqual(before);
+  });
 });
 
 function createInventory(maxSlots = 24, maxWeightKilograms = 100): Inventory {

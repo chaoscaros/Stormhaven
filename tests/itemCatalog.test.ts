@@ -7,7 +7,8 @@ describe("ItemDefinition / ItemCatalog", () => {
   it("解析合法 Items JSON", () => {
     const catalog = ItemCatalog.fromUnknown(itemDefinitionsData);
     expect(catalog.get("wood")).toMatchObject({ displayName: "木材", stackSize: 20 });
-    expect(catalog.getAll()).toHaveLength(8);
+    expect(catalog.getAll()).toHaveLength(9);
+    expect(catalog.get("stone_axe")).toMatchObject({ stackSize: 1, durability: 100 });
   });
 
   it("拒绝重复 Item ID", () => {
