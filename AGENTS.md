@@ -24,7 +24,7 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 当前阶段
 
-当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1** 和 **Shelter + Heat Source v0.1**：纯坐标 Shelter/Heat 查询已能与天气共同驱动 Effective Temperature、Wind Chill 与 Thermal Reserve，并通过 Debug HUD 展示；Shelter State 同时驱动室内局部降水粒子遮罩。
+当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1** 和 **Shelter + Heat Source v0.1**：纯坐标 Shelter/Heat 查询已能与天气共同驱动 Effective Temperature、Wind Chill 与 Thermal Reserve，并通过 Debug HUD 展示；局部降水粒子通过运动线段与静态碰撞障碍 AABB 检测，不能穿过屋顶和墙体。
 
 本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 Shelter、Heat Source、Weather Visual Effects 或 Thermal，也不得实现 Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage、Inventory、Crafting、Save 或 Building 玩法。固定测试木屋与测试炉只是验证领域效果的 Scenario 占位表现，不是建筑或物品系统。
 

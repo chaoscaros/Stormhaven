@@ -53,8 +53,8 @@
 - 共用 Scenario Placement 的固定 Primitive 测试木屋、入口、碰撞与常开测试炉
 - HUD 展示庇护、挡风、原始→有效风力及热源加成
 - 暴雪中室外失温、庇护减缓、炉旁回暖及 FPS 一致性 Integration Test
-- Shelter State 驱动的局部降水粒子遮罩，进入木屋时立即停止发射并清除已有粒子
-- 18 个测试文件、70 个单元测试
+- 局部降水粒子路径与静态碰撞 Mesh AABB 的 Slab 检测，碰撞后回收粒子
+- 18 个测试文件、72 个单元测试
 
 ## 关键架构入口
 
@@ -163,6 +163,11 @@ pnpm dev
 - `pnpm test`：18 个测试文件、70 个测试通过
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 
+2026-08-29 将错误的 Shelter 二值停发改为障碍碰撞后，实际执行并通过：
+
+- `pnpm test`：18 个测试文件、72 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -181,7 +186,8 @@ pnpm dev
 - 第一人称控制当前使用 Babylon Camera Collision 加自有垂直速度，不是完整 Havok Character Controller。
 - 已修复缺少 Collision Coordinator Side Effect 和 Camera Speed 错误除以 60 的问题，但修复后的实际键鼠操作仍需用户浏览器验收。
 - Weather Presentation 已接入天空、Fog、Lighting、局部 Snow Particle 与视觉风向；没有 Audio、Screen Frost、Camera Shake、Snow Accumulation、Footprints、Lightning Damage 或 Tree Destruction。
-- 当前降水遮罩按 Shelter State 二值切换，不模拟门口飘雪、屋檐遮挡、风向穿透或不同建筑开口。
+- 降水碰撞当前缓存启动时已有且启用 Camera Collision 的静态 Mesh AABB；未来动态 Building 需要增量注册/移除障碍并更新 Bounds。
+- 第一版使用 AABB 而非精确三角形碰撞；对于旋转或复杂凹形 Mesh 会比视觉轮廓更保守。
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
 - 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭、燃料、交互、物品或持久化。
@@ -203,7 +209,18 @@ pnpm dev
 
 ## 变更记录
 
+### 2026-08-29 — 降水粒子障碍碰撞修正
+
+- 撤销“进入 Shelter 就停止全部降水”的错误方向；天气粒子在室内外继续统一发射。
+- 为 CPU ParticleSystem 包装默认更新流程，记录粒子前后位置并进行线段与静态碰撞 AABB 的 Slab 检测。
+- 雪花撞到屋顶、墙、地面、炉子或控制标杆后立即回收；未碰到障碍的粒子仍可从开放入口随风进入。
+- 碰撞采用运动线段而不是单点检测，避免薄屋顶被单帧高速粒子穿透。
+- 新增 4 个纯逻辑碰撞测试；总计 72/72 通过，TypeScript 严格检查通过。
+- 未执行浏览器操作，屋顶阻挡与入口飘雪效果仍需用户刷新页面后手动验收。
+
 ### 2026-08-29 — 室内降水粒子遮罩修复
+
+> 此实现方向已被后续“降水粒子障碍碰撞修正”取代，不再按 Shelter State 整体停发。
 
 - Weather Presentation 读取现有 `ShelterState.isSheltered`，在庇护所内将局部降雪强度和发射率归零。
 - 进入 Shelter 时立即 Reset 已生成的局部粒子，避免存活期内的雪花继续穿过屋顶。
