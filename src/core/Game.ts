@@ -48,7 +48,12 @@ export class Game {
 
     this.#engine.runRenderLoop(() => {
       const deltaSeconds = this.#engine.getDeltaTime() / 1_000;
-      const simulationUpdate = this.simulation.update(deltaSeconds);
+      const position = camera.globalPosition;
+      const simulationUpdate = this.simulation.update(deltaSeconds, {
+        x: position.x,
+        y: position.y,
+        z: position.z,
+      });
       const presentation = this.#weatherPresentation?.update(simulationUpdate.snapshot);
       if (presentation) {
         this.onSimulationUpdate(simulationUpdate.snapshot, presentation);

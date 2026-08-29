@@ -55,7 +55,10 @@ export function createFirstPersonCamera(
       Vector3.Down(),
       PLAYER_CONFIG.eyeHeightMeters + GROUND_PROBE_MARGIN_METERS,
     );
-    return scene.pickWithRay(groundProbe, (mesh) => mesh.name === "snow-ground")?.hit ?? false;
+    return scene.pickWithRay(
+      groundProbe,
+      (mesh) => mesh.name === "snow-ground" || mesh.name === "test-cabin-floor",
+    )?.hit ?? false;
   };
 
   const handleKeyDown = (event: KeyboardEvent): void => {

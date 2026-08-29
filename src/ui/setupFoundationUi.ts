@@ -50,6 +50,9 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const debugEnvironmentTemperature = getElement("debug-environment-temperature");
   const debugEffectiveTemperature = getElement("debug-effective-temperature");
   const debugWindStrength = getElement("debug-wind-strength");
+  const debugShelter = getElement("debug-shelter");
+  const debugWindProtection = getElement("debug-wind-protection");
+  const debugHeatBonus = getElement("debug-heat-bonus");
   const debugThermalValue = getElement("debug-thermal-value");
   const debugThermalTrend = getElement("debug-thermal-trend");
   const debugThermalStatus = getElement("debug-thermal-status");
@@ -114,7 +117,19 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
       );
       setTextIfChanged(
         debugWindStrength,
-        `${snapshot.gameplayWeather.windStrength.toFixed(1)} · ${Math.round(snapshot.thermal.normalizedWindStrength * 100)}%`,
+        `${snapshot.thermalEnvironment.rawWindStrength.toFixed(1)} → ${snapshot.thermalEnvironment.effectiveWindStrength.toFixed(1)}`,
+      );
+      setTextIfChanged(
+        debugShelter,
+        snapshot.shelter.displayName ?? "室外",
+      );
+      setTextIfChanged(
+        debugWindProtection,
+        `${Math.round(snapshot.thermalEnvironment.windProtection * 100)}%`,
+      );
+      setTextIfChanged(
+        debugHeatBonus,
+        `${formatSignedCelsius(snapshot.thermalEnvironment.externalHeatBonusCelsius)}${snapshot.heat.dominantDisplayName ? ` · ${snapshot.heat.dominantDisplayName}` : ""}`,
       );
       setTextIfChanged(debugThermalValue, `${snapshot.thermal.currentValue.toFixed(1)}%`);
       setTextIfChanged(

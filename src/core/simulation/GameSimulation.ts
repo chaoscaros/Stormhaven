@@ -12,9 +12,25 @@ import type { ThermalConfig } from "../../survival/thermal/ThermalConfig";
 import { ThermalModel } from "../../survival/thermal/ThermalModel";
 import type { ThermalSnapshot } from "../../survival/thermal/ThermalState";
 import { createThermalInputs } from "../../survival/thermal/createThermalInputs";
+import type { SpatialPoint } from "../../survival/environment/SpatialPoint";
+import { ShelterSystem, type ShelterState } from "../../survival/shelter/ShelterSystem";
+import {
+  HeatSourceSystem,
+  type HeatContributionSnapshot,
+} from "../../survival/heat/HeatSourceSystem";
+import {
+  ThermalEnvironmentBuilder,
+  type ThermalEnvironmentSnapshot,
+} from "../../survival/thermal/ThermalEnvironment";
 
 export interface GameSimulationConfig extends GameClockConfig {
   readonly maxDeltaSeconds: number;
+}
+
+export interface GameSimulationEnvironmentConfig {
+  readonly shelterSystem: ShelterSystem;
+  readonly heatSourceSystem: HeatSourceSystem;
+  readonly initialPlayerPosition: SpatialPoint;
 }
 
 export interface SimulationWeatherSnapshot {
@@ -39,6 +55,9 @@ export interface GameSimulationSnapshot {
   readonly time: GameTimeSnapshot;
   readonly weather: SimulationWeatherSnapshot;
   readonly gameplayWeather: WeatherGameplayState;
+  readonly shelter: ShelterState;
+  readonly heat: HeatContributionSnapshot;
+  readonly thermalEnvironment: ThermalEnvironmentSnapshot;
   readonly thermal: ThermalSnapshot;
   readonly forecast?: SimulationForecastSnapshot;
   readonly transition?: SimulationTransitionSnapshot;
@@ -69,13 +88,21 @@ export class GameSimulation {
   readonly #weather: WeatherManager;
   readonly #weatherGameplayMapper = new WeatherGameplayMapper();
   readonly #thermal: ThermalModel;
+  readonly #shelterSystem: ShelterSystem;
+  readonly #heatSourceSystem: HeatSourceSystem;
+  readonly #thermalEnvironmentBuilder = new ThermalEnvironmentBuilder();
   readonly #maxDeltaSeconds: number;
+  #playerPosition: SpatialPoint;
+  #shelterState: ShelterState;
+  #heatContribution: HeatContributionSnapshot;
+  #thermalEnvironment: ThermalEnvironmentSnapshot;
 
   constructor(
     config: GameSimulationConfig,
     catalog: WeatherCatalog,
     schedule: WeatherSchedule,
     thermalConfig: ThermalConfig,
+    environment?: GameSimulationEnvironmentConfig,
   ) {
     if (!Number.isFinite(config.maxDeltaSeconds) || config.maxDeltaSeconds <= 0) {
       throw new Error("maxDeltaSeconds 必须是大于 0 的有限数值。");
@@ -90,8 +117,26 @@ export class GameSimulation {
     this.#forecast = new ForecastSystem(schedule);
     this.#weather = new WeatherManager(catalog, schedule.initialWeatherId);
     this.#thermal = new ThermalModel(thermalConfig);
+    this.#shelterSystem = environment?.shelterSystem ?? ShelterSystem.empty();
+    this.#heatSourceSystem = environment?.heatSourceSystem ?? HeatSourceSystem.empty();
+    this.#playerPosition = freezePoint(
+      environment?.initialPlayerPosition ?? { x: 0, y: 0, z: 0 },
+    );
+    this.#shelterState = this.#shelterSystem.getState(this.#playerPosition);
+    this.#heatContribution = this.#heatSourceSystem.getContribution(this.#playerPosition);
+    this.#thermalEnvironment = this.#thermalEnvironmentBuilder.build(
+      this.#createGameplayWeatherState(),
+      this.#shelterState,
+      this.#heatContribution,
+    );
     this.#maxDeltaSeconds = config.maxDeltaSeconds;
-    this.#thermal.update(createThermalInputs(this.#createGameplayWeatherState(), 0));
+    this.#thermal.update(
+      createThermalInputs(
+        this.#createGameplayWeatherState(),
+        this.#thermalEnvironment,
+        0,
+      ),
+    );
   }
 
   get snapshot(): GameSimulationSnapshot {
@@ -109,6 +154,9 @@ export class GameSimulation {
         displayName: currentWeather.displayName,
       }),
       gameplayWeather,
+      shelter: this.#shelterState,
+      heat: this.#heatContribution,
+      thermalEnvironment: this.#thermalEnvironment,
       thermal: this.#thermal.snapshot,
       ...(forecast ? { forecast } : {}),
       ...(transition && targetWeather
@@ -123,12 +171,13 @@ export class GameSimulation {
     });
   }
 
-  update(deltaSeconds: number): GameSimulationUpdate {
+  update(deltaSeconds: number, playerPosition: SpatialPoint = this.#playerPosition): GameSimulationUpdate {
     if (!Number.isFinite(deltaSeconds) || deltaSeconds < 0) {
       throw new Error("deltaSeconds 必须是大于或等于 0 的有限数值。");
     }
 
     const clampedDeltaSeconds = Math.min(deltaSeconds, this.#maxDeltaSeconds);
+    this.#playerPosition = freezePoint(playerPosition);
     const forecastBefore = this.#forecast.getNextForecast(this.#clock.snapshot);
     const timeAdvance = this.#clock.update(clampedDeltaSeconds);
     const events: GameSimulationEvent[] = [];
@@ -166,12 +215,19 @@ export class GameSimulation {
       }
     }
 
-    this.#thermal.update(
-      createThermalInputs(
-        this.#createGameplayWeatherState(),
-        this.#clock.paused ? 0 : clampedDeltaSeconds,
-      ),
+    const gameplayWeather = this.#createGameplayWeatherState();
+    this.#shelterState = this.#shelterSystem.getState(this.#playerPosition);
+    this.#heatContribution = this.#heatSourceSystem.getContribution(this.#playerPosition);
+    this.#thermalEnvironment = this.#thermalEnvironmentBuilder.build(
+      gameplayWeather,
+      this.#shelterState,
+      this.#heatContribution,
     );
+    this.#thermal.update(createThermalInputs(
+      gameplayWeather,
+      this.#thermalEnvironment,
+      this.#clock.paused ? 0 : clampedDeltaSeconds,
+    ));
 
     const snapshot = this.snapshot;
     const forecastAfter = this.#forecast.getNextForecast(timeAdvance.current);
@@ -218,4 +274,11 @@ export class GameSimulation {
       }),
     });
   }
+}
+
+function freezePoint(point: SpatialPoint): SpatialPoint {
+  if (![point.x, point.y, point.z].every(Number.isFinite)) {
+    throw new Error("玩家坐标 x/y/z 必须是有限数值。");
+  }
+  return Object.freeze({ x: point.x, y: point.y, z: point.z });
 }

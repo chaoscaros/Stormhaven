@@ -326,7 +326,7 @@ Recipe 必须 Data Driven，至少包含：
 
 ## 9. 当前仓库真实状态
 
-基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1 和 Player Thermal Model v0.1 已经建立，目前包含：
+基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1 和 Shelter + Heat Source v0.1 已经建立，目前包含：
 
 - Vite + TypeScript 严格模式
 - Babylon.js 9 与 Havok Physics 依赖
@@ -353,14 +353,19 @@ Recipe 必须 Data Driven，至少包含：
 - Weather Gameplay State 与 Transition 参数连续插值
 - Data Driven Thermal Config、Effective Temperature、Wind Chill 和 0..100 Thermal Reserve
 - Thermal Trend、五档 Status 与 Debug Thermal HUD
-- 13 个测试文件、55 个单元测试
+- Data Driven Shelter Profile、Inclusive AABB 检测、挡风与小幅温度加成
+- 通用 Heat Source Profile、smoothstep 距离衰减、多源叠加与全局上限
+- Weather + Shelter + Heat Source → Thermal Environment 的纯领域组合
+- 固定测试木屋、入口、碰撞和常开测试炉 Primitive 表现
+- 庇护、挡风、原始→有效风力和热源加成 Debug HUD
+- 17 个测试文件、68 个单元测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
 明确尚未实现：
 
 - Weather Audio、Indoor Snow Mask 和进一步 Weather Visual Effects
-- Wetness、Shelter、Campfire、Clothing、Health Damage
+- Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage
 - Interaction Raycast
 - Pickup
 - ItemDefinition
@@ -383,6 +388,12 @@ src/main.ts
   ├─ src/core/simulation/GameSimulation.ts
   ├─ src/weather/
   ├─ data/weather/
+  ├─ src/survival/environment/
+  ├─ src/survival/shelter/
+  ├─ src/survival/heat/
+  ├─ src/survival/thermal/
+  ├─ data/survival/
+  ├─ data/world/
   ├─ src/world/createWorldScene.ts
   ├─ src/player/createFirstPersonCamera.ts
   └─ src/ui/setupFoundationUi.ts
@@ -412,10 +423,15 @@ src/main.ts
 - `pnpm test`：13 个测试文件、55 个测试通过。
 - `pnpm exec tsc -b --pretty false`：通过。
 
+2026-08-29 完成 Shelter + Heat Source v0.1 后实际执行并通过：
+
+- `pnpm test`：17 个测试文件、68 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
 - 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
-- Weather Presentation、Thermal Debug HUD 和 14:00 → 18:00 的实时流程仍需要手动验收。
+- Weather Presentation、Shelter/Heat/Thermal Debug HUD、固定木屋碰撞与 14:00 → 18:00 的实时流程仍需要手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 
 仓库已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。

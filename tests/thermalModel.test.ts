@@ -99,6 +99,8 @@ function inputs(
     ambientTemperatureCelsius,
     temperatureModifierCelsius,
     windStrength,
+    shelterTemperatureBonusCelsius: 0,
+    externalHeatBonusCelsius: 0,
     deltaSeconds,
   };
 }

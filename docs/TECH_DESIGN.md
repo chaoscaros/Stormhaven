@@ -24,7 +24,10 @@ src/main.ts
   ├─ world/createWorldScene.ts    Havok、天空、地面、灯光及窄环境引用
   ├─ player/createFirstPersonCamera.ts
   ├─ weather/                     Weather Domain、Gameplay/Visual 并列映射
-  ├─ survival/thermal/            Effective Temperature 与 Thermal Model
+  ├─ survival/environment/        纯空间坐标与 Scenario 注册
+  ├─ survival/shelter/            AABB Shelter 查询
+  ├─ survival/heat/               通用 Heat Source 距离贡献
+  ├─ survival/thermal/            Environment Composition 与 Thermal Model
   └─ ui/setupFoundationUi.ts      仅 DOM 的基础界面适配
 ```
 
@@ -40,7 +43,10 @@ src/main.ts
 | `src/world` | Scene/World 组成及未来空间分区 |
 | `src/player` | 输入、Camera 和未来玩家控制器 |
 | `src/ui` | HTML/CSS 展示及浏览器适配 |
-| `src/survival/thermal` | 纯 Thermal Config、Effective Temperature、体热储备和输入适配 |
+| `src/survival/environment` | Babylon 无关的坐标与 Shelter/Heat Source Scenario Placement |
+| `src/survival/shelter` | Data Driven Shelter Profile、AABB Volume 与挡风/温度查询 |
+| `src/survival/heat` | 通用热源 Profile、平滑距离衰减、多源叠加和全局 Clamp |
+| `src/survival/thermal` | Thermal Environment 组合、Effective Temperature、体热储备和输入适配 |
 | `src/weather` | Data Driven 天气契约、Catalog、Transition、Forecast、Gameplay/Visual 映射和表现适配 |
 | `src/inventory` | 未来的物品堆、Inventory 和 Container |
 | `src/crafting` | 未来的配方校验和制作状态 |
@@ -102,11 +108,17 @@ Gameplay 与 Visual 是 Weather Domain 的并列消费者，禁止从 Fog、粒�
 
 ```text
 Weather Domain
-  ├─ WeatherGameplayMapper → Thermal Input Adapter → ThermalModel → ThermalSnapshot
+  ├─ WeatherGameplayMapper ─┐
+  ├─ ShelterSystem ─────────┼→ ThermalEnvironmentBuilder → Thermal Input Adapter → ThermalModel
+  └─ HeatSourceSystem ──────┘
   └─ WeatherVisualMapper   → WeatherPresentationController → Babylon
 ```
 
-`WeatherGameplayMapper` 接受当前 Weather Definition、可选 Target Definition 和 Transition Progress，Clamp 进度并插值温度、风力、可见度、降水、Wetness Rate、移动修正和太阳能效率。Thermal v0.1 实际只通过 `createThermalInputs` 消费温度与风力；Wetness 等字段没有接入 Thermal 计算。
+`WeatherGameplayMapper` 接受当前 Weather Definition、可选 Target Definition 和 Transition Progress，Clamp 进度并插值温度、风力、可见度、降水、Wetness Rate、移动修正和太阳能效率。`ThermalEnvironmentBuilder` 再组合天气、Shelter 与 Heat Source：挡风先将原始风力变为 `rawWind * (1 - windProtection)`，庇护温度和外部热源加成再进入 Effective Temperature。Wetness 等字段仍未接入 Thermal 计算。
+
+`ShelterSystem` 使用 Inclusive AABB Volume 查询普通 `{x,y,z}` 坐标，Profile 提供 `0..1` 挡风比例和非负温度加成。`HeatSourceSystem` 使用球形半径和 smoothstep 距离衰减；启用热源贡献可相加，但由配置的全局温度上限 Clamp。热源不要求位于 Shelter 内，因此领域语义可支持室外热源。相机每帧只把普通坐标传入 `GameSimulation`，上述领域层不导入 Babylon。
+
+固定测试木屋和测试炉的空间注册位于 `data/world/first-blizzard-environment.json`。`src/world/createFirstBlizzardCabin.ts` 读取相同 Placement 创建 Primitive 表现与碰撞，但 Mesh 不参与 Shelter/Heat 判定，避免渲染与规则双重事实来源。测试炉当前始终启用，没有 Interaction、Fuel、Item 或 Campfire 状态机。
 
 `data/survival/thermal.json` 集中保存以下占位平衡参数：
 
@@ -185,7 +197,7 @@ Day 1 18:00  Blizzard 成为 currentWeather
 
 ## Debug HUD 边界
 
-右上角 Debug HUD 展示 Simulation Snapshot（时间、当前天气、预报、Transition Progress、Gameplay 环境温度、体感温度、风力、体热、趋势和热状态）以及 Presentation Snapshot（当前视觉天气与 Preview 标识）。DOM 更新保留在 `src/ui/setupFoundationUi.ts` 中，并跳过未变化文本，避免每帧无意义写入。
+右上角 Debug HUD 展示 Simulation Snapshot（时间、天气、预报、Transition、环境/体感温度、原始→有效风力、庇护、挡风、热源加成、体热、趋势和热状态）以及 Presentation Snapshot（当前视觉天气与 Preview 标识）。DOM 更新保留在 `src/ui/setupFoundationUi.ts` 中，并跳过未变化文本，避免每帧无意义写入。
 
 F1–F4 只用于快速视觉验收，F5 恢复正常 Schedule 驱动。HUD 的 Domain Weather 与 Visual Weather 分行展示，可直接确认预览没有污染 Domain。
 
@@ -225,15 +237,15 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 
 不对 Babylon 渲染做大量低价值单元测试。Inventory、ItemStack、Recipe、Wetness、WeatherTransition 和存档序列化等确定性逻辑，在对应系统获得开发授权时必须建立单元测试。
 
-当前单元测试还覆盖 Weather Gameplay 插值、Thermal Config Validation、Effective Temperature、Wind Chill 端点、温暖恢复、分级流失、FPS 一致性、Delta 校验、min/max Clamp、Status 边界，以及 First Blizzard Schedule → Gameplay Weather → Thermal 的纯 Domain Integration。类型检查和生产构建仍是质量门禁，浏览器渲染、控制和 HUD 需要独立验收。
+当前单元测试还覆盖 Weather Gameplay 插值、Thermal Config Validation、Effective Temperature、Wind Chill 端点、温暖恢复、分级流失、FPS 一致性、Delta 校验、min/max Clamp、Status 边界、Shelter 内外/边界、0%/100% 挡风、Heat Source 中心/边缘/禁用/单调衰减/叠加上限，以及暴雪中室外→庇护→炉旁的纯 Domain Integration。类型检查和生产构建仍是质量门禁，浏览器渲染、碰撞和 HUD 需要独立验收。
 
 ## Weather Presentation 已知边界
 
 - 室内/遮蔽物下的雪粒子 Mask 尚未实现；粒子当前只按相机局部范围发射。
-- 已有游戏化体感温度、风寒和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
+- 已有游戏化体感温度、风寒、Shelter、Heat Source 和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
 - 没有音频、屏幕结霜、镜头抖动、积雪、脚印、闪电伤害或树木破坏。
 - 没有 GPU/移动端 Profile；容量和 Emit Rate 是桌面 Vertical Slice 的保守初值，需以用户浏览器实际表现校准。
-- Thermal 尚未接入 Wetness、Shelter、Campfire、Clothing、Health、Hypothermia Debuff 或存档。
+- Thermal 尚未接入 Wetness、Campfire/Fuel Gameplay、Clothing、Health、Hypothermia Debuff 或存档。
 
 ## 跨机器开发约定
 

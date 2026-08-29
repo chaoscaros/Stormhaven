@@ -1,0 +1,11 @@
+{
+  "maxCombinedHeatBonusCelsius": 32,
+  "profiles": [
+    {
+      "id": "debug_cabin_heater",
+      "displayName": "测试炉",
+      "radiusMeters": 5,
+      "maxTemperatureBonusCelsius": 32
+    }
+  ]
+}

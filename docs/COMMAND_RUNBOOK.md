@@ -145,7 +145,12 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 17. 17:30–18:00 体感温度随 Transition 连续下降，Thermal Trend 显示负值且流失逐渐加快。
 18. 18:00 Blizzard 下站立约 1 分钟，体热数值应有肉眼可见但不过快的下降。
 19. Thermal 达到低状态时不会扣除生命，也不会触发 Debuff、屏幕特效或其他未实现玩法。
-20. Browser console has no uncaught error.
+20. 从出生点直行可经正面入口进入固定测试木屋；墙体、屋顶和测试炉具有碰撞，木屋地板上仍可跳跃和落地。
+21. HUD 在室外显示“室外”、0% 挡风和原始风力等于有效风力；进入木屋后显示“测试木屋”、90% 挡风和明显降低的有效风力。
+22. 接近屋内橙色测试炉时热源加成平滑增大，离开半径后回到 `+0.0℃`；测试炉始终启用，不存在点火、燃料或交互。
+23. 暴雪中室外体热下降最快、屋内远离炉子时下降较慢、炉旁趋势应转为回暖。
+24. 木屋内仍有降雪粒子属于已知限制，Indoor Snow Mask 尚未实现。
+25. Browser console has no uncaught error.
 
 ## CI or reproducible installation
 

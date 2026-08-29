@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气 Domain、Weather Presentation Layer v0.1 与 Player Thermal Model v0.1**。Wetness、Shelter、Campfire、Health Damage、Inventory、Crafting、存档和建筑玩法均未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气 Domain、Weather Presentation Layer v0.1、Player Thermal Model v0.1 与 Shelter + Heat Source v0.1**。Wetness、Campfire Gameplay、Health Damage、Inventory、Crafting、存档和建筑玩法均未实现。
 
 ## 当前完成内容
 
@@ -29,6 +29,10 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - Data Driven Thermal Config、Effective Temperature 和游戏化 Wind Chill
 - 确定性的 0..100 Thermal Reserve、Trend 与五档稳定 Status ID
 - 环境温度、体感、风力、体热、趋势和热状态 Debug HUD
+- Data Driven Shelter Profile、AABB 室内检测与挡风/温度加成
+- 通用 Heat Source Profile、smoothstep 距离衰减、多热源叠加和全局上限
+- 与领域坐标共用配置的固定测试木屋、入口和常开测试炉占位表现
+- 庇护状态、挡风比例、原始/有效风力和热源加成 Debug HUD
 - GameTime、Forecast、Weather、Thermal、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 
@@ -78,10 +82,10 @@ pnpm build
 
 ## 架构概览
 
-`src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager` 与 `ThermalModel`；Weather Domain 分别通过 Gameplay Mapper 进入 Thermal、通过 Visual Mapper 进入 Babylon。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
+`src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager`、`ShelterSystem`、`HeatSourceSystem` 与 `ThermalModel`；相机位置只以普通 `{x,y,z}` 数据进入模拟，不把 Babylon 类型泄漏到领域层。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
 
-Thermal 只输出体热状态，不扣除生命，也不检测室内、火源、衣物或湿度。Inventory、Crafting、Building 等目录仍只有占位文件。
+Thermal 只输出体热状态，不扣除生命。它已消费 Shelter 挡风/温度加成和通用 Heat Source 加成，但不包含湿度、衣物、燃料、点火交互或 Campfire Gameplay。Inventory、Crafting、Building 等目录仍只有占位文件。
 
 ## 当前阶段限制
 
-在新的 Issue 明确授权之前，不要继续扩展 Thermal、Weather Visual Effects，也不要实现 Wetness、Shelter、Campfire、Health Damage、Inventory、Crafting、存档或建筑系统。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要继续扩展 Shelter、Heat Source、Thermal 或 Weather Visual Effects，也不要实现 Wetness、Campfire Gameplay、Fuel、Clothing、Health Damage、Inventory、Crafting、存档或建筑系统。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。

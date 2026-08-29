@@ -4,6 +4,8 @@ export interface EffectiveTemperatureInputs {
   readonly ambientTemperatureCelsius: number;
   readonly temperatureModifierCelsius: number;
   readonly windStrength: number;
+  readonly shelterTemperatureBonusCelsius: number;
+  readonly externalHeatBonusCelsius: number;
 }
 
 export interface EffectiveTemperatureSnapshot {
@@ -28,6 +30,8 @@ export function calculateEffectiveTemperature(
     effectiveTemperatureCelsius:
       inputs.ambientTemperatureCelsius
       + inputs.temperatureModifierCelsius
+      + inputs.shelterTemperatureBonusCelsius
+      + inputs.externalHeatBonusCelsius
       - windChillPenaltyCelsius,
     windChillPenaltyCelsius,
     normalizedWindStrength,
@@ -39,6 +43,8 @@ function validateInputs(inputs: EffectiveTemperatureInputs): void {
     ["ambientTemperatureCelsius", inputs.ambientTemperatureCelsius],
     ["temperatureModifierCelsius", inputs.temperatureModifierCelsius],
     ["windStrength", inputs.windStrength],
+    ["shelterTemperatureBonusCelsius", inputs.shelterTemperatureBonusCelsius],
+    ["externalHeatBonusCelsius", inputs.externalHeatBonusCelsius],
   ] as const;
   for (const [field, value] of requiredValues) {
     if (!Number.isFinite(value)) {

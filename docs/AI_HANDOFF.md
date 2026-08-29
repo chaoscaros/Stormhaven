@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Player Thermal Model v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Shelter + Heat Source v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
-- Git 状态：`main` 跟踪 `origin/main`；Player Thermal Model v0.1 已完成本地提交，尚未推送
-- 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation、Player Thermal Model 和 Debug HUD
-- 明确未实现：Wetness、Shelter、Campfire、Clothing、Health Damage、Hypothermia Gameplay、Indoor Snow Mask、Inventory、Crafting、Save、Building
+- Git 状态：`main` 跟踪 `origin/main`；Player Thermal Model v0.1 已完成本地提交但尚未推送，本节 Shelter + Heat Source 改动尚未提交
+- 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation、Player Thermal Model、Shelter + Heat Source 和 Debug HUD
+- 明确未实现：Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage、Hypothermia Gameplay、Indoor Snow Mask、Inventory、Crafting、Save、Building
 
 ## 已完成内容
 
@@ -46,7 +46,14 @@
 - 确定性的 0..100 Thermal Reserve、Trend 与五档稳定 Status ID
 - 环境、体感、风力、体热、趋势和热状态 Debug HUD
 - First Blizzard Schedule → Weather Gameplay → Thermal Domain Integration Test
-- 13 个测试文件、55 个单元测试
+- Data Driven Shelter Profile、Inclusive AABB Volume 与纯坐标 ShelterSystem
+- Data Driven Heat Source Profile、smoothstep 距离衰减、多源叠加与全局上限
+- Weather + Shelter + Heat Source → ThermalEnvironmentBuilder → ThermalModel 组合链路
+- 相机每帧只向 Simulation 传递普通 `{x,y,z}` 坐标，不泄漏 Babylon 类型
+- 共用 Scenario Placement 的固定 Primitive 测试木屋、入口、碰撞与常开测试炉
+- HUD 展示庇护、挡风、原始→有效风力及热源加成
+- 暴雪中室外失温、庇护减缓、炉旁回暖及 FPS 一致性 Integration Test
+- 17 个测试文件、68 个单元测试
 
 ## 关键架构入口
 
@@ -79,10 +86,18 @@
 | `src/survival/thermal/ThermalModel.ts` | 确定性 Thermal Reserve 更新 |
 | `src/survival/thermal/ThermalState.ts` | Thermal Snapshot、Trend 和 Status ID |
 | `src/survival/thermal/createThermalInputs.ts` | Gameplay Weather → Thermal 窄适配点 |
+| `src/survival/environment/SurvivalEnvironmentScenario.ts` | Shelter/Heat Source 空间 Placement 配置解析 |
+| `src/survival/shelter/ShelterSystem.ts` | Inclusive AABB 庇护检测与效果查询 |
+| `src/survival/heat/HeatSourceSystem.ts` | 热源距离衰减、叠加和上限 |
+| `src/survival/thermal/ThermalEnvironment.ts` | Weather、Shelter 与 Heat Source 组合 |
+| `src/world/createFirstBlizzardCabin.ts` | 固定测试木屋与测试炉 Primitive 表现 |
 | `data/weather/weather.json` | 四种天气的 Data Driven 定义 |
 | `data/weather/weather-visuals.json` | 四种天气的独立视觉 Profile |
 | `data/weather/first-blizzard-schedule.json` | 17:30 → 18:00 暴雪计划 |
 | `data/survival/thermal.json` | Thermal 平衡、风寒、Rate 和 Status 阈值 |
+| `data/survival/shelters.json` | Shelter Profile 配置 |
+| `data/survival/heat-sources.json` | Heat Source Profile 与全局上限配置 |
+| `data/world/first-blizzard-environment.json` | 第一场暴雪木屋 Volume 与测试炉 Placement |
 | `tests/` | 配置、GameTime、Forecast、Weather、视觉/玩法映射、Thermal、Camera 和垂直运动测试 |
 | `docs/COMMAND_RUNBOOK.md` | 安装、启动、检查、构建和故障处理的标准命令 |
 | `docs/GPT_PLANNING_BRIEF.md` | 交给 GPT 制定开发路线图的完整项目现状 Brief |
@@ -137,9 +152,15 @@ pnpm dev
 - `pnpm test`：13 个测试文件、55 个测试通过
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 
+2026-08-29 完成 Shelter + Heat Source v0.1 后，实际执行并通过：
+
+- `pnpm test`：17 个测试文件、68 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
+- Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
 - 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
@@ -154,10 +175,11 @@ pnpm dev
 - 第一人称控制当前使用 Babylon Camera Collision 加自有垂直速度，不是完整 Havok Character Controller。
 - 已修复缺少 Collision Coordinator Side Effect 和 Camera Speed 错误除以 60 的问题，但修复后的实际键鼠操作仍需用户浏览器验收。
 - Weather Presentation 已接入天空、Fog、Lighting、局部 Snow Particle 与视觉风向；没有 Audio、Screen Frost、Camera Shake、Snow Accumulation、Footprints、Lightning Damage 或 Tree Destruction。
-- 室内/遮蔽物下的雪粒子 Mask 尚未实现；即使玩家位于未来室内空间，局部粒子系统目前仍会发射。
-- Weather Domain 的温度与风力已通过 Gameplay Mapper 驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
+- 室内/遮蔽物下的雪粒子 Mask 尚未实现；玩家进入测试木屋后，局部粒子系统目前仍会发射。
+- Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
-- Inventory、Crafting、Building、Save 等目录仍只有占位，没有隐藏实现；`src/survival` 当前仅实现 Thermal 子域。
+- 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭、燃料、交互、物品或持久化。
+- Inventory、Crafting、Building、Save 等目录仍只有占位，没有隐藏实现；`src/survival` 当前实现 Thermal、Shelter、Heat 与共享 Environment 子域。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
 - Thermal 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；未来系统增多时可评估 Fixed Simulation Tick。
@@ -168,12 +190,25 @@ pnpm dev
 
 下一轮应先讨论 Vertical Slice 依赖，再由用户选择独立 Issue：
 
-- **Shelter + Heat Source**：让 Thermal 获得室内与外部热量输入；仍需先明确检测和热源契约。
-- **Interaction + Item + Inventory**：先建立可搜集、携带和使用资源的基础链路。
+- **Interaction + Item + Inventory**：建立可搜集、携带和使用资源的基础链路，但不要默认同时加入制作。
+- **Campfire Gameplay + Fuel**：基于现有通用 Heat Source 增加明确的启停和燃料生命周期，需单独设计状态契约。
 
-当前任务不替用户提前选择，也不得顺带实现 Wetness、Campfire、Shelter、Inventory 或 Damage。
+当前任务不替用户提前选择，也不得顺带实现 Wetness、Interaction、Campfire Gameplay、Fuel、Inventory、Building 或 Damage。
 
 ## 变更记录
+
+### 2026-08-29 — Shelter + Heat Source v0.1
+
+- 新增 Data Driven Shelter 与 Heat Source Profile，以及第一场暴雪空间 Placement 配置。
+- 新增与 Babylon 解耦的纯坐标、Inclusive AABB Shelter 查询和通用热源距离贡献。
+- 热源使用 smoothstep 距离衰减，支持启用状态、多源相加与全局温度上限。
+- 新增 Thermal Environment Builder：庇护先削减有效风力，再叠加庇护温度与外部热源加成。
+- `GameSimulation` 接收相机的普通 `{x,y,z}`，输出 Shelter、Heat 与 Thermal Environment Snapshot。
+- 新增共用 Scenario 坐标的固定 Primitive 木屋、可通行入口、碰撞地板/墙/屋顶及常开测试炉。
+- Debug HUD 新增庇护、挡风、原始→有效风力和热源加成。
+- 新增 Shelter、Heat Source、Thermal Environment 与集成测试；总计 68/68 通过，TypeScript 严格检查通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；渲染、碰撞与体验等待用户手动验收。
+- 严格停止；未实现 Weather Visual 扩展、Indoor Snow Mask、Interaction、Inventory、Building、Campfire Gameplay、Fuel、Wetness、Clothing、Damage 或 Save。
 
 ### 2026-08-29 — GitHub 首次交付
 

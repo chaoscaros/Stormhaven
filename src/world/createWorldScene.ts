@@ -16,6 +16,9 @@ import HavokPhysics from "@babylonjs/havok";
 import { WORLD_CONFIG } from "../core/config";
 import { createControlReferenceMarkers } from "./createControlReferenceMarkers";
 import type { WeatherEnvironmentBindings } from "../weather/presentation/WeatherEnvironmentBindings";
+import environmentScenarioData from "../../data/world/first-blizzard-environment.json";
+import { parseSurvivalEnvironmentScenario } from "../survival/environment/SurvivalEnvironmentScenario";
+import { createFirstBlizzardCabin } from "./createFirstBlizzardCabin";
 
 const GRAVITY = new Vector3(0, -9.81, 0);
 
@@ -42,6 +45,10 @@ export async function createWorldScene(engine: Engine): Promise<WorldSceneRuntim
   const lights = createLights(scene);
   createGround(scene);
   createControlReferenceMarkers(scene);
+  createFirstBlizzardCabin(
+    scene,
+    parseSurvivalEnvironmentScenario(environmentScenarioData),
+  );
 
   return Object.freeze({
     scene,

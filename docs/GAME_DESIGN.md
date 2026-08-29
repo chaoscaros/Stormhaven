@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer，以及纯逻辑 Player Thermal Model：
+当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model，以及 Shelter + Heat Source v0.1：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -50,9 +50,12 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 17:30–18:00 连续变化的天空、雾、灯光与局部雪粒子
 - 天气温度与风力连续驱动的体感温度和 0..100 体热储备
 - Blizzard 比 Clear 明显更快的体热流失，但尚不产生生命伤害
+- 固定测试木屋用 AABB 提供 90% 挡风与小幅温度加成
+- 常开测试炉用平滑距离衰减提供外部热量；多个热源可相加但有全局上限
+- 暴雪中室外失温、屋内减缓失温、炉旁回暖的纯领域链路
 - 可重复执行的类型检查、测试和生产构建
 
-当前阶段明确不包含天气音频、室内雪遮罩、Wetness、Shelter、Campfire、Clothing、Health Damage、物品数据、制作配方、存档结构或建筑放置行为。Thermal Reserve 是游戏化资源，不是医学核心体温。
+当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。当前阶段明确不包含天气音频、室内雪遮罩、Wetness、Interaction、Fuel、Clothing、Health Damage、物品数据、制作配方、存档结构或建筑放置行为。Thermal Reserve 是游戏化资源，不是医学核心体温。
 
 ## 非目标
 

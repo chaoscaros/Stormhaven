@@ -1,0 +1,8 @@
+[
+  {
+    "id": "basic_cabin",
+    "displayName": "测试木屋",
+    "windProtection": 0.9,
+    "temperatureBonusCelsius": 3
+  }
+]

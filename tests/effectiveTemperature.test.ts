@@ -15,6 +15,8 @@ describe("EffectiveTemperature", () => {
         ambientTemperatureCelsius: -5,
         temperatureModifierCelsius: 0,
         windStrength: 0,
+        shelterTemperatureBonusCelsius: 0,
+        externalHeatBonusCelsius: 0,
       },
       config,
     );
@@ -29,6 +31,8 @@ describe("EffectiveTemperature", () => {
         ambientTemperatureCelsius: -5,
         temperatureModifierCelsius: 0,
         windStrength: config.windStrengthAtMaxPenalty,
+        shelterTemperatureBonusCelsius: 0,
+        externalHeatBonusCelsius: 0,
       },
       config,
     );
@@ -41,11 +45,26 @@ describe("EffectiveTemperature", () => {
     const mapper = new WeatherGameplayMapper();
     const clear = mapper.map(catalog.get("clear"));
     const blizzard = mapper.map(catalog.get("blizzard"));
-    const clearEffective = calculateEffectiveTemperature(clear, config);
-    const blizzardEffective = calculateEffectiveTemperature(blizzard, config);
+    const clearEffective = calculateEffectiveTemperature(withoutEnvironmentBonus(clear), config);
+    const blizzardEffective = calculateEffectiveTemperature(
+      withoutEnvironmentBonus(blizzard),
+      config,
+    );
 
     expect(blizzardEffective.effectiveTemperatureCelsius).toBeLessThan(
       clearEffective.effectiveTemperatureCelsius,
     );
   });
 });
+
+function withoutEnvironmentBonus(weather: {
+  readonly ambientTemperatureCelsius: number;
+  readonly temperatureModifierCelsius: number;
+  readonly windStrength: number;
+}) {
+  return {
+    ...weather,
+    shelterTemperatureBonusCelsius: 0,
+    externalHeatBonusCelsius: 0,
+  };
+}
