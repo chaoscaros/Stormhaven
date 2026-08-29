@@ -80,9 +80,11 @@ Add 前先同时计算现有 Stack 空位、新 Slot 空位和剩余重量可接
 
 事务流程为 `Plan → Clone Inventory → Consume Inputs on Draft → Add Outputs on Draft → Validate Final Snapshot → Commit Snapshot`。真实 Inventory 在 Plan 阶段完全不变；材料、Slot、Weight、Station 或耗时语义任一失败都会丢弃草稿。输入消耗释放出的 Slot 和重量自然参与输出容量判断，不使用危险 rollback。
 
-当前配方只有 `stick ×2 + stone ×2 → stone_axe ×1`，且 `craftTimeSeconds=0`。C 键 Debug Panel 读取 `CraftRequirementResult`，不直接查询/修改 Inventory；方向键选择、Enter 制作，面板打开时 E Interaction 被屏蔽。所有 UI/Input listener 均在 dispose 时移除。
+当前配方只有 `stick ×2 + stone ×2 → stone_axe ×1`，且 `craftTimeSeconds=0`。C 键 Debug Panel 读取 `CraftRequirementResult`，不直接查询/修改 Inventory。Tab/C 打开菜单前先写入 HUD Menu State，再退出 Pointer Lock；因此 `pointerlockchange` 会保持 HUD/Panel 可见并显示鼠标。配方、制作和关闭均可点击，方向键/Enter 只作为辅助输入。关闭菜单后从用户点击或快捷键事件恢复 Pointer Lock；所有 listener 均在 dispose 时移除。
 
 Crafting 只定义 `Inventory Items → Inventory Items`。未来 Building 应定义 `Inventory Materials / Placeable Definition → World Building Entity`；除非后续 Issue 明确决定 Placeable Kit，不默认建筑必须先成为 Inventory Item。石斧 Definition 的 durability 只是最大值元数据，未来 Tool Gameplay 引入 Item Instance State 时需另行设计 Runtime Durability。
+
+Inventory、Crafting 和未来 Building 共用菜单交互契约：菜单打开时游戏保留渲染与 HUD，但释放第一人称 Pointer Lock；菜单元素显式启用 pointer events；关闭后才重新请求 Pointer Lock。不得把需要点击的菜单放在锁定鼠标状态内。
 
 ## Game Time 与 Runtime
 

@@ -363,10 +363,10 @@ Recipe 必须 Data Driven，至少包含：
 - 6 个 JSON Scenario World Pickup、Primitive Mesh 与 Registry
 - 2.75m Camera Forward Interaction Raycast、Target/Result 和 E 单次拾取
 - 24 Slot/30kg 纯 Inventory、Stack、Weight 和 Partial Add Transaction
-- Tab 键只读 Debug Inventory、Prompt、反馈和 Mesh 生命周期同步
+- Tab 键只读 Inventory 菜单，打开时释放 Pointer Lock 并支持鼠标关闭
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
 - Requirement/Missing Inputs/Max Count、草稿 Inventory 与原子 Craft Commit
-- C/方向键/Enter Crafting Debug UI，打开时屏蔽 E Interaction
+- C 键鼠标式 Crafting Debug UI，可点击配方/制作/关闭；方向键/Enter 为辅助输入
 - 23 个测试文件、145 个单元测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位

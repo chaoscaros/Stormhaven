@@ -37,10 +37,10 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 屏幕中央 2.75m Interaction Raycast、`E` 单次拾取与可见 Prompt
 - JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup
 - 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
-- `Tab` 键只读 Debug Inventory、拾取反馈与 Pickup Mesh 生命周期同步
+- `Tab` 键只读 Inventory 菜单；打开时释放 Pointer Lock，可用鼠标查看和关闭
 - Data Driven Recipe、Runtime Validation、需求预览与最大可制作数量
 - 草稿 Inventory 模拟输入消耗和输出加入，完整成功后原子提交
-- `C` 键 Crafting Debug Panel、方向键选择、`Enter` 即时制作与失败反馈
+- `C` 键 Crafting Debug Panel；鼠标点击配方、制作和关闭，键盘操作保留为补充
 - 石斧真实配方：树枝 ×2 + 石头 ×2 → 石斧 ×1
 - GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup Transaction、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
@@ -69,10 +69,10 @@ pnpm dev
 | `Space` | 跳跃 |
 | `Shift` | 奔跑 |
 | `E` | 拾取准星对准的物资 |
-| `Tab` | 打开或关闭只读 Debug Inventory |
-| `C` | 打开或关闭 Crafting Debug Panel |
-| `↑` / `↓` | 在 Crafting Panel 中选择配方 |
-| `Enter` | 制作当前配方 1 次 |
+| `Tab` | 打开/关闭只读 Inventory 菜单并切换鼠标控制 |
+| `C` | 打开/关闭 Crafting 菜单并切换鼠标控制 |
+| 鼠标点击 | 选择配方、制作、关闭菜单 |
+| `↑` / `↓` / `Enter` | Crafting 菜单的辅助键盘操作 |
 | `Esc` | 释放鼠标 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
 | `F5` | 退出视觉预览，恢复跟随天气计划 |

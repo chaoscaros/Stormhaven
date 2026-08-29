@@ -8,7 +8,7 @@
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：在 World Pickup → Interaction → Inventory 基础上，已完成 Recipe Validation/Catalog、Requirement、CraftingPlan、草稿 Inventory 原子事务、Stone Axe Recipe 和 C 键 Crafting Debug UI
+- 功能状态：在 World Pickup → Interaction → Inventory 基础上，已完成 Recipe Validation/Catalog、Requirement、CraftingPlan、草稿 Inventory 原子事务、Stone Axe Recipe，以及支持鼠标交互的 Tab 背包与 C 键制作菜单
 - 明确未实现：Timed Crafting、Craft Queue、Workbench/Station System、Building、Campfire Gameplay、Fuel、Tool Gameplay、Item Use/Equipment、Durability Runtime、Container/Storage UI、Save/IndexedDB
 
 ## 已完成内容
@@ -62,7 +62,7 @@
 - JSON 驱动 Stone Axe Recipe、RecipeCatalog 与完整 Runtime Validation
 - Craft Requirement、Missing Inputs、Max Craftable Count 与稳定 Failure Reason
 - Clone Draft → Consume → Add Output → Validate Final Snapshot → Atomic Commit
-- C/方向键/Enter 键盘式制作面板；打开时屏蔽 E Interaction
+- Tab 背包与 C 键制作菜单进入统一菜单态：释放 Pointer Lock、显示鼠标、支持点击关闭/选择配方/制作；打开时屏蔽 E Interaction
 - 23 个测试文件、145 个单元测试
 
 ## 关键架构入口
@@ -80,13 +80,13 @@
 | `src/player/cameraSpeed.ts` | 米/秒配置到 Babylon Camera Speed 的换算 |
 | `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
-| `src/ui/setupFoundationUi.ts` | 指针锁定和基础 DOM 状态 |
+| `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换和基础 DOM 状态 |
 | `src/items/ItemCatalog.ts` | Item JSON 校验、重复 ID 检查与稳定查询 |
 | `src/inventory/Inventory.ts` | Babylon/DOM 无关的 Slot、Stack、Weight 与 Partial Add |
 | `src/crafting/RecipeCatalog.ts` | Recipe JSON 校验、重复/未知 Item 检查与稳定 ID 查询 |
 | `src/crafting/CraftingService.ts` | Requirement、Plan、最大数量与原子 Craft Transaction |
 | `src/crafting/CraftingTypes.ts` | Requirement、Plan、Result 和稳定 Failure Reason 契约 |
-| `src/ui/setupCraftingDebugUi.ts` | C/方向键/Enter 制作面板及 Listener 生命周期 |
+| `src/ui/setupCraftingDebugUi.ts` | 鼠标优先的 C 键制作菜单、键盘补充操作及 Listener 生命周期 |
 | `data/crafting/recipes.json` | 即时手工石斧配方 |
 | `src/interaction/InteractionService.ts` | Inventory Add 与 Pickup Remaining 的纯事务服务 |
 | `src/interaction/InteractionRaycastController.ts` | Babylon Ray Picking、E 输入与监听器生命周期 |
@@ -206,11 +206,17 @@ pnpm dev
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 - `pnpm test`：23 个测试文件、145 个测试通过
 
+2026-08-29 修复背包与制作栏鼠标交互后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：23 个测试文件、145 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
-- Pickup 可见性、Prompt 距离、E 单次拾取、Tab 面板、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
-- C 面板、材料/产出显示、Enter 单次制作、E 屏蔽、制作后 Tab Inventory 联动均需用户手动验收。
+- Pickup 可见性、Prompt 距离、E 单次拾取、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
+- Tab 背包与 C 制作菜单打开后释放鼠标、鼠标点击关闭/选择配方/制作、关闭后恢复第一人称控制、菜单互斥和 E 屏蔽均需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
@@ -233,6 +239,7 @@ pnpm dev
 - 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭或燃料。
 - Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
 - Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
+- 当前菜单交互契约为 Gameplay Pointer Lock 与 Menu Mouse Cursor 两种状态；未来 Building 菜单必须复用该契约，但本次没有实现 Building System。
 - Stone Axe durability 仅是 Definition 最大值；ItemStack 没有实例耐久，石斧不能装备、使用、砍树或挖矿。
 - Raycast 每帧仅测试 interaction-enabled Mesh；当前没有通用 NPC/门/热源交互，也没有复杂 Interaction Framework。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
@@ -246,6 +253,15 @@ pnpm dev
 推荐下一独立 Issue：**Building Foundation v0.1**，先定义 BuildDefinition、Ghost、Placement Validation 和资源消费边界；是否执行必须由用户另行授权。不得顺带进入 Campfire/Fuel、工具玩法或 Save。
 
 ## 变更记录
+
+### 2026-08-29 — 背包与制作栏鼠标交互修正
+
+- 将 Tab 背包与 C 制作栏改为统一菜单态：打开菜单时释放 Pointer Lock 并显示鼠标，关闭菜单后重新请求第一人称 Pointer Lock。
+- 背包和制作栏互斥显示；新增可点击关闭按钮、配方列表和制作按钮，方向键与 Enter 仅作为补充操作。
+- 菜单打开时隐藏准星、交互提示和拾取反馈，并继续屏蔽场景 E Interaction，避免菜单点击和游戏控制冲突。
+- 在游戏设计与技术设计中记录未来 Building 菜单必须使用同一鼠标交互契约；本次未实现 Building。
+- `pnpm exec tsc -b --pretty false`、`pnpm test`（23 个测试文件、145 个测试）和 `git diff --check` 已通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；鼠标与 Pointer Lock 切换等待用户手动验收。
 
 ### 2026-08-29 — Crafting Foundation v0.1
 

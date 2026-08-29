@@ -57,13 +57,15 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 玩家可在 2.75m 内对准场景资源并按 E 拾取；Prompt 会显示物品名和数量
 - 8 类物品由 JSON 定义，第一场暴雪场景放置 6 个少量测试资源
 - 24 Slot / 30kg 背包支持 Stack 和容量/重量限制下的 Partial Add
-- Tab 键只显示只读 Debug Inventory；这不是正式背包交互 UI
+- Tab 背包与 C 制作栏进入菜单态并释放第一人称鼠标，可点击内容与关闭；这仍是 Debug UI，不包含拖放或物品使用
 - 玩家可徒手将树枝 ×2 与石头 ×2 即时制作成石斧 ×1
 - 制作面板明确展示所需/持有数量、缺失材料、产出和失败原因
 - 石斧只证明“收集材料 → 制作成品”链路，不可装备、挥舞、砍树或消耗耐久
 - 可重复执行的类型检查、测试和生产构建
 
 当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。Crafting 只处理 Inventory Item → Inventory Item，不决定 Building 是否需要 Placeable Kit；明确不包含 Fuel、工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器、存档或建筑放置。Thermal Reserve 是游戏化资源，不是医学核心体温。
+
+未来 Building Panel 必须复用相同菜单交互：打开时释放 Pointer Lock、显示鼠标并允许点击建筑选项；关闭后再恢复第一人称控制。该约束不代表 Building 已实现。
 
 ## 非目标
 

@@ -14,7 +14,7 @@ interface CraftingDebugUiCallbacks {
   readonly onInventoryChanged: () => void;
 }
 
-/** 键盘式 Debug Crafting UI；所有规则均读取 CraftingService 结果。 */
+/** 鼠标优先的 Debug Crafting UI；所有规则均读取 CraftingService 结果。 */
 export function setupCraftingDebugUi(
   canvas: HTMLCanvasElement,
   service: CraftingService,
@@ -23,7 +23,11 @@ export function setupCraftingDebugUi(
   callbacks: CraftingDebugUiCallbacks,
 ): CraftingDebugUi {
   const panel = getElement("crafting-panel");
+  const hud = getElement("hud");
   const inventoryPanel = getElement("inventory-panel");
+  const closeButton = getElement<HTMLButtonElement>("crafting-close-button");
+  const actionButton = getElement<HTMLButtonElement>("crafting-action-button");
+  const recipeListElement = getElement("crafting-recipe-list");
   const recipePosition = getElement("crafting-recipe-position");
   const recipeName = getElement("crafting-recipe-name");
   const recipeDescription = getElement("crafting-recipe-description");
@@ -33,6 +37,12 @@ export function setupCraftingDebugUi(
   const feedback = getElement("crafting-feedback");
   const recipeList = recipes.getAll();
   let selectedIndex = 0;
+
+  const selectRecipe = (index: number): void => {
+    selectedIndex = index;
+    feedback.hidden = true;
+    render();
+  };
 
   const render = (): void => {
     const recipe = recipeList[selectedIndex];
@@ -56,27 +66,59 @@ export function setupCraftingDebugUi(
       .join("、");
     status.textContent = formatRequirementStatus(evaluation, items);
     status.dataset.available = evaluation.canCraft ? "true" : "false";
-  };
-
-  const toggle = (): void => {
-    panel.hidden = !panel.hidden;
-    if (!panel.hidden) {
-      inventoryPanel.hidden = true;
-      feedback.hidden = true;
-      render();
+    for (const [index, button] of [...recipeListElement.querySelectorAll("button")].entries()) {
+      button.setAttribute("aria-current", index === selectedIndex ? "true" : "false");
     }
   };
 
+  const open = (): void => {
+    inventoryPanel.hidden = true;
+    panel.hidden = false;
+    hud.dataset.menuOpen = "true";
+    feedback.hidden = true;
+    render();
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+  };
+
+  const closeAndResume = (): void => {
+    panel.hidden = true;
+    delete hud.dataset.menuOpen;
+    void canvas.requestPointerLock();
+  };
+
+  const craftSelectedRecipe = (): void => {
+    const recipe = recipeList[selectedIndex];
+    if (!recipe) return;
+    const result = service.craft(recipe.id);
+    feedback.textContent = formatCraftResult(result, recipes, items);
+    feedback.dataset.tone = result.success ? "success" : "warning";
+    feedback.hidden = false;
+    if (result.success) callbacks.onInventoryChanged();
+    render();
+  };
+
+  const recipeButtons = recipeList.map((recipe, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = recipe.displayName;
+    const handleClick = (): void => selectRecipe(index);
+    button.addEventListener("click", handleClick);
+    recipeListElement.append(button);
+    return { button, handleClick };
+  });
+
   const handleKeyDown = (event: KeyboardEvent): void => {
-    if (document.pointerLockElement !== canvas || event.repeat) return;
+    if (event.repeat) return;
     if (event.code === CRAFTING_INPUT_CONFIG.toggleKeyCode) {
+      if (document.pointerLockElement !== canvas && panel.hidden && inventoryPanel.hidden) return;
       event.preventDefault();
-      toggle();
+      if (panel.hidden) open();
+      else closeAndResume();
       return;
     }
     if (panel.hidden) return;
     if (event.code === CRAFTING_INPUT_CONFIG.closeKeyCode) {
-      panel.hidden = true;
+      closeAndResume();
       return;
     }
     if (
@@ -85,30 +127,18 @@ export function setupCraftingDebugUi(
     ) {
       event.preventDefault();
       const direction = event.code === CRAFTING_INPUT_CONFIG.nextRecipeKeyCode ? 1 : -1;
-      selectedIndex = (selectedIndex + direction + recipeList.length) % recipeList.length;
-      feedback.hidden = true;
-      render();
+      selectRecipe((selectedIndex + direction + recipeList.length) % recipeList.length);
       return;
     }
     if (event.code === CRAFTING_INPUT_CONFIG.craftKeyCode) {
       event.preventDefault();
-      const recipe = recipeList[selectedIndex];
-      if (!recipe) return;
-      const result = service.craft(recipe.id);
-      feedback.textContent = formatCraftResult(result, recipes, items);
-      feedback.dataset.tone = result.success ? "success" : "warning";
-      feedback.hidden = false;
-      if (result.success) callbacks.onInventoryChanged();
-      render();
+      craftSelectedRecipe();
     }
   };
 
-  const handlePointerLockChange = (): void => {
-    if (document.pointerLockElement !== canvas) panel.hidden = true;
-  };
-
   window.addEventListener("keydown", handleKeyDown);
-  document.addEventListener("pointerlockchange", handlePointerLockChange);
+  closeButton.addEventListener("click", closeAndResume);
+  actionButton.addEventListener("click", craftSelectedRecipe);
 
   return {
     isOpen: () => !panel.hidden,
@@ -117,7 +147,10 @@ export function setupCraftingDebugUi(
     },
     dispose(): void {
       window.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointerlockchange", handlePointerLockChange);
+      closeButton.removeEventListener("click", closeAndResume);
+      actionButton.removeEventListener("click", craftSelectedRecipe);
+      recipeButtons.forEach(({ button, handleClick }) =>
+        button.removeEventListener("click", handleClick));
     },
   };
 }

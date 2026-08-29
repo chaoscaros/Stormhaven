@@ -68,6 +68,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const crosshair = getElement("crosshair");
   const interactionPrompt = getElement("interaction-prompt");
   const inventoryPanel = getElement("inventory-panel");
+  const inventoryCloseButton = getElement<HTMLButtonElement>("inventory-close-button");
   const craftingPanel = getElement("crafting-panel");
   const inventoryItems = getElement<HTMLUListElement>("inventory-items");
   const inventoryWeight = getElement("inventory-weight");
@@ -76,18 +77,34 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   let feedbackTimeout: number | undefined;
 
   const requestControl = (): void => {
+    if (hud.dataset.menuOpen === "true") return;
     void canvas.requestPointerLock();
+  };
+
+  const closeMenusAndResume = (): void => {
+    inventoryPanel.hidden = true;
+    craftingPanel.hidden = true;
+    delete hud.dataset.menuOpen;
+    void canvas.requestPointerLock();
+  };
+
+  const openInventory = (): void => {
+    craftingPanel.hidden = true;
+    inventoryPanel.hidden = false;
+    hud.dataset.menuOpen = "true";
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
   };
 
   enterButton.addEventListener("click", requestControl);
   canvas.addEventListener("click", requestControl);
   const handlePointerLockChange = (): void => {
     const isPlaying = document.pointerLockElement === canvas;
-    startScreen.hidden = isPlaying;
-    hud.hidden = !isPlaying;
+    const isMenuOpen = hud.dataset.menuOpen === "true";
+    startScreen.hidden = isPlaying || isMenuOpen;
+    hud.hidden = !isPlaying && !isMenuOpen;
     if (isPlaying) {
       canvas.focus({ preventScroll: true });
-    } else {
+    } else if (!isMenuOpen) {
       inventoryPanel.hidden = true;
       craftingPanel.hidden = true;
     }
@@ -96,12 +113,15 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
     if (
       event.code !== INTERACTION_CONFIG.inventoryKeyCode
       || event.repeat
-      || document.pointerLockElement !== canvas
+      || (document.pointerLockElement !== canvas
+        && inventoryPanel.hidden
+        && craftingPanel.hidden)
     ) return;
     event.preventDefault();
-    inventoryPanel.hidden = !inventoryPanel.hidden;
-    if (!inventoryPanel.hidden) craftingPanel.hidden = true;
+    if (inventoryPanel.hidden) openInventory();
+    else closeMenusAndResume();
   };
+  inventoryCloseButton.addEventListener("click", closeMenusAndResume);
   document.addEventListener("pointerlockchange", handlePointerLockChange);
   window.addEventListener("keydown", handleInventoryKeyDown);
 
@@ -222,6 +242,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
     dispose(): void {
       enterButton.removeEventListener("click", requestControl);
       canvas.removeEventListener("click", requestControl);
+      inventoryCloseButton.removeEventListener("click", closeMenusAndResume);
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
       window.removeEventListener("keydown", handleInventoryKeyDown);
       if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);

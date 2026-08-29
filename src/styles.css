@@ -203,6 +203,12 @@ h1 span {
   pointer-events: none;
 }
 
+.hud[data-menu-open="true"] .crosshair,
+.hud[data-menu-open="true"] .interaction-prompt,
+.hud[data-menu-open="true"] .pickup-feedback {
+  display: none;
+}
+
 .hud__location {
   position: absolute;
   top: 28px;
@@ -312,6 +318,7 @@ h1 span {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-variant-numeric: tabular-nums;
   backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 .crafting-panel > header,
@@ -334,6 +341,41 @@ h1 span {
   color: var(--signal);
 }
 
+.crafting-panel > header > div,
+.inventory-panel header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crafting-panel button,
+.inventory-panel button {
+  color: var(--ice);
+  border: 1px solid rgba(216, 229, 230, 0.2);
+  border-radius: 0;
+  background: rgba(216, 229, 230, 0.05);
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: 0.08em;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+.crafting-panel button:hover,
+.crafting-panel button:focus-visible,
+.inventory-panel button:hover,
+.inventory-panel button:focus-visible {
+  color: var(--signal);
+  border-color: var(--signal);
+  outline: none;
+  background: rgba(210, 166, 96, 0.1);
+}
+
+.crafting-panel > header button,
+.inventory-panel header button {
+  padding: 4px 7px;
+  font-size: 7px;
+}
+
 .crafting-panel > footer {
   border-top: 1px solid rgba(210, 166, 96, 0.28);
 }
@@ -352,6 +394,23 @@ h1 span {
   font-size: 7px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+.crafting-panel__recipe-list {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0 13px;
+}
+
+.crafting-panel__recipe-list button {
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.crafting-panel__recipe-list button[aria-current="true"] {
+  color: var(--signal);
+  border-color: rgba(210, 166, 96, 0.7);
+  background: rgba(210, 166, 96, 0.1);
 }
 
 .crafting-panel h2 {
@@ -428,6 +487,23 @@ h1 span {
   background: rgba(210, 166, 96, 0.08);
 }
 
+.crafting-panel__action {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 12px;
+  color: #11191b !important;
+  border-color: var(--signal) !important;
+  background: var(--signal) !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-align: center;
+}
+
+.crafting-panel__action:hover,
+.crafting-panel__action:focus-visible {
+  background: #e3bc7a !important;
+}
+
 .inventory-panel {
   position: absolute;
   top: 112px;
@@ -440,6 +516,7 @@ h1 span {
     rgba(10, 17, 19, 0.88);
   box-shadow: 12px 18px 36px rgba(3, 8, 10, 0.34);
   backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 .inventory-panel header {
