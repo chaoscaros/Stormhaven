@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Shelter + Heat Source v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Interaction + Item + Inventory Foundation v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation、Player Thermal Model、Shelter + Heat Source 和 Debug HUD
-- 明确未实现：Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage、Hypothermia Gameplay、Inventory、Crafting、Save、Building
+- 功能状态：在既有 Scene、天气、Thermal 和 Shelter/Heat 之上，已完成通用 Interaction Contract、2.75m 第一人称 Raycast、Item Catalog、24 Slot/30kg Inventory、World Pickup Transaction、Primitive Presentation 和只读 Debug Inventory
+- 明确未实现：Crafting、Building、Campfire Gameplay、Fuel、Item Use/Consumption、Equipment、Durability Gameplay、Drop、Container/Storage UI、Save/IndexedDB、Loot Table、Harvesting
 
 ## 已完成内容
 
@@ -54,7 +54,12 @@
 - HUD 展示庇护、挡风、原始→有效风力及热源加成
 - 暴雪中室外失温、庇护减缓、炉旁回暖及 FPS 一致性 Integration Test
 - 局部降水粒子路径与静态碰撞 Mesh AABB 的 Slab 检测，碰撞后回收粒子
-- 18 个测试文件、72 个单元测试
+- JSON 驱动的 8 个 ItemDefinition 和 6 个 First Blizzard Pickup Placement
+- 纯 `ItemCatalog`、`ItemStack`、Slot/Stack/Weight Inventory 与 Partial Add
+- Camera Forward Ray → Target ID → InteractionService → Inventory/Registry → Presentation
+- `E` 防 Key Repeat 单次拾取、`I` 只读背包、Prompt 和结果反馈
+- Pickup 完全消费才 dispose Mesh；容量/重量不足时保留全部或剩余数量
+- 21 个测试文件、105 个单元测试
 
 ## 关键架构入口
 
@@ -72,6 +77,14 @@
 | `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
 | `src/ui/setupFoundationUi.ts` | 指针锁定和基础 DOM 状态 |
+| `src/items/ItemCatalog.ts` | Item JSON 校验、重复 ID 检查与稳定查询 |
+| `src/inventory/Inventory.ts` | Babylon/DOM 无关的 Slot、Stack、Weight 与 Partial Add |
+| `src/interaction/InteractionService.ts` | Inventory Add 与 Pickup Remaining 的纯事务服务 |
+| `src/interaction/InteractionRaycastController.ts` | Babylon Ray Picking、E 输入与监听器生命周期 |
+| `src/world/pickups/WorldPickupRegistry.ts` | Pickup 剩余数量与消费状态，不持有 Mesh |
+| `src/world/pickups/WorldPickupPresentation.ts` | Primitive Mesh、Target ID 映射与 dispose |
+| `data/items/items.json` | 8 个稳定 ID 的物品定义 |
+| `data/world/first-blizzard-pickups.json` | 6 个 Scenario Pickup Placement |
 | `src/weather/WeatherCatalog.ts` | 天气定义验证、重复检查和稳定 ID 查询 |
 | `src/weather/WeatherManager.ts` | 当前天气与 Transition Domain 状态 |
 | `src/weather/ForecastSystem.ts` | Schedule 查询和跨时间点 Action 消费 |
@@ -168,9 +181,15 @@ pnpm dev
 - `pnpm test`：18 个测试文件、72 个测试通过
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 
+2026-08-29 完成 Interaction + Item + Inventory Foundation v0.1 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：21 个测试文件、105 个测试通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
+- Pickup 可见性、Prompt 距离、E 单次拾取、I 面板、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
@@ -190,8 +209,9 @@ pnpm dev
 - 第一版使用 AABB 而非精确三角形碰撞；对于旋转或复杂凹形 Mesh 会比视觉轮廓更保守。
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
-- 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭、燃料、交互、物品或持久化。
-- Inventory、Crafting、Building、Save 等目录仍只有占位，没有隐藏实现；`src/survival` 当前实现 Thermal、Shelter、Heat 与共享 Environment 子域。
+- 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭或燃料。
+- Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
+- Raycast 每帧仅测试 interaction-enabled Mesh；当前没有通用 NPC/门/热源交互，也没有复杂 Interaction Framework。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
 - Thermal 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；未来系统增多时可评估 Fixed Simulation Tick。
@@ -200,14 +220,18 @@ pnpm dev
 
 本 Issue 已达到停止条件。不要在当前任务继续开发。
 
-下一轮应先讨论 Vertical Slice 依赖，再由用户选择独立 Issue：
-
-- **Interaction + Item + Inventory**：建立可搜集、携带和使用资源的基础链路，但不要默认同时加入制作。
-- **Campfire Gameplay + Fuel**：基于现有通用 Heat Source 增加明确的启停和燃料生命周期，需单独设计状态契约。
-
-当前任务不替用户提前选择，也不得顺带实现 Wetness、Interaction、Campfire Gameplay、Fuel、Inventory、Building 或 Damage。
+推荐下一独立 Issue：**Crafting Foundation v0.1**，只设计 Recipe Definition、Catalog 和纯逻辑输入/输出校验；是否执行必须由用户另行授权。当前任务不得顺带进入 Crafting、Building、Campfire/Fuel、物品使用、容器或存档。
 
 ## 变更记录
+
+### 2026-08-29 — Interaction + Item + Inventory Foundation v0.1
+
+- 新增 8 个 JSON ItemDefinition、ItemCatalog Runtime Validation，以及 6 个场景 Pickup Placement。
+- 新增 24 Slot/30kg Inventory，支持 Stack、Move/Merge/Split、Weight 与容量限制下的 Partial Add。
+- 新增通用 Interaction Target/Result、2.75m Camera Raycast、E 单次输入和原子 Pickup Transaction。
+- 新增 Primitive Pickup Presentation、只读 I 键 Inventory Panel、Prompt 和拾取反馈；完整消费后才删除 Mesh。
+- 新增 3 个测试文件；最终 21 个文件、105 个测试全部通过，TypeScript 严格检查通过。
+- 未启动浏览器或运行 dev/build/preview；等待用户按 Runbook 手动验收后停止。
 
 ### 2026-08-29 — 降水粒子障碍碰撞修正
 

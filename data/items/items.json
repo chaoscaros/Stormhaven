@@ -1,0 +1,90 @@
+[
+  {
+    "id": "wood",
+    "displayName": "木材",
+    "description": "可用于制作和生火的基础资源。",
+    "category": "resource",
+    "stackSize": 20,
+    "weight": 0.8,
+    "durability": null,
+    "icon": null,
+    "tags": ["wood", "fuel_candidate"]
+  },
+  {
+    "id": "stone",
+    "displayName": "石头",
+    "description": "沉重而坚硬的天然材料。",
+    "category": "resource",
+    "stackSize": 20,
+    "weight": 1.5,
+    "durability": null,
+    "icon": null,
+    "tags": ["stone", "material"]
+  },
+  {
+    "id": "stick",
+    "displayName": "树枝",
+    "description": "轻便的基础材料。",
+    "category": "resource",
+    "stackSize": 30,
+    "weight": 0.25,
+    "durability": null,
+    "icon": null,
+    "tags": ["wood", "material"]
+  },
+  {
+    "id": "cloth",
+    "displayName": "布料",
+    "description": "可用于未来制作的柔软材料。",
+    "category": "material",
+    "stackSize": 20,
+    "weight": 0.1,
+    "durability": null,
+    "icon": null,
+    "tags": ["fabric", "material"]
+  },
+  {
+    "id": "scrap_metal",
+    "displayName": "废金属",
+    "description": "从废弃设施中回收的金属材料。",
+    "category": "material",
+    "stackSize": 15,
+    "weight": 1.2,
+    "durability": null,
+    "icon": null,
+    "tags": ["metal", "material"]
+  },
+  {
+    "id": "water_bottle",
+    "displayName": "瓶装水",
+    "description": "密封的饮用水；当前版本不能饮用。",
+    "category": "drink",
+    "stackSize": 5,
+    "weight": 1,
+    "durability": null,
+    "icon": null,
+    "tags": ["water", "sealed"]
+  },
+  {
+    "id": "canned_food",
+    "displayName": "罐头食品",
+    "description": "保存完好的罐头；当前版本不能食用。",
+    "category": "food",
+    "stackSize": 10,
+    "weight": 0.5,
+    "durability": null,
+    "icon": null,
+    "tags": ["food", "sealed"]
+  },
+  {
+    "id": "raw_meat",
+    "displayName": "生肉",
+    "description": "未经处理的食材；当前版本不能烹饪或食用。",
+    "category": "food",
+    "stackSize": 5,
+    "weight": 0.7,
+    "durability": null,
+    "icon": null,
+    "tags": ["food", "raw"]
+  }
+]

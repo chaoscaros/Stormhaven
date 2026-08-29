@@ -28,6 +28,10 @@ src/main.ts
   ├─ survival/shelter/            AABB Shelter 查询
   ├─ survival/heat/               通用 Heat Source 距离贡献
   ├─ survival/thermal/            Environment Composition 与 Thermal Model
+  ├─ items/                       ItemDefinition 与 ItemCatalog
+  ├─ inventory/                   纯 Slot/Stack/Weight Inventory
+  ├─ interaction/                 Target/Result、事务服务与 Raycast Adapter
+  ├─ world/pickups/               Pickup Registry、Placement 与 Babylon Presentation
   └─ ui/setupFoundationUi.ts      仅 DOM 的基础界面适配
 ```
 
@@ -48,7 +52,10 @@ src/main.ts
 | `src/survival/heat` | 通用热源 Profile、平滑距离衰减、多源叠加和全局 Clamp |
 | `src/survival/thermal` | Thermal Environment 组合、Effective Temperature、体热储备和输入适配 |
 | `src/weather` | Data Driven 天气契约、Catalog、Transition、Forecast、Gameplay/Visual 映射和表现适配 |
-| `src/inventory` | 未来的物品堆、Inventory 和 Container |
+| `src/items` | ItemDefinition Runtime Validation 与稳定 ID Catalog |
+| `src/inventory` | 纯 ItemStack、固定 Slot、Stack、Weight 和 Partial Add；不含 Container |
+| `src/interaction` | 通用 Target/Result、Pickup Transaction 和 Babylon Raycast 窄适配 |
+| `src/world/pickups` | World Pickup Domain Registry、Scenario Placement 与 Mesh Presentation |
 | `src/crafting` | 未来的配方校验和制作状态 |
 | `src/building` | 未来的 Ghost、放置校验和 Snap |
 | `src/save` | 未来的版本化 IndexedDB 持久化 |
@@ -56,7 +63,15 @@ src/main.ts
 | `public/assets` | 未来的模型、贴图与音频 |
 | `tests` | 纯逻辑测试与高价值集成测试 |
 
-其余功能目录在当前阶段只是预留边界。
+`src/crafting`、`src/building` 和 `src/save` 等其余功能目录在当前阶段仍只是预留边界。
+
+## Interaction、Item 与 Inventory Foundation
+
+运行链固定为：`Camera → Babylon Raycast → Interaction Target ID → InteractionService → Inventory + WorldPickupRegistry → UI/Babylon Presentation`。Raycast 最大距离集中为 `2.75m`，每帧通过 Predicate 仅测试可交互 Mesh；Mesh metadata 只保存 `interactionTargetId`，不保存 ItemDefinition、Inventory 或 Service。
+
+`data/items/items.json` 定义稳定 `id`、展示字段、`category`、`stackSize`、单件 `weight`、可空 `durability`/`icon` 和 `tags`。`ItemCatalog` 在启动时完成结构、重复 ID 和数值边界校验。`ItemStack` 与 Inventory Snapshot 不可变；Inventory 固定 24 Slot / 30kg，重量每次由 `Σ weight × quantity` 推导，不维护可漂移缓存。
+
+Add 前先同时计算现有 Stack 空位、新 Slot 空位和剩余重量可接受的最大整数数量，然后只写入该数量。允许 Partial Add：Inventory 增加 `acceptedQuantity`，Registry 同步减少 Pickup；只有剩余为 0 时 Presentation 才清除 lookup 并 dispose Mesh。失败结果使用稳定 reason ID，Domain 不操作 DOM 或 Babylon。
 
 ## Game Time 与 Runtime
 
@@ -230,15 +245,15 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 
 ## 数据和存档方向
 
-未来的 Item、Recipe、Loot 和 Weather 定义存放在 JSON 中，并使用稳定 ID。核心逻辑不得使用展示名称作为业务键。
+Item 与 Weather 定义已使用 JSON 和稳定 ID；Recipe 与 Loot 仍是未来方向。核心逻辑不得使用展示名称作为业务键。
 
 未来存档使用 IndexedDB 并携带 Schema Version。规划中的存档外层预留 player、world、time、weather、inventory、buildings 字段，但本阶段不实现这些接口或行为。
 
 ## 测试策略
 
-不对 Babylon 渲染做大量低价值单元测试。Inventory、ItemStack、Recipe、Wetness、WeatherTransition 和存档序列化等确定性逻辑，在对应系统获得开发授权时必须建立单元测试。
+不对 Babylon 渲染做大量低价值单元测试。Item Catalog、ItemStack、Inventory 容量/重量/Stack/Partial Add、Pickup Transaction 与场景 Placement 已由纯测试覆盖；Recipe、Wetness 和存档仅在未来获得授权时测试。
 
-当前单元测试还覆盖 Weather Gameplay 插值、Thermal Config Validation、Effective Temperature、Wind Chill 端点、温暖恢复、分级流失、FPS 一致性、Delta 校验、min/max Clamp、Status 边界、Shelter 内外/边界、0%/100% 挡风、Heat Source 中心/边缘/禁用/单调衰减/叠加上限、降水线段/AABB 碰撞，以及暴雪中室外→庇护→炉旁的纯 Domain Integration。类型检查和生产构建仍是质量门禁，浏览器渲染、碰撞和 HUD 需要独立验收。
+当前共 21 个测试文件、105 个测试，除既有 Weather/Thermal/Shelter/降水碰撞外，还覆盖 Item 校验、Inventory 边界和 Pickup Transaction。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项。
 
 ## Weather Presentation 已知边界
 

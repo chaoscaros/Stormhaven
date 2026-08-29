@@ -6,6 +6,11 @@ import type {
   ThermalStatus,
   ThermalTrend,
 } from "../survival/thermal/ThermalState";
+import type { InteractionResult } from "../interaction/InteractionResult";
+import { INTERACTION_CONFIG } from "../interaction/InteractionConfig";
+import { formatInteractionPrompt, type InteractionTarget } from "../interaction/InteractionTarget";
+import type { InventorySnapshot } from "../inventory/Inventory";
+import type { ItemCatalog } from "../items/ItemCatalog";
 
 const WEATHER_LABELS: Readonly<Record<WeatherId, string>> = Object.freeze({
   clear: "晴朗",
@@ -26,13 +31,17 @@ const THERMAL_TREND_LABELS: Readonly<Record<ThermalTrend, string>> = Object.free
   cooling: "流失",
 });
 
-interface FoundationUi {
+export interface FoundationUi {
   showReady(): void;
   showError(message: string): void;
   updateDebugHud(
     snapshot: GameSimulationSnapshot,
     presentation?: WeatherPresentationSnapshot,
   ): void;
+  updateInteractionPrompt(target?: InteractionTarget): void;
+  updateInventory(snapshot: InventorySnapshot, catalog: ItemCatalog): void;
+  showInteractionResult(result: InteractionResult, catalog: ItemCatalog): void;
+  dispose(): void;
 }
 
 /** 将基础启动界面与 Pointer Lock 入口连接起来。 */
@@ -56,6 +65,14 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const debugThermalValue = getElement("debug-thermal-value");
   const debugThermalTrend = getElement("debug-thermal-trend");
   const debugThermalStatus = getElement("debug-thermal-status");
+  const crosshair = getElement("crosshair");
+  const interactionPrompt = getElement("interaction-prompt");
+  const inventoryPanel = getElement("inventory-panel");
+  const inventoryItems = getElement<HTMLUListElement>("inventory-items");
+  const inventoryWeight = getElement("inventory-weight");
+  const inventorySlots = getElement("inventory-slots");
+  const pickupFeedback = getElement("pickup-feedback");
+  let feedbackTimeout: number | undefined;
 
   const requestControl = (): void => {
     void canvas.requestPointerLock();
@@ -63,14 +80,27 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
 
   enterButton.addEventListener("click", requestControl);
   canvas.addEventListener("click", requestControl);
-  document.addEventListener("pointerlockchange", () => {
+  const handlePointerLockChange = (): void => {
     const isPlaying = document.pointerLockElement === canvas;
     startScreen.hidden = isPlaying;
     hud.hidden = !isPlaying;
     if (isPlaying) {
       canvas.focus({ preventScroll: true });
+    } else {
+      inventoryPanel.hidden = true;
     }
-  });
+  };
+  const handleInventoryKeyDown = (event: KeyboardEvent): void => {
+    if (
+      event.code !== INTERACTION_CONFIG.inventoryKeyCode
+      || event.repeat
+      || document.pointerLockElement !== canvas
+    ) return;
+    event.preventDefault();
+    inventoryPanel.hidden = !inventoryPanel.hidden;
+  };
+  document.addEventListener("pointerlockchange", handlePointerLockChange);
+  window.addEventListener("keydown", handleInventoryKeyDown);
 
   return {
     showReady(): void {
@@ -142,7 +172,74 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
       );
       debugThermalStatus.dataset.status = snapshot.thermal.status;
     },
+    updateInteractionPrompt(target?: InteractionTarget): void {
+      interactionPrompt.hidden = !target;
+      crosshair.dataset.active = target ? "true" : "false";
+      if (target) setTextIfChanged(interactionPrompt, formatInteractionPrompt(target));
+    },
+    updateInventory(snapshot: InventorySnapshot, catalog: ItemCatalog): void {
+      const totals = new Map<string, number>();
+      for (const stack of snapshot.slots) {
+        if (stack) totals.set(stack.itemId, (totals.get(stack.itemId) ?? 0) + stack.quantity);
+      }
+      if (totals.size === 0) {
+        const empty = document.createElement("li");
+        empty.className = "inventory-panel__empty";
+        empty.textContent = "暂无物资";
+        inventoryItems.replaceChildren(empty);
+      } else {
+        const fragment = document.createDocumentFragment();
+        for (const [itemId, quantity] of totals) {
+          const row = document.createElement("li");
+          const name = document.createElement("span");
+          const count = document.createElement("strong");
+          name.textContent = catalog.get(itemId).displayName;
+          count.textContent = `×${quantity}`;
+          row.append(name, count);
+          fragment.append(row);
+        }
+        inventoryItems.replaceChildren(fragment);
+      }
+      setTextIfChanged(
+        inventoryWeight,
+        `${snapshot.totalWeightKilograms.toFixed(1)} / ${snapshot.maxWeightKilograms.toFixed(1)} kg`,
+      );
+      setTextIfChanged(inventorySlots, `${snapshot.usedSlots} / ${snapshot.maxSlots}`);
+    },
+    showInteractionResult(result: InteractionResult, catalog: ItemCatalog): void {
+      if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);
+      pickupFeedback.dataset.tone = result.success ? "success" : "warning";
+      pickupFeedback.textContent = formatInteractionResult(result, catalog);
+      pickupFeedback.hidden = false;
+      feedbackTimeout = window.setTimeout(() => {
+        pickupFeedback.hidden = true;
+        feedbackTimeout = undefined;
+      }, 1_600);
+    },
+    dispose(): void {
+      enterButton.removeEventListener("click", requestControl);
+      canvas.removeEventListener("click", requestControl);
+      document.removeEventListener("pointerlockchange", handlePointerLockChange);
+      window.removeEventListener("keydown", handleInventoryKeyDown);
+      if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);
+    },
   };
+}
+
+function formatInteractionResult(result: InteractionResult, catalog: ItemCatalog): string {
+  if (result.success && result.itemId && catalog.has(result.itemId)) {
+    const remaining = result.remainingQuantity > 0
+      ? ` · 地面剩余 ×${result.remainingQuantity}`
+      : "";
+    return `获得 ${catalog.get(result.itemId).displayName} ×${result.acceptedQuantity}${remaining}`;
+  }
+  switch (result.reason) {
+    case "inventory_full": return "背包槽位已满，物资仍留在原处";
+    case "too_heavy": return "负重已满，物资仍留在原处";
+    case "unknown_item": return "无法识别该物资";
+    case "out_of_range": return "距离过远";
+    default: return "交互目标已失效";
+  }
 }
 
 function formatCelsius(value: number): string {

@@ -35,6 +35,8 @@
             <span><kbd>鼠标</kbd> 视角</span>
             <span><kbd>空格</kbd> 跳跃</span>
             <span><kbd>SHIFT</kbd> 奔跑</span>
+            <span><kbd>E</kbd> 拾取</span>
+            <span><kbd>I</kbd> 背包</span>
           </p>
         </div>
         <p class="start-screen__footer">WEATHER PRESENTATION ONLINE // F1–F4 视觉预览</p>
@@ -109,8 +111,23 @@
             </div>
           </dl>
         </aside>
-        <div class="crosshair" aria-hidden="true"></div>
-        <div class="hud__hint">F1 晴朗 · F2 多云 · F3 降雪 · F4 暴雪 · F5 跟随计划 · ESC 释放鼠标</div>
+        <aside id="inventory-panel" class="inventory-panel" aria-label="背包调试面板" hidden>
+          <header>
+            <span>FIELD INVENTORY</span>
+            <strong>背包</strong>
+          </header>
+          <ul id="inventory-items" class="inventory-panel__items">
+            <li class="inventory-panel__empty">暂无物资</li>
+          </ul>
+          <footer>
+            <span>重量 <strong id="inventory-weight">0.0 / 30.0 kg</strong></span>
+            <span>槽位 <strong id="inventory-slots">0 / 24</strong></span>
+          </footer>
+        </aside>
+        <div id="pickup-feedback" class="pickup-feedback" role="status" hidden></div>
+        <div id="crosshair" class="crosshair" aria-hidden="true"></div>
+        <div id="interaction-prompt" class="interaction-prompt" hidden></div>
+        <div class="hud__hint">E 交互 · I 背包 · F1–F4 天气预览 · F5 跟随计划 · ESC 释放鼠标</div>
       </div>
 
       <div id="error-screen" class="error-screen" role="alert" hidden>

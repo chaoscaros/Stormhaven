@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model，以及 Shelter + Heat Source v0.1：
+当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model、Shelter + Heat Source，以及 Interaction + Item + Inventory Foundation v0.1：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -54,9 +54,13 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 常开测试炉用平滑距离衰减提供外部热量；多个热源可相加但有全局上限
 - 暴雪中室外失温、屋内减缓失温、炉旁回暖的纯领域链路
 - 降水粒子被屋顶、墙体和地面拦截，但仍可从开放入口随风飘入
+- 玩家可在 2.75m 内对准场景资源并按 E 拾取；Prompt 会显示物品名和数量
+- 8 类物品由 JSON 定义，第一场暴雪场景放置 6 个少量测试资源
+- 24 Slot / 30kg 背包支持 Stack 和容量/重量限制下的 Partial Add
+- I 键只显示只读 Debug Inventory；这不是正式背包交互 UI
 - 可重复执行的类型检查、测试和生产构建
 
-当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。降水阻挡使用静态 AABB，不是流体或真实风雪模拟。当前阶段明确不包含天气音频、Wetness、Interaction、Fuel、Clothing、Health Damage、物品数据、制作配方、存档结构或建筑放置行为。Thermal Reserve 是游戏化资源，不是医学核心体温。
+当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。降水阻挡使用静态 AABB，不是流体或真实风雪模拟。当前 Item/Inventory 只验证“世界资源进入内存背包”的基础链路，明确不包含 Crafting、Fuel、物品使用、装备、耐久玩法、丢弃、容器、Loot、采集、存档或建筑放置。Thermal Reserve 是游戏化资源，不是医学核心体温。
 
 ## 非目标
 

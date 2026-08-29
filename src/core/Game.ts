@@ -11,16 +11,26 @@ import type {
   WeatherPresentationController,
   WeatherPresentationSnapshot,
 } from "../weather/presentation/WeatherPresentationController";
+import type { FirstBlizzardGameplayFoundation } from "./gameplay/createFirstBlizzardGameplayFoundation";
+import { WorldPickupPresentation } from "../world/pickups/WorldPickupPresentation";
+import {
+  InteractionRaycastController,
+  type InteractionCallbacks,
+} from "../interaction/InteractionRaycastController";
 
 /** 管理 Babylon 运行时生命周期，并将功能初始化委托给各自模块。 */
 export class Game {
   readonly #engine: Engine;
   #scene: Scene | undefined;
   #weatherPresentation: WeatherPresentationController | undefined;
+  #worldPickups: WorldPickupPresentation | undefined;
+  #interaction: InteractionRaycastController | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly simulation: GameSimulation,
+    private readonly gameplay: FirstBlizzardGameplayFoundation,
+    private readonly interactionCallbacks: InteractionCallbacks,
     private readonly onSimulationUpdate: (
       snapshot: GameSimulationSnapshot,
       presentation: WeatherPresentationSnapshot,
@@ -37,6 +47,20 @@ export class Game {
     const world = await createWorldScene(this.#engine);
     this.#scene = world.scene;
     const camera = createFirstPersonCamera(world.scene, this.canvas);
+    this.#worldPickups = new WorldPickupPresentation(
+      world.scene,
+      this.gameplay.pickupPlacements,
+      this.gameplay.itemCatalog,
+    );
+    this.#interaction = new InteractionRaycastController(
+      world.scene,
+      camera,
+      this.canvas,
+      this.gameplay.interactionService,
+      () => this.gameplay.inventory.snapshot,
+      this.#worldPickups,
+      this.interactionCallbacks,
+    );
     this.#weatherPresentation = createWeatherPresentation(
       world.scene,
       camera,
@@ -58,6 +82,7 @@ export class Game {
       if (presentation) {
         this.onSimulationUpdate(simulationUpdate.snapshot, presentation);
       }
+      this.#interaction?.update();
       this.#scene?.render();
     });
 
@@ -68,6 +93,10 @@ export class Game {
     window.removeEventListener("resize", this.#handleResize);
     this.#weatherPresentation?.dispose();
     this.#weatherPresentation = undefined;
+    this.#interaction?.dispose();
+    this.#interaction = undefined;
+    this.#worldPickups?.dispose();
+    this.#worldPickups = undefined;
     this.#scene?.dispose();
     this.#engine.dispose();
   }

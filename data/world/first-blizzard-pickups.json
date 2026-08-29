@@ -1,0 +1,38 @@
+[
+  {
+    "id": "pickup_wood_001",
+    "itemId": "wood",
+    "quantity": 5,
+    "position": { "x": -1.2, "y": 0.12, "z": -4.4 }
+  },
+  {
+    "id": "pickup_stick_001",
+    "itemId": "stick",
+    "quantity": 3,
+    "position": { "x": 2.2, "y": 0.12, "z": -1.5 }
+  },
+  {
+    "id": "pickup_stone_001",
+    "itemId": "stone",
+    "quantity": 4,
+    "position": { "x": -3.2, "y": 0.3, "z": 0.5 }
+  },
+  {
+    "id": "pickup_wood_002",
+    "itemId": "wood",
+    "quantity": 3,
+    "position": { "x": 2.8, "y": 0.12, "z": 2.4 }
+  },
+  {
+    "id": "pickup_canned_food_001",
+    "itemId": "canned_food",
+    "quantity": 1,
+    "position": { "x": -2.6, "y": 0.28, "z": 3.1 }
+  },
+  {
+    "id": "pickup_water_bottle_001",
+    "itemId": "water_bottle",
+    "quantity": 1,
+    "position": { "x": 2.3, "y": 0.4, "z": 3.2 }
+  }
+]

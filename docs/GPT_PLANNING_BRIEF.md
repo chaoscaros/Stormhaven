@@ -326,7 +326,7 @@ Recipe 必须 Data Driven，至少包含：
 
 ## 9. 当前仓库真实状态
 
-基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1 和 Shelter + Heat Source v0.1 已经建立，目前包含：
+基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1、Shelter + Heat Source 和 Interaction + Item + Inventory Foundation v0.1 已经建立，目前包含：
 
 - Vite + TypeScript 严格模式
 - Babylon.js 9 与 Havok Physics 依赖
@@ -359,18 +359,21 @@ Recipe 必须 Data Driven，至少包含：
 - 固定测试木屋、入口、碰撞和常开测试炉 Primitive 表现
 - 庇护、挡风、原始→有效风力和热源加成 Debug HUD
 - 局部降水粒子与静态碰撞 Mesh AABB 的线段碰撞及回收
-- 18 个测试文件、72 个单元测试
+- 8 个 JSON ItemDefinition 与 Runtime Validation/Catalog
+- 6 个 JSON Scenario World Pickup、Primitive Mesh 与 Registry
+- 2.75m Camera Forward Interaction Raycast、Target/Result 和 E 单次拾取
+- 24 Slot/30kg 纯 Inventory、Stack、Weight 和 Partial Add Transaction
+- I 键只读 Debug Inventory、Prompt、反馈和 Mesh 生命周期同步
+- 21 个测试文件、105 个单元测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
 明确尚未实现：
 
 - Weather Audio 和进一步 Weather Visual Effects；当前降水碰撞不支持动态建筑或精确复杂 Mesh
-- Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage
-- Interaction Raycast
-- Pickup
-- ItemDefinition
-- Inventory
+- Wetness、Campfire Gameplay、Fuel、Clothing、Health Damage
+- Item Use/Consumption、Equipment、Durability Gameplay、Drop
+- Container/Storage UI、Loot Table、Harvesting
 - Crafting
 - Building
 - IndexedDB Save
@@ -393,6 +396,11 @@ src/main.ts
   ├─ src/survival/shelter/
   ├─ src/survival/heat/
   ├─ src/survival/thermal/
+  ├─ src/items/
+  ├─ src/inventory/
+  ├─ src/interaction/
+  ├─ src/world/pickups/
+  ├─ data/items/
   ├─ data/survival/
   ├─ data/world/
   ├─ src/world/createWorldScene.ts
@@ -439,10 +447,15 @@ src/main.ts
 - `pnpm test`：18 个测试文件、72 个测试通过。
 - `pnpm exec tsc -b --pretty false`：通过。
 
+2026-08-29 完成 Interaction + Item + Inventory Foundation v0.1 后实际执行并通过：
+
+- `pnpm test`：21 个测试文件、105 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
 - 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
-- Weather Presentation、Shelter/Heat/Thermal Debug HUD、固定木屋碰撞与 14:00 → 18:00 的实时流程仍需要手动验收。
+- Weather Presentation、Shelter/Heat/Thermal、Pickup 可见性、Prompt/E/I、Partial Add Mesh 保留与 14:00 → 18:00 的实时流程仍需要手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 
 仓库已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。

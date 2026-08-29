@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气 Domain、Weather Presentation Layer v0.1、Player Thermal Model v0.1 与 Shelter + Heat Source v0.1**。Wetness、Campfire Gameplay、Health Damage、Inventory、Crafting、存档和建筑玩法均未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source，以及 Interaction + Item + Inventory Foundation v0.1**。玩家可拾取场景物资并在只读 Debug Inventory 中确认结果；Crafting、物品使用、容器、存档和建筑玩法尚未实现。
 
 ## 当前完成内容
 
@@ -34,7 +34,11 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 与领域坐标共用配置的固定测试木屋、入口和常开测试炉占位表现
 - 庇护状态、挡风比例、原始/有效风力和热源加成 Debug HUD
 - 局部降水粒子与静态碰撞障碍的路径检测：屋顶、墙体、地面和标杆会拦截雪花，开放入口仍允许风雪进入
-- GameTime、Forecast、Weather、Thermal、Camera Speed 和配置的 Vitest 单元测试
+- 屏幕中央 2.75m Interaction Raycast、`E` 单次拾取与可见 Prompt
+- JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup
+- 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
+- `I` 键只读 Debug Inventory、拾取反馈与 Pickup Mesh 生命周期同步
+- GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup Transaction、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 
 ## 环境要求
@@ -60,6 +64,8 @@ pnpm dev
 | 鼠标 | 控制视角 |
 | `Space` | 跳跃 |
 | `Shift` | 奔跑 |
+| `E` | 拾取准星对准的物资 |
+| `I` | 打开或关闭只读 Debug Inventory |
 | `Esc` | 释放鼠标 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
 | `F5` | 退出视觉预览，恢复跟随天气计划 |
@@ -85,8 +91,8 @@ pnpm build
 
 `src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager`、`ShelterSystem`、`HeatSourceSystem` 与 `ThermalModel`；相机位置只以普通 `{x,y,z}` 数据进入模拟，不把 Babylon 类型泄漏到领域层。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
 
-Thermal 只输出体热状态，不扣除生命。它已消费 Shelter 挡风/温度加成和通用 Heat Source 加成，但不包含湿度、衣物、燃料、点火交互或 Campfire Gameplay。Inventory、Crafting、Building 等目录仍只有占位文件。
+Thermal 只输出体热状态，不扣除生命。Interaction 的运行链为 Camera Raycast → Target ID → `InteractionService` → `Inventory`/`WorldPickupRegistry` → Babylon/UI Presentation。Inventory 不依赖 Babylon 或 DOM，World Pickup Domain 不保存 Mesh。
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要继续扩展 Shelter、Heat Source、Thermal 或 Weather Visual Effects，也不要实现 Wetness、Campfire Gameplay、Fuel、Clothing、Health Damage、Inventory、Crafting、存档或建筑系统。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要继续扩展 Interaction、Item 或 Inventory；不要顺带实现 Crafting、Building、Campfire、Fuel、物品使用/消耗、装备、耐久玩法、丢弃、容器 UI、存档、Loot Table 或采集。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
