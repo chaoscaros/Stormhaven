@@ -57,9 +57,9 @@
 - JSON 驱动的 8 个 ItemDefinition 和 6 个 First Blizzard Pickup Placement
 - 纯 `ItemCatalog`、`ItemStack`、Slot/Stack/Weight Inventory 与 Partial Add
 - Camera Forward Ray → Target ID → InteractionService → Inventory/Registry → Presentation
-- `E` 防 Key Repeat 单次拾取、`I` 只读背包、Prompt 和结果反馈
+- `E` 防 Key Repeat 单次拾取、`Tab` 只读背包、Prompt 和结果反馈
 - Pickup 完全消费才 dispose Mesh；容量/重量不足时保留全部或剩余数量
-- 21 个测试文件、105 个单元测试
+- 21 个测试文件、106 个单元测试
 
 ## 关键架构入口
 
@@ -186,6 +186,12 @@ pnpm dev
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 - `pnpm test`：21 个测试文件、105 个测试通过
 
+2026-08-29 将背包快捷键调整为 Tab 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：21 个测试文件、106 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -224,12 +230,18 @@ pnpm dev
 
 ## 变更记录
 
+### 2026-08-29 — 背包快捷键调整为 Tab
+
+- 将集中配置中的背包按键从 `KeyI` 调整为 `Tab`，保留 Pointer Lock 和 Key Repeat 防护。
+- 同步启动界面、HUD 提示、README、验收手册和 AI 交接文档。
+- 未启动浏览器，也未执行 `pnpm dev`、`pnpm build` 或 `pnpm preview`；实际检查结果见“当前验证状态”。
+
 ### 2026-08-29 — Interaction + Item + Inventory Foundation v0.1
 
 - 新增 8 个 JSON ItemDefinition、ItemCatalog Runtime Validation，以及 6 个场景 Pickup Placement。
 - 新增 24 Slot/30kg Inventory，支持 Stack、Move/Merge/Split、Weight 与容量限制下的 Partial Add。
 - 新增通用 Interaction Target/Result、2.75m Camera Raycast、E 单次输入和原子 Pickup Transaction。
-- 新增 Primitive Pickup Presentation、只读 I 键 Inventory Panel、Prompt 和拾取反馈；完整消费后才删除 Mesh。
+- 新增 Primitive Pickup Presentation、只读 Inventory Panel（最初为 I 键，现已调整为 Tab）、Prompt 和拾取反馈；完整消费后才删除 Mesh。
 - 新增 3 个测试文件；最终 21 个文件、105 个测试全部通过，TypeScript 严格检查通过。
 - 未启动浏览器或运行 dev/build/preview；等待用户按 Runbook 手动验收后停止。
 

@@ -253,7 +253,7 @@ Item 与 Weather 定义已使用 JSON 和稳定 ID；Recipe 与 Loot 仍是未�
 
 不对 Babylon 渲染做大量低价值单元测试。Item Catalog、ItemStack、Inventory 容量/重量/Stack/Partial Add、Pickup Transaction 与场景 Placement 已由纯测试覆盖；Recipe、Wetness 和存档仅在未来获得授权时测试。
 
-当前共 21 个测试文件、105 个测试，除既有 Weather/Thermal/Shelter/降水碰撞外，还覆盖 Item 校验、Inventory 边界和 Pickup Transaction。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项。
+当前共 21 个测试文件、106 个测试，除既有 Weather/Thermal/Shelter/降水碰撞外，还覆盖 Item 校验、Inventory 边界、Pickup Transaction 和集中输入配置。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项。
 
 ## Weather Presentation 已知边界
 

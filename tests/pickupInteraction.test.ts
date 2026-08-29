@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import itemDefinitionsData from "../data/items/items.json";
 import pickupPlacementsData from "../data/world/first-blizzard-pickups.json";
 import { InteractionService } from "../src/interaction/InteractionService";
+import { INTERACTION_CONFIG } from "../src/interaction/InteractionConfig";
 import { formatInteractionPrompt } from "../src/interaction/InteractionTarget";
 import { Inventory } from "../src/inventory/Inventory";
 import { ItemCatalog } from "../src/items/ItemCatalog";
@@ -12,6 +13,10 @@ import { parseWorldPickupPlacements } from "../src/world/pickups/WorldPickupPlac
 const catalog = ItemCatalog.fromUnknown(itemDefinitionsData);
 
 describe("Pickup Transaction", () => {
+  it("背包快捷键集中配置为 Tab", () => {
+    expect(INTERACTION_CONFIG.inventoryKeyCode).toBe("Tab");
+  });
+
   it("第一场暴雪场景配置可解析为唯一 Pickup", () => {
     const placements = parseWorldPickupPlacements(pickupPlacementsData, catalog);
     expect(placements).toHaveLength(6);

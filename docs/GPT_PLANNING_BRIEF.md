@@ -363,8 +363,8 @@ Recipe 必须 Data Driven，至少包含：
 - 6 个 JSON Scenario World Pickup、Primitive Mesh 与 Registry
 - 2.75m Camera Forward Interaction Raycast、Target/Result 和 E 单次拾取
 - 24 Slot/30kg 纯 Inventory、Stack、Weight 和 Partial Add Transaction
-- I 键只读 Debug Inventory、Prompt、反馈和 Mesh 生命周期同步
-- 21 个测试文件、105 个单元测试
+- Tab 键只读 Debug Inventory、Prompt、反馈和 Mesh 生命周期同步
+- 21 个测试文件、106 个单元测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -450,6 +450,11 @@ src/main.ts
 2026-08-29 完成 Interaction + Item + Inventory Foundation v0.1 后实际执行并通过：
 
 - `pnpm test`：21 个测试文件、105 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+
+2026-08-29 将背包快捷键调整为 Tab 后实际执行并通过：
+
+- `pnpm test`：21 个测试文件、106 个测试通过。
 - `pnpm exec tsc -b --pretty false`：通过。
 
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：

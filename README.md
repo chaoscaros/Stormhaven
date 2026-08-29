@@ -37,7 +37,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 屏幕中央 2.75m Interaction Raycast、`E` 单次拾取与可见 Prompt
 - JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup
 - 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
-- `I` 键只读 Debug Inventory、拾取反馈与 Pickup Mesh 生命周期同步
+- `Tab` 键只读 Debug Inventory、拾取反馈与 Pickup Mesh 生命周期同步
 - GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup Transaction、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 
@@ -65,7 +65,7 @@ pnpm dev
 | `Space` | 跳跃 |
 | `Shift` | 奔跑 |
 | `E` | 拾取准星对准的物资 |
-| `I` | 打开或关闭只读 Debug Inventory |
+| `Tab` | 打开或关闭只读 Debug Inventory |
 | `Esc` | 释放鼠标 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
 | `F5` | 退出视觉预览，恢复跟随天气计划 |

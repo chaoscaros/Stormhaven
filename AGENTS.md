@@ -24,7 +24,7 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 当前阶段
 
-当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1**、**Shelter + Heat Source v0.1** 和 **Interaction + Item + Inventory Foundation v0.1**。玩家可用准星 Raycast 对准场景 Pickup，按 E 通过纯事务服务拾取，按 I 查看只读 Debug Inventory；物品、场景拾取物、Slot/Stack/Weight 均为数据驱动或纯领域逻辑。
+当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1**、**Shelter + Heat Source v0.1** 和 **Interaction + Item + Inventory Foundation v0.1**。玩家可用准星 Raycast 对准场景 Pickup，按 E 通过纯事务服务拾取，按 Tab 查看只读 Debug Inventory；物品、场景拾取物、Slot/Stack/Weight 均为数据驱动或纯领域逻辑。
 
 本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 Interaction、Item 或 Inventory，也不得实现 Crafting、Building、Campfire Gameplay、Fuel、Item Use/Consumption、Equipment、Durability Gameplay、Drop、Container/Storage UI、Save/IndexedDB、Loot Table 或 Harvesting。固定测试木屋、测试炉和场景 Pickup 都只是 Scenario 占位表现。
 

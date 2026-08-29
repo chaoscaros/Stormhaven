@@ -152,7 +152,7 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 24. 暴雪中进入木屋：雪花不能穿过屋顶、墙体或地面；站在开放入口附近仍可看到并允许少量风雪从入口飘入，不能表现为一进 Shelter 就让所有降雪瞬间消失。
 25. 出生点与木屋附近能看到 6 个少量 Primitive 资源；准星在约 2.75m 内对准后显示 `[E] 拾取 名称 ×N`，移开或走远即消失。
 26. 每按一次 `E` 只触发一次拾取；完全拾取后 Mesh 消失，容量或重量只允许部分拾取时 Mesh 保留且 Prompt 显示余量。
-27. 按 `I` 打开/关闭只读背包，物品数量、Stack 汇总、重量与 Slot 随拾取更新；释放 Pointer Lock 后面板自动关闭。
+27. 按 `Tab` 打开/关闭只读背包，物品数量、Stack 汇总、重量与 Slot 随拾取更新；释放 Pointer Lock 后面板自动关闭。
 28. 重复拾取木材确认 Stack 合并；接近容量上限时，未被接受的世界物品不得消失。
 29. 刷新页面后背包恢复为空，这是当前未实现 Save 的预期行为。
 30. 回归确认 WASD、Shift、Space、Pointer Lock、Weather、雪粒子、木屋碰撞、Shelter HUD 和测试炉热量均正常。
