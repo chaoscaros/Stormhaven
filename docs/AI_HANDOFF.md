@@ -7,7 +7,7 @@
 - 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Shelter + Heat Source v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
-- Git 状态：`main` 跟踪 `origin/main`；Player Thermal Model v0.1 已完成本地提交但尚未推送，本节 Shelter + Heat Source 改动尚未提交
+- Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
 - 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation、Player Thermal Model、Shelter + Heat Source 和 Debug HUD
 - 明确未实现：Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage、Hypothermia Gameplay、Indoor Snow Mask、Inventory、Crafting、Save、Building
 
@@ -196,6 +196,13 @@ pnpm dev
 当前任务不替用户提前选择，也不得顺带实现 Wetness、Interaction、Campfire Gameplay、Fuel、Inventory、Building 或 Damage。
 
 ## 变更记录
+
+### 2026-08-29 — 测试木屋地板闪烁修复
+
+- 修复测试木屋地板顶面与雪地顶面同处 `y=0` 引发的 Z-fighting 横纹和闪烁。
+- 将木屋地板表面抬高至雪地之上，并同步测试炉 Placement 高度，使占位 Mesh 继续落在地板表面。
+- 未执行浏览器操作，实际画面仍需用户刷新开发页面后手动验收。
+- 新增 Git 交付约定：后续完成开发或修复后使用中文提交信息，并推送当前跟踪的远端。
 
 ### 2026-08-29 — Shelter + Heat Source v0.1
 

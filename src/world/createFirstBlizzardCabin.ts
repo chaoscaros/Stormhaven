@@ -6,6 +6,7 @@ import type { AxisAlignedBounds } from "../survival/shelter/AxisAlignedVolume";
 import type { SurvivalEnvironmentScenario } from "../survival/environment/SurvivalEnvironmentScenario";
 
 const WALL_THICKNESS = 0.25;
+const FLOOR_THICKNESS = 0.12;
 const DOOR_WIDTH = 2.4;
 const DOOR_HEIGHT = 2.5;
 
@@ -79,9 +80,9 @@ function createCabinShell(
 
   createPart(
     "test-cabin-floor",
-    { width, height: 0.18, depth },
+    { width, height: FLOOR_THICKNESS, depth },
     centerX,
-    bounds.min.y - 0.09,
+    bounds.min.y + FLOOR_THICKNESS / 2,
     centerZ,
     floorMaterial,
   );
