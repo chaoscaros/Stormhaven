@@ -1,0 +1,50 @@
+[
+  {
+    "id": "clear",
+    "displayName": "晴朗",
+    "ambientTemperature": -5,
+    "temperatureModifier": 0,
+    "windStrength": 3,
+    "visibility": 1000,
+    "precipitation": 0,
+    "wetnessRate": 0,
+    "movementModifier": 1,
+    "solarEfficiency": 0.85
+  },
+  {
+    "id": "cloudy",
+    "displayName": "多云",
+    "ambientTemperature": -7,
+    "temperatureModifier": -2,
+    "windStrength": 6,
+    "visibility": 700,
+    "precipitation": 0,
+    "wetnessRate": 0,
+    "movementModifier": 0.98,
+    "solarEfficiency": 0.35
+  },
+  {
+    "id": "snow",
+    "displayName": "降雪",
+    "ambientTemperature": -10,
+    "temperatureModifier": -5,
+    "windStrength": 12,
+    "visibility": 250,
+    "precipitation": 0.55,
+    "wetnessRate": 0.08,
+    "movementModifier": 0.88,
+    "solarEfficiency": 0.15
+  },
+  {
+    "id": "blizzard",
+    "displayName": "暴雪",
+    "ambientTemperature": -18,
+    "temperatureModifier": -12,
+    "windStrength": 28,
+    "visibility": 40,
+    "precipitation": 1,
+    "wetnessRate": 0.22,
+    "movementModifier": 0.55,
+    "solarEfficiency": 0.02
+  }
+]

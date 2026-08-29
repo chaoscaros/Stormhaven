@@ -1,0 +1,342 @@
+:root {
+  color: #e8eff0;
+  background: #10191c;
+  font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ice: #d8e5e6;
+  --frost: #9eb3b6;
+  --signal: #d2a660;
+  --void: #10191c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app,
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  min-width: 960px;
+  min-height: 540px;
+}
+
+button,
+kbd {
+  font: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#app {
+  position: relative;
+  isolation: isolate;
+  background: var(--void);
+}
+
+#game-canvas {
+  display: block;
+  outline: none;
+  touch-action: none;
+}
+
+.start-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: clamp(28px, 4vw, 64px);
+  background:
+    linear-gradient(90deg, rgba(10, 17, 19, 0.97) 0%, rgba(10, 17, 19, 0.82) 38%, rgba(10, 17, 19, 0.08) 72%),
+    repeating-linear-gradient(90deg, transparent 0 89px, rgba(216, 229, 230, 0.04) 90px),
+    linear-gradient(180deg, rgba(16, 25, 28, 0.16), rgba(16, 25, 28, 0.62));
+}
+
+.start-screen::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 0 65%, rgba(216, 229, 230, 0.08) 65.1%, transparent 65.4%);
+  content: "";
+  pointer-events: none;
+}
+
+.start-screen__signal,
+.start-screen__footer,
+.hud__hint,
+.hud__location,
+.hud__telemetry {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  letter-spacing: 0.13em;
+}
+
+.start-screen__signal {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  color: var(--frost);
+  border-bottom: 1px solid rgba(216, 229, 230, 0.25);
+  font-size: 10px;
+}
+
+.start-screen__content {
+  align-self: center;
+  max-width: 700px;
+  padding-left: clamp(0px, 4vw, 72px);
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--signal);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+
+h1 {
+  margin: 0;
+  color: var(--ice);
+  font-size: clamp(76px, 11vw, 164px);
+  font-stretch: condensed;
+  font-weight: 800;
+  letter-spacing: -0.075em;
+  line-height: 0.76;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+h1 span {
+  display: block;
+  margin-left: 0.4em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(216, 229, 230, 0.72);
+}
+
+.start-screen__intro {
+  max-width: 390px;
+  margin: 34px 0 26px;
+  color: var(--frost);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+
+#enter-button {
+  display: flex;
+  width: min(100%, 340px);
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px 15px 20px;
+  color: var(--void);
+  border: 0;
+  border-left: 4px solid #8f6d37;
+  background: var(--signal);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+#enter-button:hover {
+  background: #e3bc7a;
+  transform: translateX(3px);
+}
+
+#enter-button:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 4px;
+}
+
+#enter-button kbd {
+  padding: 5px 7px;
+  border: 1px solid rgba(16, 25, 28, 0.45);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+}
+
+.start-screen__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  margin: 24px 0 0;
+  color: #819699;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.start-screen__controls span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.start-screen__controls kbd {
+  color: var(--ice);
+  font-size: 9px;
+}
+
+.start-screen__footer {
+  justify-self: end;
+  color: rgba(210, 166, 96, 0.65);
+  font-size: 9px;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hud__location {
+  position: absolute;
+  top: 28px;
+  left: 30px;
+  display: grid;
+  gap: 4px;
+  padding-left: 11px;
+  border-left: 2px solid var(--signal);
+  color: rgba(232, 239, 240, 0.65);
+  font-size: 8px;
+}
+
+.hud__location strong {
+  color: var(--ice);
+  font-size: 11px;
+}
+
+.hud__telemetry {
+  position: absolute;
+  top: 28px;
+  right: 30px;
+  width: 250px;
+  color: rgba(232, 239, 240, 0.7);
+  border-top: 2px solid var(--signal);
+  background: linear-gradient(135deg, rgba(10, 17, 19, 0.82), rgba(16, 25, 28, 0.48));
+  box-shadow: 0 10px 32px rgba(3, 8, 10, 0.2);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(3px);
+}
+
+.hud__telemetry header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px 9px;
+  border-bottom: 1px solid rgba(216, 229, 230, 0.14);
+  color: rgba(158, 179, 182, 0.7);
+  font-size: 7px;
+}
+
+.hud__telemetry header strong {
+  color: var(--signal);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+.hud__telemetry dl {
+  display: grid;
+  margin: 0;
+  padding: 7px 12px 9px;
+}
+
+.hud__telemetry dl > div {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: baseline;
+  min-height: 24px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(216, 229, 230, 0.08);
+}
+
+.hud__telemetry dl > div:last-child {
+  border-bottom: 0;
+}
+
+.hud__telemetry dt {
+  color: rgba(158, 179, 182, 0.62);
+  letter-spacing: 0.12em;
+}
+
+.hud__telemetry dd {
+  margin: 0;
+  overflow: hidden;
+  color: var(--ice);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(232, 239, 240, 0.7);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.crosshair::after {
+  position: absolute;
+  inset: 3px;
+  background: rgba(232, 239, 240, 0.75);
+  content: "";
+}
+
+.hud__hint {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  color: rgba(232, 239, 240, 0.52);
+  font-size: 8px;
+}
+
+.error-screen {
+  position: absolute;
+  inset: auto 32px 32px 32px;
+  z-index: 4;
+  max-width: 560px;
+  padding: 18px 20px;
+  color: #f4d9d2;
+  border-left: 4px solid #c65345;
+  background: rgba(41, 18, 17, 0.94);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+
+.error-screen strong {
+  color: #e67c6c;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.error-screen p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #enter-button {
+    transition: none;
+  }
+}

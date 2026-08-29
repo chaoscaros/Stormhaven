@@ -1,0 +1,21 @@
+{
+  "scenarioId": "first-blizzard",
+  "initialWeatherId": "clear",
+  "entries": [
+    {
+      "id": "day-1-first-blizzard",
+      "weatherId": "blizzard",
+      "transitionStartsAt": {
+        "day": 1,
+        "hour": 17,
+        "minute": 30
+      },
+      "startsAt": {
+        "day": 1,
+        "hour": 18,
+        "minute": 0
+      },
+      "transitionDurationGameMinutes": 30
+    }
+  ]
+}

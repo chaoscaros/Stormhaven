@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.pnpm-store/
+.DS_Store
+*.local
+*.log
+coverage/
+node_modules/.tmp/
+.playwright-cli/
+output/
+package-lock.json
+npm-shrinkwrap.json

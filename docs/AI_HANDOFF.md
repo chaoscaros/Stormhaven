@@ -1,0 +1,205 @@
+# Stormhaven AI 交接记录
+
+> 本文档是跨 AI、跨会话、跨电脑继续开发时的首要状态来源。开始工作前必须先阅读，完成实质改动后必须更新。
+
+## 当前状态
+
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Weather Presentation Layer v0.1
+- 当前版本：`0.1.0`
+- 包管理器：pnpm
+- Git 状态：仓库已初始化，尚未创建首个提交
+- 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation 和 Debug HUD
+- 明确未实现：Indoor Snow Mask、Temperature/Thermal Model、Wetness、Inventory、Crafting、Survival、Save、Building
+
+## 已完成内容
+
+- Vite + TypeScript 严格模式工程
+- Babylon.js 9 与 Havok Physics 依赖
+- 500m × 500m 雪地基础 Scene
+- 程序化天空、雾、半球光和方向光
+- 静态地面 PhysicsAggregate
+- 第一人称鼠标视角
+- WASD 移动、Shift 奔跑、Space 跳跃
+- 显式 Babylon Collision Coordinator 注册
+- 米/秒到 Babylon Camera Speed 的集中换算
+- Pointer Lock 后 Canvas 聚焦与四个控制校准标杆
+- 指针锁定启动界面、HUD 和错误提示
+- 基础配置单元测试
+- 中文 README、游戏设计、技术设计和协作规范
+- 后续模块目录占位
+- 纯逻辑 GameClock、Pause、Time Scale 和时间格式化
+- Data Driven WeatherDefinition 与 Runtime Validation
+- WeatherCatalog、WeatherManager 和 WeatherTransition
+- ForecastSystem 与 First Blizzard JSON Schedule
+- Day 1 14:00 → 17:30 Transition → 18:00 Blizzard 确定性流程
+- 单帧 Delta Clamp，避免后台 Tab 恢复后时间大幅跳跃
+- 时间、天气、预报和 Transition Progress Debug HUD
+- Data Driven Weather Visual Profile 与 Runtime Validation
+- 与 Babylon 解耦的 WeatherVisualMapper、Clamp 和连续插值
+- 程序化天空 Shader、Fog、HemisphericLight、DirectionalLight 连续过渡
+- 一个容量 2000、围绕相机移动的程序化雪 ParticleSystem
+- F1–F4 Presentation Preview、F5 恢复 Schedule 驱动
+- HUD 分开展示 Domain Weather 与 Visual Weather/Preview 状态
+- 8 个测试文件、31 个单元测试
+
+## 关键架构入口
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/main.ts` | 浏览器入口，初始化 UI 和 Game |
+| `src/core/Game.ts` | Engine/Scene 生命周期编排 |
+| `src/core/config.ts` | 世界和玩家共享配置 |
+| `src/core/time/GameClock.ts` | 确定性游戏时钟、Pause 和 Time Scale |
+| `src/core/simulation/GameSimulation.ts` | 时间、Forecast 和 Weather 的小型协调层 |
+| `src/core/simulation/createFirstBlizzardSimulation.ts` | 从 JSON 创建 First Blizzard Scenario |
+| `src/world/createWorldScene.ts` | Havok、天空、地面、雾和灯光 |
+| `src/player/createFirstPersonCamera.ts` | 第一人称移动、奔跑和跳跃 |
+| `src/player/cameraSpeed.ts` | 米/秒配置到 Babylon Camera Speed 的换算 |
+| `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
+| `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
+| `src/ui/setupFoundationUi.ts` | 指针锁定和基础 DOM 状态 |
+| `src/weather/WeatherCatalog.ts` | 天气定义验证、重复检查和稳定 ID 查询 |
+| `src/weather/WeatherManager.ts` | 当前天气与 Transition Domain 状态 |
+| `src/weather/ForecastSystem.ts` | Schedule 查询和跨时间点 Action 消费 |
+| `src/weather/presentation/WeatherVisualState.ts` | 与 Babylon 解耦的视觉状态契约 |
+| `src/weather/presentation/WeatherVisualProfileCatalog.ts` | 视觉配置校验、缺失/重复检查和稳定 ID 查询 |
+| `src/weather/presentation/WeatherVisualMapper.ts` | 纯插值、进度 Clamp 和端点映射 |
+| `src/weather/presentation/WeatherPresentationController.ts` | 每帧集中写入天空、雾、灯光和雪粒子 |
+| `src/weather/presentation/SnowParticleController.ts` | 相机局部单 ParticleSystem 及程序化纹理 |
+| `data/weather/weather.json` | 四种天气的 Data Driven 定义 |
+| `data/weather/weather-visuals.json` | 四种天气的独立视觉 Profile |
+| `data/weather/first-blizzard-schedule.json` | 17:30 → 18:00 暴雪计划 |
+| `tests/` | 配置、GameTime、Forecast、Weather、视觉映射、Camera Speed 和垂直运动单元测试 |
+| `docs/COMMAND_RUNBOOK.md` | 安装、启动、检查、构建和故障处理的标准命令 |
+| `docs/GPT_PLANNING_BRIEF.md` | 交给 GPT 制定开发路线图的完整项目现状 Brief |
+
+## 新环境接手步骤
+
+```bash
+corepack enable
+pnpm install
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm dev
+```
+
+如果环境不允许执行 `corepack enable`，请按该环境的标准方式安装 `package.json` 中声明的 pnpm 版本。
+
+## 当前验证状态
+
+2026-08-29 的基础开发过程中，以下 npm 命令曾在切换 pnpm 之前通过：
+
+- `npm run typecheck`
+- `npm test`：1 个测试文件、2 个测试通过
+- `npm run build`
+
+随后浏览器检查发现 Babylon 模块化导入没有自动注册 Physics Scene Component，导致 `No Physics Engine available.`。已在 `src/world/createWorldScene.ts` 中加入显式物理组件注册，页面可进入启动界面。
+
+之后用户要求所有启动、生产编译、重启和浏览器操作都由用户亲自执行。
+
+2026-08-29 完成 Game Time + Data Driven Weather Core v0.1 后，实际执行并通过：
+
+- `pnpm test`：5 个测试文件、17 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
+2026-08-29 修复第一人称控制链后，实际执行并通过：
+
+- `pnpm test`：6 个测试文件、19 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
+2026-08-29 继续修复跳跃碰撞体后，实际执行并通过：
+
+- `pnpm test`：7 个测试文件、22 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
+2026-08-29 完成 Weather Presentation Layer v0.1 后，实际执行并通过：
+
+- `pnpm test`：8 个测试文件、31 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
+仍未执行：
+
+- 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
+- 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
+- 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
+
+仓库当前已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。
+
+不得把以上未验证项目写成已通过。
+
+## 已知事项
+
+- 当前生产构建中的 Babylon 主 Chunk 约 1 MB，Vite 会给出 Chunk Size Warning，但构建能够完成。真实资源接入后再设计按需加载和分包。
+- 第一人称控制当前使用 Babylon Camera Collision 加自有垂直速度，不是完整 Havok Character Controller。
+- 已修复缺少 Collision Coordinator Side Effect 和 Camera Speed 错误除以 60 的问题，但修复后的实际键鼠操作仍需用户浏览器验收。
+- Weather Presentation 已接入天空、Fog、Lighting、局部 Snow Particle 与视觉风向；没有 Audio、Screen Frost、Camera Shake、Snow Accumulation、Footprints、Lightning Damage 或 Tree Destruction。
+- 室内/遮蔽物下的雪粒子 Mask 尚未实现；即使玩家位于未来室内空间，局部粒子系统目前仍会发射。
+- Weather Domain 参数没有作用于 Temperature、Wetness、玩家移动、伤害或任何其他 Gameplay。
+- F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
+- Inventory、Crafting、Survival、Building、Save 等目录仍只有占位，没有隐藏实现。
+
+## 推荐下一步
+
+本 Issue 已达到停止条件。不要在当前任务继续开发。
+
+未来只有在用户明确授权新的独立 Issue 后，才进入：
+
+**Player Thermal Model v0.1：纯体温模型与确定性测试。**
+
+该未来 Issue 应先定义纯逻辑输入/输出和数值边界，不得顺带实现 Wetness、Inventory、Campfire、Shelter、Damage、Building 或进一步天气视觉效果。
+
+## 变更记录
+
+### 2026-08-29 — 基础工程与 pnpm/中文交接规范
+
+- 创建基础 Babylon/Havok 工程与第一人称控制。
+- 建立完整预留目录、文档和基础测试。
+- 将项目界面与文档调整为中文主导。
+- 将唯一包管理器改为 pnpm 11.24.0，移除 npm 锁文件。
+- 新增跨电脑 AI 交接规则和当前验证边界。
+- 新增 AI 优先的命令手册，并规定面向用户的命令解答必须使用中文。
+- 将 Vite 开发服务默认端口设为 `9999`，并同步命令文档。
+- 新增 GPT 开发规划 Brief，汇总产品目标、技术约束、真实实现状态和计划输出要求。
+
+### 2026-08-29 — Game Time + Data Driven Weather Core v0.1
+
+- 新增纯逻辑 GameClock、GameTime Snapshot、Pause、Time Scale 和格式化。
+- 新增 WeatherDefinition JSON、WeatherCatalog Runtime Validation 和稳定 ID 查询。
+- 新增 WeatherManager、WeatherTransition 和纯数据 Domain Event。
+- 新增 ForecastSystem 与独立 First Blizzard Schedule JSON。
+- 接入 Day 1 14:00、17:30 开始 Transition、18:00 Blizzard 的确定性流程。
+- 新增可配置 `maxDeltaSeconds` Clamp，避免后台 Tab 恢复导致时间异常跳跃。
+- 在现有 HUD 中新增时间、天气、预报和 Transition Progress 遥测面板。
+- 新增 GameTime、Forecast、Weather 单元测试；`pnpm test` 17/17 通过，TypeScript 检查通过。
+- 严格停止在 Weather Domain；没有进入 Weather Visual Effects 或 Thermal Model。
+
+### 2026-08-29 — 第一人称控制修复
+
+- 显式注册 Babylon `DefaultCollisionCoordinator`，避免首次移动/跳跃时 Render Loop 因缺少 Side Effect 中断。
+- 将 Player 米/秒配置集中换算为 Babylon TargetCamera Speed，移除错误的 `/ 60` 速度计算。
+- Pointer Lock 成功后显式聚焦 Canvas，稳定键盘输入。
+- 增加四个无玩法含义的雪地校准标杆，便于观察移动、转向、跳跃和奔跑。
+- 新增 Camera Speed 测试；`pnpm test` 19/19 通过，TypeScript 检查通过。
+- 未执行 `pnpm dev`、`pnpm build` 或浏览器操作，等待用户手动验收。
+
+### 2026-08-29 — 跳跃碰撞体修复
+
+- 移除重复的负向 `ellipsoidOffset`；Babylon FreeCamera 已经自动将碰撞体中心放在视点下方。
+- 将出生高度调整到接近配置眼高，并将地面探测容差从 `0.58m` 收紧至 `0.12m`，避免提前判定落地。
+- 将跳跃、重力和落地速度重置抽离为纯 `PlayerVerticalMotion`。
+- 新增跳跃、空中重复跳跃和落地停止测试；`pnpm test` 22/22 通过，TypeScript 检查通过。
+- 未执行浏览器操作，修复后的 Space 跳跃仍需用户手动验收。
+
+### 2026-08-29 — Weather Presentation Layer v0.1
+
+- 新增 `weather-visuals.json`，独立配置 Clear、Cloudy、Snow、Blizzard 的天空、雾、灯光、雪和视觉风参数。
+- 新增 Profile Runtime Validation、纯 `WeatherVisualMapper` 与不可变 `WeatherVisualState`。
+- 将基础天空升级为内联 ShaderMaterial，支持地平线/天顶颜色、亮度和阴云度连续变化。
+- 集中更新既有 Scene Fog、HemisphericLight 和 DirectionalLight。
+- 新增单个容量 2000 的相机局部 Snow ParticleSystem 与程序化 DynamicTexture。
+- 新增 F1–F4 视觉预览、F5 恢复计划驱动；Preview 不修改 Weather Domain。
+- HUD 新增“视觉”行，明确区分 Domain Weather 和 Presentation Weather。
+- 新增 9 个视觉配置/映射测试；总计 31/31 通过，TypeScript 严格检查通过。
+- 未执行 `pnpm dev`、`pnpm build` 或浏览器操作；渲染与性能等待用户手动验收。
+- 严格停止在 Weather Presentation；未进入 Player Thermal Model 或任何禁止系统。

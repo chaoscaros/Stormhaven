@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10191c" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta
+      name="description"
+      content="Stormhaven——一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。"
+    />
+    <title>Stormhaven — 基础工程</title>
+  </head>
+  <body>
+    <main id="app">
+      <canvas id="game-canvas" tabindex="0" aria-label="Stormhaven 3D 游戏画面"></canvas>
+
+      <section id="start-screen" class="start-screen" aria-labelledby="game-title">
+        <div class="start-screen__signal" aria-hidden="true">
+          <span>基础工程版本</span>
+          <span>v0.1 / 500 米测试区域</span>
+        </div>
+        <div class="start-screen__content">
+          <p class="eyebrow">第一场暴雪</p>
+          <h1 id="game-title">STORM<span>HAVEN</span></h1>
+          <p class="start-screen__intro">
+            寒冷边境之外危机四伏，而安全之所仍待亲手建成。
+          </p>
+          <button id="enter-button" type="button">
+            <span>进入测试区域</span>
+            <kbd>点击</kbd>
+          </button>
+          <p class="start-screen__controls">
+            <span><kbd>W A S D</kbd> 移动</span>
+            <span><kbd>鼠标</kbd> 视角</span>
+            <span><kbd>空格</kbd> 跳跃</span>
+            <span><kbd>SHIFT</kbd> 奔跑</span>
+          </p>
+        </div>
+        <p class="start-screen__footer">WEATHER PRESENTATION ONLINE // F1–F4 视觉预览</p>
+      </section>
+
+      <div id="hud" class="hud" hidden>
+        <div class="hud__location">
+          <span>测试区域 01</span>
+          <strong>STORMHAVEN</strong>
+        </div>
+        <aside class="hud__telemetry" aria-label="游戏时间与天气调试信息">
+          <header>
+            <span>SCENARIO TELEMETRY</span>
+            <strong>FIRST BLIZZARD</strong>
+          </header>
+          <dl>
+            <div>
+              <dt>时间</dt>
+              <dd id="debug-time">14:00</dd>
+            </div>
+            <div>
+              <dt>天气</dt>
+              <dd id="debug-weather">晴朗</dd>
+            </div>
+            <div>
+              <dt>视觉</dt>
+              <dd id="debug-visual-weather">晴朗</dd>
+            </div>
+            <div>
+              <dt>预报</dt>
+              <dd id="debug-forecast">18:00 暴雪</dd>
+            </div>
+            <div>
+              <dt>过渡</dt>
+              <dd id="debug-transition">0%</dd>
+            </div>
+          </dl>
+        </aside>
+        <div class="crosshair" aria-hidden="true"></div>
+        <div class="hud__hint">F1 晴朗 · F2 多云 · F3 降雪 · F4 暴雪 · F5 跟随计划 · ESC 释放鼠标</div>
+      </div>
+
+      <div id="error-screen" class="error-screen" role="alert" hidden>
+        <strong>启动失败</strong>
+        <p id="error-message">Stormhaven 无法完成初始化。</p>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
