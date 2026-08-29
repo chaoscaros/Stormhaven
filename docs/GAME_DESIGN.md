@@ -53,9 +53,10 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 固定测试木屋用 AABB 提供 90% 挡风与小幅温度加成
 - 常开测试炉用平滑距离衰减提供外部热量；多个热源可相加但有全局上限
 - 暴雪中室外失温、屋内减缓失温、炉旁回暖的纯领域链路
+- 进入固定 Shelter 后局部降水粒子立即停止，离开后恢复天气表现
 - 可重复执行的类型检查、测试和生产构建
 
-当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。当前阶段明确不包含天气音频、室内雪遮罩、Wetness、Interaction、Fuel、Clothing、Health Damage、物品数据、制作配方、存档结构或建筑放置行为。Thermal Reserve 是游戏化资源，不是医学核心体温。
+当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。室内降水遮罩是二值表现规则，不模拟建筑开口或真实风雪穿透。当前阶段明确不包含天气音频、Wetness、Interaction、Fuel、Clothing、Health Damage、物品数据、制作配方、存档结构或建筑放置行为。Thermal Reserve 是游戏化资源，不是医学核心体温。
 
 ## 非目标
 

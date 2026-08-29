@@ -33,6 +33,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 通用 Heat Source Profile、smoothstep 距离衰减、多热源叠加和全局上限
 - 与领域坐标共用配置的固定测试木屋、入口和常开测试炉占位表现
 - 庇护状态、挡风比例、原始/有效风力和热源加成 Debug HUD
+- Shelter 驱动的局部降水粒子遮罩，进入测试木屋后立即停止并清除室内雪花
 - GameTime、Forecast、Weather、Thermal、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 

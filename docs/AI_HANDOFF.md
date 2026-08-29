@@ -9,7 +9,7 @@
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
 - 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation、Player Thermal Model、Shelter + Heat Source 和 Debug HUD
-- 明确未实现：Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage、Hypothermia Gameplay、Indoor Snow Mask、Inventory、Crafting、Save、Building
+- 明确未实现：Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage、Hypothermia Gameplay、Inventory、Crafting、Save、Building
 
 ## 已完成内容
 
@@ -53,7 +53,8 @@
 - 共用 Scenario Placement 的固定 Primitive 测试木屋、入口、碰撞与常开测试炉
 - HUD 展示庇护、挡风、原始→有效风力及热源加成
 - 暴雪中室外失温、庇护减缓、炉旁回暖及 FPS 一致性 Integration Test
-- 17 个测试文件、68 个单元测试
+- Shelter State 驱动的局部降水粒子遮罩，进入木屋时立即停止发射并清除已有粒子
+- 18 个测试文件、70 个单元测试
 
 ## 关键架构入口
 
@@ -157,6 +158,11 @@ pnpm dev
 - `pnpm test`：17 个测试文件、68 个测试通过
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 
+2026-08-29 完成室内降水粒子遮罩修复后，实际执行并通过：
+
+- `pnpm test`：18 个测试文件、70 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -175,7 +181,7 @@ pnpm dev
 - 第一人称控制当前使用 Babylon Camera Collision 加自有垂直速度，不是完整 Havok Character Controller。
 - 已修复缺少 Collision Coordinator Side Effect 和 Camera Speed 错误除以 60 的问题，但修复后的实际键鼠操作仍需用户浏览器验收。
 - Weather Presentation 已接入天空、Fog、Lighting、局部 Snow Particle 与视觉风向；没有 Audio、Screen Frost、Camera Shake、Snow Accumulation、Footprints、Lightning Damage 或 Tree Destruction。
-- 室内/遮蔽物下的雪粒子 Mask 尚未实现；玩家进入测试木屋后，局部粒子系统目前仍会发射。
+- 当前降水遮罩按 Shelter State 二值切换，不模拟门口飘雪、屋檐遮挡、风向穿透或不同建筑开口。
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
 - 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭、燃料、交互、物品或持久化。
@@ -196,6 +202,14 @@ pnpm dev
 当前任务不替用户提前选择，也不得顺带实现 Wetness、Interaction、Campfire Gameplay、Fuel、Inventory、Building 或 Damage。
 
 ## 变更记录
+
+### 2026-08-29 — 室内降水粒子遮罩修复
+
+- Weather Presentation 读取现有 `ShelterState.isSheltered`，在庇护所内将局部降雪强度和发射率归零。
+- 进入 Shelter 时立即 Reset 已生成的局部粒子，避免存活期内的雪花继续穿过屋顶。
+- 遮罩只影响 Presentation，不修改 Weather Domain、Forecast、天气过渡或 Thermal 输入。
+- 新增纯逻辑遮罩测试；总计 70/70 通过，TypeScript 严格检查通过。
+- 未执行浏览器操作，进入/离开木屋的实际粒子切换仍需用户刷新页面后手动验收。
 
 ### 2026-08-29 — 测试木屋地板闪烁修复
 

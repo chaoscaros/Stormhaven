@@ -6,6 +6,7 @@ import type { WeatherId } from "../WeatherDefinition";
 import type { WeatherEnvironmentBindings } from "./WeatherEnvironmentBindings";
 import { SnowParticleController } from "./SnowParticleController";
 import { WeatherVisualMapper } from "./WeatherVisualMapper";
+import { applyShelterPrecipitationMask } from "./applyShelterPrecipitationMask";
 
 const PREVIEW_KEYS: Readonly<Record<string, WeatherId>> = Object.freeze({
   F1: "clear",
@@ -61,7 +62,10 @@ export class WeatherPresentationController {
       "zenithColor",
       Color3.FromArray(state.zenithColor),
     );
-    this.#snow.update(this.camera, state);
+    this.#snow.update(
+      this.camera,
+      applyShelterPrecipitationMask(state, snapshot.shelter.isSheltered),
+    );
 
     return Object.freeze({
       weatherId: visualWeatherId,

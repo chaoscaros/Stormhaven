@@ -168,6 +168,7 @@ ForecastSystem
 - 更新 Scene 的 EXP2 Fog Color/Density。
 - 更新既有 HemisphericLight 和 DirectionalLight Intensity。
 - 更新一个容量 2000、围绕相机移动的 ParticleSystem；雪花纹理由 32×32 DynamicTexture 程序化生成。
+- 读取 Simulation Snapshot 的 `ShelterState`；在 Shelter 内对局部降水应用二值遮罩并立即清除已有粒子，不修改天气 Domain。
 - 处理 F1–F4 视觉预览和 F5 恢复 Schedule。Preview 只覆盖 Mapper 输入，不写入 ForecastSystem、WeatherManager 或 WeatherTransition。
 - 在 `dispose()` 中移除键盘监听并释放粒子与纹理资源。
 
@@ -237,11 +238,11 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 
 不对 Babylon 渲染做大量低价值单元测试。Inventory、ItemStack、Recipe、Wetness、WeatherTransition 和存档序列化等确定性逻辑，在对应系统获得开发授权时必须建立单元测试。
 
-当前单元测试还覆盖 Weather Gameplay 插值、Thermal Config Validation、Effective Temperature、Wind Chill 端点、温暖恢复、分级流失、FPS 一致性、Delta 校验、min/max Clamp、Status 边界、Shelter 内外/边界、0%/100% 挡风、Heat Source 中心/边缘/禁用/单调衰减/叠加上限，以及暴雪中室外→庇护→炉旁的纯 Domain Integration。类型检查和生产构建仍是质量门禁，浏览器渲染、碰撞和 HUD 需要独立验收。
+当前单元测试还覆盖 Weather Gameplay 插值、Thermal Config Validation、Effective Temperature、Wind Chill 端点、温暖恢复、分级流失、FPS 一致性、Delta 校验、min/max Clamp、Status 边界、Shelter 内外/边界、0%/100% 挡风、Heat Source 中心/边缘/禁用/单调衰减/叠加上限、室内降水遮罩，以及暴雪中室外→庇护→炉旁的纯 Domain Integration。类型检查和生产构建仍是质量门禁，浏览器渲染、碰撞和 HUD 需要独立验收。
 
 ## Weather Presentation 已知边界
 
-- 室内/遮蔽物下的雪粒子 Mask 尚未实现；粒子当前只按相机局部范围发射。
+- 当前室内降水遮罩是基于 Shelter State 的整体二值开关，不处理门口飘雪、屋檐局部遮挡或开口方向。
 - 已有游戏化体感温度、风寒、Shelter、Heat Source 和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
 - 没有音频、屏幕结霜、镜头抖动、积雪、脚印、闪电伤害或树木破坏。
 - 没有 GPU/移动端 Profile；容量和 Emit Rate 是桌面 Vertical Slice 的保守初值，需以用户浏览器实际表现校准。

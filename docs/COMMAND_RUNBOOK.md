@@ -149,7 +149,7 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 21. HUD 在室外显示“室外”、0% 挡风和原始风力等于有效风力；进入木屋后显示“测试木屋”、90% 挡风和明显降低的有效风力。
 22. 接近屋内橙色测试炉时热源加成平滑增大，离开半径后回到 `+0.0℃`；测试炉始终启用，不存在点火、燃料或交互。
 23. 暴雪中室外体热下降最快、屋内远离炉子时下降较慢、炉旁趋势应转为回暖。
-24. 木屋内仍有降雪粒子属于已知限制，Indoor Snow Mask 尚未实现。
+24. 进入测试木屋后已有雪花应立即清除，室内不再生成局部降雪粒子；从入口离开木屋后应恢复当前天气的降雪。
 25. Browser console has no uncaught error.
 
 ## CI or reproducible installation

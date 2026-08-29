@@ -14,6 +14,7 @@ export class SnowParticleController {
   readonly #emitter = Vector3.Zero();
   readonly #particleTexture: DynamicTexture;
   readonly #particles: ParticleSystem;
+  #previousEmitRate = 0;
 
   constructor(scene: Scene) {
     this.#particleTexture = createSnowParticleTexture(scene);
@@ -36,6 +37,10 @@ export class SnowParticleController {
   }
 
   update(camera: Camera, state: WeatherVisualState): void {
+    if (state.snowEmitRate === 0 && this.#previousEmitRate > 0) {
+      // 进入 Shelter 时立即清掉已经生成的局部粒子，避免残留雪花继续穿过屋顶。
+      this.#particles.reset();
+    }
     this.#emitter.copyFrom(camera.globalPosition);
     this.#emitter.y += EMITTER_HEIGHT_METERS;
 
@@ -56,6 +61,7 @@ export class SnowParticleController {
     this.#particles.minSize = state.snowParticleSize * 0.55;
     this.#particles.maxSize = state.snowParticleSize * 1.45;
     this.#particles.emitRate = state.snowEmitRate;
+    this.#previousEmitRate = state.snowEmitRate;
     this.#particles.gravity.copyFromFloats(
       state.windDirection[0] * state.windVisualStrength * 1.5,
       -1.7,

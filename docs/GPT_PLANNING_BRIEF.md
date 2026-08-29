@@ -358,13 +358,14 @@ Recipe 必须 Data Driven，至少包含：
 - Weather + Shelter + Heat Source → Thermal Environment 的纯领域组合
 - 固定测试木屋、入口、碰撞和常开测试炉 Primitive 表现
 - 庇护、挡风、原始→有效风力和热源加成 Debug HUD
-- 17 个测试文件、68 个单元测试
+- Shelter State 驱动的室内局部降水粒子遮罩
+- 18 个测试文件、70 个单元测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
 明确尚未实现：
 
-- Weather Audio、Indoor Snow Mask 和进一步 Weather Visual Effects
+- Weather Audio 和进一步 Weather Visual Effects；已有遮罩不处理门口飘雪或复杂建筑开口
 - Wetness、Interaction、Campfire Gameplay、Fuel、Clothing、Health Damage
 - Interaction Raycast
 - Pickup
@@ -426,6 +427,11 @@ src/main.ts
 2026-08-29 完成 Shelter + Heat Source v0.1 后实际执行并通过：
 
 - `pnpm test`：17 个测试文件、68 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+
+2026-08-29 完成室内降水粒子遮罩修复后实际执行并通过：
+
+- `pnpm test`：18 个测试文件、70 个测试通过。
 - `pnpm exec tsc -b --pretty false`：通过。
 
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
