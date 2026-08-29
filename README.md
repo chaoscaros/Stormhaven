@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气 Domain 与 Weather Presentation Layer v0.1**。Temperature、Wetness、Inventory、Crafting、存档和建筑玩法均未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气 Domain、Weather Presentation Layer v0.1 与 Player Thermal Model v0.1**。Wetness、Shelter、Campfire、Health Damage、Inventory、Crafting、存档和建筑玩法均未实现。
 
 ## 当前完成内容
 
@@ -25,7 +25,11 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 天空明暗/阴云、指数雾、半球光、方向光的连续天气过渡
 - 相机局部单粒子系统降雪与暴雪风向表现
 - F1–F4 视觉预览、F5 恢复计划驱动及视觉天气 HUD
-- GameTime、Forecast、Weather、Weather Visual Mapper、Camera Speed 和配置的 Vitest 单元测试
+- Weather Gameplay State 与 Transition 参数连续插值
+- Data Driven Thermal Config、Effective Temperature 和游戏化 Wind Chill
+- 确定性的 0..100 Thermal Reserve、Trend 与五档稳定 Status ID
+- 环境温度、体感、风力、体热、趋势和热状态 Debug HUD
+- GameTime、Forecast、Weather、Thermal、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 
 ## 环境要求
@@ -74,10 +78,10 @@ pnpm build
 
 ## 架构概览
 
-`src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem` 与 `WeatherManager`；`WeatherVisualMapper` 将 Domain Snapshot 纯函数式映射为视觉状态；`WeatherPresentationController` 才允许写入 Babylon。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
+`src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager` 与 `ThermalModel`；Weather Domain 分别通过 Gameplay Mapper 进入 Thermal、通过 Visual Mapper 进入 Babylon。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
 
-Inventory、Crafting、Survival、Building 等目录当前只有占位文件。视觉天气不影响温度、湿度、移动、伤害或其他玩法数值。
+Thermal 只输出体热状态，不扣除生命，也不检测室内、火源、衣物或湿度。Inventory、Crafting、Building 等目录仍只有占位文件。
 
 ## 当前阶段限制
 
-在新的 Issue 明确授权之前，不要继续扩展 Weather Visual Effects，也不要实现 Temperature、Wetness、Inventory、Crafting、Survival、存档或建筑系统。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+在新的 Issue 明确授权之前，不要继续扩展 Thermal、Weather Visual Effects，也不要实现 Wetness、Shelter、Campfire、Health Damage、Inventory、Crafting、存档或建筑系统。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。

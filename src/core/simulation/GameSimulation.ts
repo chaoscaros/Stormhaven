@@ -6,6 +6,12 @@ import { WeatherCatalog } from "../../weather/WeatherCatalog";
 import type { WeatherId } from "../../weather/WeatherDefinition";
 import { WeatherManager, type WeatherStateEvent } from "../../weather/WeatherManager";
 import type { WeatherSchedule } from "../../weather/WeatherSchedule";
+import { WeatherGameplayMapper } from "../../weather/gameplay/WeatherGameplayMapper";
+import type { WeatherGameplayState } from "../../weather/gameplay/WeatherGameplayState";
+import type { ThermalConfig } from "../../survival/thermal/ThermalConfig";
+import { ThermalModel } from "../../survival/thermal/ThermalModel";
+import type { ThermalSnapshot } from "../../survival/thermal/ThermalState";
+import { createThermalInputs } from "../../survival/thermal/createThermalInputs";
 
 export interface GameSimulationConfig extends GameClockConfig {
   readonly maxDeltaSeconds: number;
@@ -32,6 +38,8 @@ export interface SimulationTransitionSnapshot {
 export interface GameSimulationSnapshot {
   readonly time: GameTimeSnapshot;
   readonly weather: SimulationWeatherSnapshot;
+  readonly gameplayWeather: WeatherGameplayState;
+  readonly thermal: ThermalSnapshot;
   readonly forecast?: SimulationForecastSnapshot;
   readonly transition?: SimulationTransitionSnapshot;
 }
@@ -59,12 +67,15 @@ export class GameSimulation {
   readonly #catalog: WeatherCatalog;
   readonly #forecast: ForecastSystem;
   readonly #weather: WeatherManager;
+  readonly #weatherGameplayMapper = new WeatherGameplayMapper();
+  readonly #thermal: ThermalModel;
   readonly #maxDeltaSeconds: number;
 
   constructor(
     config: GameSimulationConfig,
     catalog: WeatherCatalog,
     schedule: WeatherSchedule,
+    thermalConfig: ThermalConfig,
   ) {
     if (!Number.isFinite(config.maxDeltaSeconds) || config.maxDeltaSeconds <= 0) {
       throw new Error("maxDeltaSeconds 必须是大于 0 的有限数值。");
@@ -78,7 +89,9 @@ export class GameSimulation {
     this.#catalog = catalog;
     this.#forecast = new ForecastSystem(schedule);
     this.#weather = new WeatherManager(catalog, schedule.initialWeatherId);
+    this.#thermal = new ThermalModel(thermalConfig);
     this.#maxDeltaSeconds = config.maxDeltaSeconds;
+    this.#thermal.update(createThermalInputs(this.#createGameplayWeatherState(), 0));
   }
 
   get snapshot(): GameSimulationSnapshot {
@@ -87,6 +100,7 @@ export class GameSimulation {
     const forecast = this.#createForecastSnapshot(this.#forecast.getNextForecast(time));
     const transition = this.#weather.transition;
     const targetWeather = this.#weather.targetWeather;
+    const gameplayWeather = this.#createGameplayWeatherState();
 
     return Object.freeze({
       time,
@@ -94,6 +108,8 @@ export class GameSimulation {
         id: currentWeather.id,
         displayName: currentWeather.displayName,
       }),
+      gameplayWeather,
+      thermal: this.#thermal.snapshot,
       ...(forecast ? { forecast } : {}),
       ...(transition && targetWeather
         ? {
@@ -150,6 +166,13 @@ export class GameSimulation {
       }
     }
 
+    this.#thermal.update(
+      createThermalInputs(
+        this.#createGameplayWeatherState(),
+        this.#clock.paused ? 0 : clampedDeltaSeconds,
+      ),
+    );
+
     const snapshot = this.snapshot;
     const forecastAfter = this.#forecast.getNextForecast(timeAdvance.current);
     if (forecastBefore?.id !== forecastAfter?.id) {
@@ -168,6 +191,14 @@ export class GameSimulation {
 
   setTimeScale(timeScale: number): void {
     this.#clock.setTimeScale(timeScale);
+  }
+
+  #createGameplayWeatherState(): WeatherGameplayState {
+    return this.#weatherGameplayMapper.map(
+      this.#weather.currentWeather,
+      this.#weather.targetWeather,
+      this.#weather.transition?.progress,
+    );
   }
 
   #createForecastSnapshot(

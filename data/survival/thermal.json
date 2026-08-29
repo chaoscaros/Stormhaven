@@ -1,0 +1,21 @@
+{
+  "neutralTemperatureCelsius": -4,
+  "coldThresholdCelsius": -10,
+  "freezingThresholdCelsius": -20,
+  "severeColdThresholdCelsius": -35,
+  "windStrengthAtMaxPenalty": 28,
+  "maxWindChillPenaltyCelsius": 12,
+  "thermalLossRateMildPerSecond": 0.006,
+  "thermalLossRateColdPerSecond": 0.025,
+  "thermalLossRateSeverePerSecond": 0.08,
+  "thermalRecoveryRatePerSecond": 0.04,
+  "minThermalValue": 0,
+  "maxThermalValue": 100,
+  "initialThermalValue": 80,
+  "statusThresholds": {
+    "comfortableMin": 75,
+    "coolMin": 55,
+    "coldMin": 35,
+    "freezingMin": 15
+  }
+}

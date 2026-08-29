@@ -2,12 +2,28 @@ import type { GameSimulationSnapshot } from "../core/simulation/GameSimulation";
 import { formatGameTime } from "../core/time/formatGameTime";
 import type { WeatherId } from "../weather/WeatherDefinition";
 import type { WeatherPresentationSnapshot } from "../weather/presentation/WeatherPresentationController";
+import type {
+  ThermalStatus,
+  ThermalTrend,
+} from "../survival/thermal/ThermalState";
 
 const WEATHER_LABELS: Readonly<Record<WeatherId, string>> = Object.freeze({
   clear: "晴朗",
   cloudy: "多云",
   snow: "降雪",
   blizzard: "暴雪",
+});
+const THERMAL_STATUS_LABELS: Readonly<Record<ThermalStatus, string>> = Object.freeze({
+  comfortable: "舒适",
+  cool: "微冷",
+  cold: "寒冷",
+  freezing: "严寒",
+  critical: "危险",
+});
+const THERMAL_TREND_LABELS: Readonly<Record<ThermalTrend, string>> = Object.freeze({
+  warming: "回暖",
+  stable: "稳定",
+  cooling: "流失",
 });
 
 interface FoundationUi {
@@ -31,6 +47,12 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const debugVisualWeather = getElement("debug-visual-weather");
   const debugForecast = getElement("debug-forecast");
   const debugTransition = getElement("debug-transition");
+  const debugEnvironmentTemperature = getElement("debug-environment-temperature");
+  const debugEffectiveTemperature = getElement("debug-effective-temperature");
+  const debugWindStrength = getElement("debug-wind-strength");
+  const debugThermalValue = getElement("debug-thermal-value");
+  const debugThermalTrend = getElement("debug-thermal-trend");
+  const debugThermalStatus = getElement("debug-thermal-status");
 
   const requestControl = (): void => {
     void canvas.requestPointerLock();
@@ -82,8 +104,42 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
           ? `${Math.round(snapshot.transition.progress * 100)}% → ${snapshot.transition.targetDisplayName}`
           : "0%",
       );
+      setTextIfChanged(
+        debugEnvironmentTemperature,
+        `${formatCelsius(snapshot.gameplayWeather.ambientTemperatureCelsius)} ${formatSignedCelsius(snapshot.gameplayWeather.temperatureModifierCelsius)}`,
+      );
+      setTextIfChanged(
+        debugEffectiveTemperature,
+        formatCelsius(snapshot.thermal.effectiveTemperatureCelsius),
+      );
+      setTextIfChanged(
+        debugWindStrength,
+        `${snapshot.gameplayWeather.windStrength.toFixed(1)} · ${Math.round(snapshot.thermal.normalizedWindStrength * 100)}%`,
+      );
+      setTextIfChanged(debugThermalValue, `${snapshot.thermal.currentValue.toFixed(1)}%`);
+      setTextIfChanged(
+        debugThermalTrend,
+        `${THERMAL_TREND_LABELS[snapshot.thermal.trend]} ${formatSignedRate(snapshot.thermal.changeRatePerSecond * 60)}/分`,
+      );
+      setTextIfChanged(
+        debugThermalStatus,
+        THERMAL_STATUS_LABELS[snapshot.thermal.status],
+      );
+      debugThermalStatus.dataset.status = snapshot.thermal.status;
     },
   };
+}
+
+function formatCelsius(value: number): string {
+  return `${value.toFixed(1)}℃`;
+}
+
+function formatSignedCelsius(value: number): string {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)}℃`;
+}
+
+function formatSignedRate(value: number): string {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
 }
 
 function formatVisualWeather(presentation: WeatherPresentationSnapshot): string {

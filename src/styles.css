@@ -269,6 +269,11 @@ h1 span {
   border-bottom: 0;
 }
 
+.hud__telemetry dl > .hud__telemetry-section {
+  margin-top: 5px;
+  border-top: 1px solid rgba(210, 166, 96, 0.34);
+}
+
 .hud__telemetry dt {
   color: rgba(158, 179, 182, 0.62);
   letter-spacing: 0.12em;
@@ -283,6 +288,20 @@ h1 span {
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+#debug-thermal-status[data-status="comfortable"],
+#debug-thermal-status[data-status="cool"] {
+  color: #b9d4d3;
+}
+
+#debug-thermal-status[data-status="cold"] {
+  color: #d2a660;
+}
+
+#debug-thermal-status[data-status="freezing"],
+#debug-thermal-status[data-status="critical"] {
+  color: #e67c6c;
 }
 
 .crosshair {

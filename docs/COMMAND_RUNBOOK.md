@@ -141,7 +141,11 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 13. 降雪/暴雪粒子围绕玩家存在；快速移动后不会在出生点永久遗留固定发射源。
 14. 暴雪比普通降雪更暗、雾更浓、雪更密、横向风更强，但仍能辨识近处标杆和地平线。
 15. 切换后台 Tab 再返回、改变窗口尺寸后画面仍继续更新且无明显时间跳变。
-16. Browser console has no uncaught error.
+16. 14:00 HUD 显示环境温度、体感温度、风力、体热、趋势和热状态；Clear 下体热基本稳定。
+17. 17:30–18:00 体感温度随 Transition 连续下降，Thermal Trend 显示负值且流失逐渐加快。
+18. 18:00 Blizzard 下站立约 1 分钟，体热数值应有肉眼可见但不过快的下降。
+19. Thermal 达到低状态时不会扣除生命，也不会触发 Debuff、屏幕特效或其他未实现玩法。
+20. Browser console has no uncaught error.
 
 ## CI or reproducible installation
 

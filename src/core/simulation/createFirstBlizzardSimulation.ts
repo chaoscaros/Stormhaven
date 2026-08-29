@@ -4,11 +4,14 @@ import { SIMULATION_CONFIG } from "../config";
 import { GameSimulation } from "./GameSimulation";
 import { WeatherCatalog } from "../../weather/WeatherCatalog";
 import { parseWeatherSchedule } from "../../weather/WeatherSchedule";
+import thermalConfigData from "../../../data/survival/thermal.json";
+import { parseThermalConfig } from "../../survival/thermal/ThermalConfig";
 
 /** 从 JSON 配置创建确定性的「第一场暴雪」模拟。 */
 export function createFirstBlizzardSimulation(): GameSimulation {
   const catalog = WeatherCatalog.fromUnknown(weatherDefinitionsData);
   const schedule = parseWeatherSchedule(firstBlizzardScheduleData);
+  const thermalConfig = parseThermalConfig(thermalConfigData);
   return new GameSimulation(
     {
       initialTime: {
@@ -21,5 +24,6 @@ export function createFirstBlizzardSimulation(): GameSimulation {
     },
     catalog,
     schedule,
+    thermalConfig,
   );
 }

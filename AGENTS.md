@@ -24,9 +24,9 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 当前阶段
 
-当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1** 和 **Weather Presentation Layer v0.1**：工具链、文档、最小 Babylon/Havok Scene、第一人称控制、纯 GameTime、Weather Domain、Forecast、First Blizzard Schedule、天气视觉映射/表现和 Debug HUD。
+当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1** 和 **Player Thermal Model v0.1**：天气 Gameplay 参数已能连续驱动纯逻辑 Effective Temperature、Wind Chill 与 Thermal Reserve，并通过 Debug HUD 展示。
 
-在新的 Issue 明确授权之前，不得继续扩展 Weather Visual Effects，也不得实现 Temperature、Wetness、Inventory、Crafting、Survival、Save 或 Building 玩法。未授权目录中的 `.gitkeep` 只是架构占位。
+在新的 Issue 明确授权之前，不得继续扩展 Weather Visual Effects 或 Thermal，也不得实现 Wetness、Shelter、Campfire、Health Damage、Inventory、Crafting、Save 或 Building 玩法。未授权目录中的 `.gitkeep` 只是架构占位。
 
 ## 包管理和命令
 

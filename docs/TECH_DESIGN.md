@@ -23,7 +23,8 @@ src/main.ts
   ├─ core/time/                   确定性 GameClock 与格式化
   ├─ world/createWorldScene.ts    Havok、天空、地面、灯光及窄环境引用
   ├─ player/createFirstPersonCamera.ts
-  ├─ weather/                     Weather Domain、纯视觉映射与 Babylon 表现适配
+  ├─ weather/                     Weather Domain、Gameplay/Visual 并列映射
+  ├─ survival/thermal/            Effective Temperature 与 Thermal Model
   └─ ui/setupFoundationUi.ts      仅 DOM 的基础界面适配
 ```
 
@@ -39,8 +40,8 @@ src/main.ts
 | `src/world` | Scene/World 组成及未来空间分区 |
 | `src/player` | 输入、Camera 和未来玩家控制器 |
 | `src/ui` | HTML/CSS 展示及浏览器适配 |
-| `src/survival` | 未来的纯生存计算 |
-| `src/weather` | Data Driven 天气契约、Catalog、Transition、Forecast、视觉映射和表现适配 |
+| `src/survival/thermal` | 纯 Thermal Config、Effective Temperature、体热储备和输入适配 |
+| `src/weather` | Data Driven 天气契约、Catalog、Transition、Forecast、Gameplay/Visual 映射和表现适配 |
 | `src/inventory` | 未来的物品堆、Inventory 和 Container |
 | `src/crafting` | 未来的配方校验和制作状态 |
 | `src/building` | 未来的 Ghost、放置校验和 Snap |
@@ -82,9 +83,9 @@ Time Scale 的单位是“每个真实秒对应的游戏秒”。Vertical Slice 
 | --- | --- |
 | `id` | 稳定英文 ID |
 | `displayName` | 展示名称，不作为业务键 |
-| `ambientTemperature` | 摄氏度，占位平衡值 |
-| `temperatureModifier` | 摄氏度修正，占位平衡值 |
-| `windStrength` | 非负强度，占位值 |
+| `ambientTemperature` | 摄氏度（°C）的天气基础气温 |
+| `temperatureModifier` | 摄氏度（°C）的附加 Gameplay 修正 |
+| `windStrength` | 无单位、非负的游戏化风力指数；当前 Profile 为 `3..28` |
 | `visibility` | 米，非负 |
 | `precipitation` | `0..1` |
 | `wetnessRate` | 非负速率，占位值 |
@@ -94,6 +95,42 @@ Time Scale 的单位是“每个真实秒对应的游戏秒”。Vertical Slice 
 `WeatherCatalog` 负责轻量 Runtime Validation、拒绝重复 ID 和按稳定 ID 查询。它不负责 Fetch、JSON Parsing、DOM 或 Babylon。
 
 `WeatherManager` 只维护 `currentWeather`、可选 `targetWeather` 和 `WeatherTransition`。Transition 时长以游戏秒表示，进度基于 Delta 计算，不依赖浏览器刷新率。Manager 只产生纯数据事件，不修改 Fog、Lighting、Particle、Audio 或 UI。
+
+## Weather Gameplay State 与 Player Thermal Model
+
+Gameplay 与 Visual 是 Weather Domain 的并列消费者，禁止从 Fog、粒子或其他视觉参数反推 Gameplay：
+
+```text
+Weather Domain
+  ├─ WeatherGameplayMapper → Thermal Input Adapter → ThermalModel → ThermalSnapshot
+  └─ WeatherVisualMapper   → WeatherPresentationController → Babylon
+```
+
+`WeatherGameplayMapper` 接受当前 Weather Definition、可选 Target Definition 和 Transition Progress，Clamp 进度并插值温度、风力、可见度、降水、Wetness Rate、移动修正和太阳能效率。Thermal v0.1 实际只通过 `createThermalInputs` 消费温度与风力；Wetness 等字段没有接入 Thermal 计算。
+
+`data/survival/thermal.json` 集中保存以下占位平衡参数：
+
+- neutral/cold/freezing/severe 四个 Effective Temperature 阈值。
+- 达到最大风寒惩罚的 Gameplay Wind Strength 与最大风寒摄氏度惩罚。
+- mild/cold/severe 每真实秒 Thermal Loss Rate 和 Recovery Rate。
+- `0..100` Thermal Reserve 的 min/max/initial，以及五档 Status 阈值。
+
+Runtime Validation 检查 min/max、温度与 Status 阈值顺序、初始值范围、风力归一化分母、非负 Rate 和 Loss Rate 递增关系。
+
+Effective Temperature 使用游戏化公式：
+
+```text
+normalizedWind = clamp(windStrength / windStrengthAtMaxPenalty, 0, 1)
+windCurve = normalizedWind² × (3 - 2 × normalizedWind)
+windChillPenalty = maxWindChillPenalty × windCurve
+effectiveTemperature = ambientTemperature + temperatureModifier - windChillPenalty
+```
+
+这不是现实人体医学或气象公式。`windStrength` 继续沿用既有无单位指数，不引入 km/h 或 m/s。
+
+`ThermalModel` 维护游戏化 Thermal Reserve，而不是 Core Body Temperature。它根据 Effective Temperature 在配置的温度节点之间连续插值 Loss Rate；温暖环境恢复，严寒环境更快流失，并 Clamp 到配置 min/max。Snapshot 输出 `currentValue`、Effective Temperature、Wind Chill、标准化风力、每秒变化率、`warming/stable/cooling` Trend 和五档稳定 Status ID。Critical 只是一种状态，不产生 Health Damage。
+
+Thermal 使用 `GameSimulation` 已 Clamp 的真实 `deltaSeconds`，不会乘以 GameClock 的 `timeScale=240`；Pause 时不改变储备。Weather Transition 仍按游戏时间推进，因此视觉、Gameplay Weather 与 Thermal 输入保持同一 Transition Progress。当前每 Render Frame 更新一次；未来 NPC、Automation 和更多 Survival 系统增多时，可独立评估 Fixed Simulation Tick，不在本 Issue 重写主循环。
 
 ## Weather Presentation Layer
 
@@ -148,7 +185,7 @@ Day 1 18:00  Blizzard 成为 currentWeather
 
 ## Debug HUD 边界
 
-右上角 Debug HUD 展示 Simulation Snapshot（时间、当前天气、预报、Transition Progress）以及 Presentation Snapshot（当前视觉天气与 Preview 标识）。DOM 更新保留在 `src/ui/setupFoundationUi.ts` 中，并跳过未变化文本，避免每帧无意义写入。
+右上角 Debug HUD 展示 Simulation Snapshot（时间、当前天气、预报、Transition Progress、Gameplay 环境温度、体感温度、风力、体热、趋势和热状态）以及 Presentation Snapshot（当前视觉天气与 Preview 标识）。DOM 更新保留在 `src/ui/setupFoundationUi.ts` 中，并跳过未变化文本，避免每帧无意义写入。
 
 F1–F4 只用于快速视觉验收，F5 恢复正常 Schedule 驱动。HUD 的 Domain Weather 与 Visual Weather 分行展示，可直接确认预览没有污染 Domain。
 
@@ -186,16 +223,17 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 
 ## 测试策略
 
-不对 Babylon 渲染做大量低价值单元测试。Inventory、ItemStack、Recipe、Temperature、WeatherTransition 和存档序列化等确定性逻辑，在对应系统获得开发授权时必须建立单元测试。
+不对 Babylon 渲染做大量低价值单元测试。Inventory、ItemStack、Recipe、Wetness、WeatherTransition 和存档序列化等确定性逻辑，在对应系统获得开发授权时必须建立单元测试。
 
-当前单元测试覆盖 GameClock 小时/午夜推进、Pause、Time Scale、Weather Catalog ID 与重复校验、Transition 进度与完成、Forecast 查询、跨时间点补偿、刷新率一致性、Runtime Delta Clamp、Camera Speed 换算、Player Vertical Motion，以及 Weather Visual Profile 缺失/重复/范围校验、Mapper 端点/中点/Clamp 和暴雪强度关系。类型检查和生产构建仍是质量门禁，浏览器渲染、控制、HUD 和粒子效果需要独立验收。
+当前单元测试还覆盖 Weather Gameplay 插值、Thermal Config Validation、Effective Temperature、Wind Chill 端点、温暖恢复、分级流失、FPS 一致性、Delta 校验、min/max Clamp、Status 边界，以及 First Blizzard Schedule → Gameplay Weather → Thermal 的纯 Domain Integration。类型检查和生产构建仍是质量门禁，浏览器渲染、控制和 HUD 需要独立验收。
 
 ## Weather Presentation 已知边界
 
 - 室内/遮蔽物下的雪粒子 Mask 尚未实现；粒子当前只按相机局部范围发射。
-- 没有体温、湿度、风寒、伤害、移动惩罚或其他 Gameplay 连接。
+- 已有游戏化体感温度、风寒和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
 - 没有音频、屏幕结霜、镜头抖动、积雪、脚印、闪电伤害或树木破坏。
 - 没有 GPU/移动端 Profile；容量和 Emit Rate 是桌面 Vertical Slice 的保守初值，需以用户浏览器实际表现校准。
+- Thermal 尚未接入 Wetness、Shelter、Campfire、Clothing、Health、Hypothermia Debuff 或存档。
 
 ## 跨机器开发约定
 

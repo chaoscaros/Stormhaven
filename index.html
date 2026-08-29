@@ -45,7 +45,7 @@
           <span>测试区域 01</span>
           <strong>STORMHAVEN</strong>
         </div>
-        <aside class="hud__telemetry" aria-label="游戏时间与天气调试信息">
+        <aside class="hud__telemetry" aria-label="游戏时间、天气与体热调试信息">
           <header>
             <span>SCENARIO TELEMETRY</span>
             <strong>FIRST BLIZZARD</strong>
@@ -70,6 +70,30 @@
             <div>
               <dt>过渡</dt>
               <dd id="debug-transition">0%</dd>
+            </div>
+            <div class="hud__telemetry-section">
+              <dt>环境</dt>
+              <dd id="debug-environment-temperature">-5.0℃ +0.0℃</dd>
+            </div>
+            <div>
+              <dt>体感</dt>
+              <dd id="debug-effective-temperature">-5.4℃</dd>
+            </div>
+            <div>
+              <dt>风力</dt>
+              <dd id="debug-wind-strength">3.0 · 11%</dd>
+            </div>
+            <div>
+              <dt>体热</dt>
+              <dd id="debug-thermal-value">80.0%</dd>
+            </div>
+            <div>
+              <dt>趋势</dt>
+              <dd id="debug-thermal-trend">流失 -0.08/分</dd>
+            </div>
+            <div>
+              <dt>热状态</dt>
+              <dd id="debug-thermal-status" data-status="comfortable">舒适</dd>
             </div>
           </dl>
         </aside>

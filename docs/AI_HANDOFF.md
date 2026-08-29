@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Weather Presentation Layer v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Player Thermal Model v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
-- Git 状态：`main` 已关联并同步 `origin/main`（GitHub：`chaoscaros/Stormhaven`）
-- 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation 和 Debug HUD
-- 明确未实现：Indoor Snow Mask、Temperature/Thermal Model、Wetness、Inventory、Crafting、Survival、Save、Building
+- Git 状态：`main` 跟踪 `origin/main`；Player Thermal Model v0.1 已完成本地提交，尚未推送
+- 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation、Player Thermal Model 和 Debug HUD
+- 明确未实现：Wetness、Shelter、Campfire、Clothing、Health Damage、Hypothermia Gameplay、Indoor Snow Mask、Inventory、Crafting、Save、Building
 
 ## 已完成内容
 
@@ -40,7 +40,13 @@
 - 一个容量 2000、围绕相机移动的程序化雪 ParticleSystem
 - F1–F4 Presentation Preview、F5 恢复 Schedule 驱动
 - HUD 分开展示 Domain Weather 与 Visual Weather/Preview 状态
-- 8 个测试文件、31 个单元测试
+- Weather Gameplay State 与 Transition 全参数连续插值
+- Data Driven Thermal Config 与轻量 Runtime Validation
+- Effective Temperature、smoothstep Wind Chill 和 Weather → Thermal Input Adapter
+- 确定性的 0..100 Thermal Reserve、Trend 与五档稳定 Status ID
+- 环境、体感、风力、体热、趋势和热状态 Debug HUD
+- First Blizzard Schedule → Weather Gameplay → Thermal Domain Integration Test
+- 13 个测试文件、55 个单元测试
 
 ## 关键架构入口
 
@@ -61,15 +67,23 @@
 | `src/weather/WeatherCatalog.ts` | 天气定义验证、重复检查和稳定 ID 查询 |
 | `src/weather/WeatherManager.ts` | 当前天气与 Transition Domain 状态 |
 | `src/weather/ForecastSystem.ts` | Schedule 查询和跨时间点 Action 消费 |
+| `src/weather/gameplay/WeatherGameplayMapper.ts` | 当前/目标天气 Gameplay 参数纯插值 |
+| `src/weather/gameplay/WeatherGameplayState.ts` | Thermal 等玩法系统消费的只读天气状态 |
 | `src/weather/presentation/WeatherVisualState.ts` | 与 Babylon 解耦的视觉状态契约 |
 | `src/weather/presentation/WeatherVisualProfileCatalog.ts` | 视觉配置校验、缺失/重复检查和稳定 ID 查询 |
 | `src/weather/presentation/WeatherVisualMapper.ts` | 纯插值、进度 Clamp 和端点映射 |
 | `src/weather/presentation/WeatherPresentationController.ts` | 每帧集中写入天空、雾、灯光和雪粒子 |
 | `src/weather/presentation/SnowParticleController.ts` | 相机局部单 ParticleSystem 及程序化纹理 |
+| `src/survival/thermal/ThermalConfig.ts` | Thermal JSON Runtime Validation 与配置契约 |
+| `src/survival/thermal/EffectiveTemperature.ts` | 环境温度、修正和风寒的纯计算 |
+| `src/survival/thermal/ThermalModel.ts` | 确定性 Thermal Reserve 更新 |
+| `src/survival/thermal/ThermalState.ts` | Thermal Snapshot、Trend 和 Status ID |
+| `src/survival/thermal/createThermalInputs.ts` | Gameplay Weather → Thermal 窄适配点 |
 | `data/weather/weather.json` | 四种天气的 Data Driven 定义 |
 | `data/weather/weather-visuals.json` | 四种天气的独立视觉 Profile |
 | `data/weather/first-blizzard-schedule.json` | 17:30 → 18:00 暴雪计划 |
-| `tests/` | 配置、GameTime、Forecast、Weather、视觉映射、Camera Speed 和垂直运动单元测试 |
+| `data/survival/thermal.json` | Thermal 平衡、风寒、Rate 和 Status 阈值 |
+| `tests/` | 配置、GameTime、Forecast、Weather、视觉/玩法映射、Thermal、Camera 和垂直运动测试 |
 | `docs/COMMAND_RUNBOOK.md` | 安装、启动、检查、构建和故障处理的标准命令 |
 | `docs/GPT_PLANNING_BRIEF.md` | 交给 GPT 制定开发路线图的完整项目现状 Brief |
 
@@ -118,9 +132,15 @@ pnpm dev
 - `pnpm test`：8 个测试文件、31 个测试通过
 - `pnpm exec tsc -b --pretty false`：通过，无输出错误
 
+2026-08-29 完成 Player Thermal Model v0.1 后，实际执行并通过：
+
+- `pnpm test`：13 个测试文件、55 个测试通过
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
+- Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
 - 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
 
@@ -135,19 +155,23 @@ pnpm dev
 - 已修复缺少 Collision Coordinator Side Effect 和 Camera Speed 错误除以 60 的问题，但修复后的实际键鼠操作仍需用户浏览器验收。
 - Weather Presentation 已接入天空、Fog、Lighting、局部 Snow Particle 与视觉风向；没有 Audio、Screen Frost、Camera Shake、Snow Accumulation、Footprints、Lightning Damage 或 Tree Destruction。
 - 室内/遮蔽物下的雪粒子 Mask 尚未实现；即使玩家位于未来室内空间，局部粒子系统目前仍会发射。
-- Weather Domain 参数没有作用于 Temperature、Wetness、玩家移动、伤害或任何其他 Gameplay。
+- Weather Domain 的温度与风力已通过 Gameplay Mapper 驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
-- Inventory、Crafting、Survival、Building、Save 等目录仍只有占位，没有隐藏实现。
+- Inventory、Crafting、Building、Save 等目录仍只有占位，没有隐藏实现；`src/survival` 当前仅实现 Thermal 子域。
+- Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
+- Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
+- Thermal 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；未来系统增多时可评估 Fixed Simulation Tick。
 
 ## 推荐下一步
 
 本 Issue 已达到停止条件。不要在当前任务继续开发。
 
-未来只有在用户明确授权新的独立 Issue 后，才进入：
+下一轮应先讨论 Vertical Slice 依赖，再由用户选择独立 Issue：
 
-**Player Thermal Model v0.1：纯体温模型与确定性测试。**
+- **Shelter + Heat Source**：让 Thermal 获得室内与外部热量输入；仍需先明确检测和热源契约。
+- **Interaction + Item + Inventory**：先建立可搜集、携带和使用资源的基础链路。
 
-该未来 Issue 应先定义纯逻辑输入/输出和数值边界，不得顺带实现 Wetness、Inventory、Campfire、Shelter、Damage、Building 或进一步天气视觉效果。
+当前任务不替用户提前选择，也不得顺带实现 Wetness、Campfire、Shelter、Inventory 或 Damage。
 
 ## 变更记录
 
@@ -156,6 +180,19 @@ pnpm dev
 - 将现有非空项目目录关联到 `git@github.com:chaoscaros/Stormhaven.git`。
 - 保留本地完整项目，以合并提交接入远端仅含 README 的初始化历史。
 - `main` 已设置跟踪 `origin/main` 并完成首次推送。
+
+### 2026-08-29 — Player Thermal Model v0.1
+
+- 保留 Weather Definition 现有数值与单位语义，明确 Wind Strength 为无单位 Gameplay Index。
+- 新增 Weather Gameplay Mapper，在 Transition 中连续插值温度、风力和其他 Gameplay 参数。
+- 新增 Data Driven Thermal Config、阈值/Rate/范围 Runtime Validation。
+- 新增 Effective Temperature 与 smoothstep Wind Chill 纯计算。
+- 新增确定性 `0..100` Thermal Reserve、Trend、五档稳定 Status ID 和 min/max Clamp。
+- `GameSimulation` 使用已 Clamp 的真实 Delta 驱动 Thermal；Weather Transition 继续按游戏时间推进。
+- Debug HUD 新增环境温度、体感温度、风力、体热、趋势和热状态。
+- 新增 Thermal Unit Test 与 First Blizzard Domain Integration Test；总计 55/55 通过，TypeScript 严格检查通过。
+- 未执行 `pnpm dev`、`pnpm build` 或浏览器操作；真实 HUD 与体验等待用户验收。
+- 严格停止在 Thermal Domain；未实现 Wetness、Shelter、Campfire、Clothing、Health Damage 或 Indoor Snow Mask。
 
 ### 2026-08-29 — 基础工程与 pnpm/中文交接规范
 

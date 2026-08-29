@@ -6,9 +6,12 @@ import { createGameTimeSnapshot, toTotalGameMinutes } from "../src/core/time/Gam
 import { ForecastSystem } from "../src/weather/ForecastSystem";
 import { WeatherCatalog } from "../src/weather/WeatherCatalog";
 import { parseWeatherSchedule } from "../src/weather/WeatherSchedule";
+import thermalConfigData from "../data/survival/thermal.json";
+import { parseThermalConfig } from "../src/survival/thermal/ThermalConfig";
 
 const catalog = WeatherCatalog.fromUnknown(weatherDefinitionsData);
 const schedule = parseWeatherSchedule(firstBlizzardScheduleData);
+const thermalConfig = parseThermalConfig(thermalConfigData);
 
 describe("ForecastSystem", () => {
   it("Day 1 14:00 可以查询到 18:00 Blizzard", () => {
@@ -63,6 +66,7 @@ describe("ForecastSystem", () => {
       },
       catalog,
       schedule,
+      thermalConfig,
     );
 
     simulation.update(3_600);
@@ -80,6 +84,7 @@ function createSimulation(day: number, hour: number, minute: number): GameSimula
     },
     catalog,
     schedule,
+    thermalConfig,
   );
 }
 
