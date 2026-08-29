@@ -7,7 +7,7 @@
 - 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Weather Presentation Layer v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
-- Git 状态：仓库已初始化，尚未创建首个提交
+- Git 状态：`main` 已关联并同步 `origin/main`（GitHub：`chaoscaros/Stormhaven`）
 - 功能状态：已完成基础 Scene、第一人称控制、GameTime、Weather Domain、Forecast、First Blizzard Schedule、Weather Presentation 和 Debug HUD
 - 明确未实现：Indoor Snow Mask、Temperature/Thermal Model、Wetness、Inventory、Crafting、Survival、Save、Building
 
@@ -150,6 +150,12 @@ pnpm dev
 该未来 Issue 应先定义纯逻辑输入/输出和数值边界，不得顺带实现 Wetness、Inventory、Campfire、Shelter、Damage、Building 或进一步天气视觉效果。
 
 ## 变更记录
+
+### 2026-08-29 — GitHub 首次交付
+
+- 将现有非空项目目录关联到 `git@github.com:chaoscaros/Stormhaven.git`。
+- 保留本地完整项目，以合并提交接入远端仅含 README 的初始化历史。
+- `main` 已设置跟踪 `origin/main` 并完成首次推送。
 
 ### 2026-08-29 — 基础工程与 pnpm/中文交接规范
 
