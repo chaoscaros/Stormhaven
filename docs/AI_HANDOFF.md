@@ -238,6 +238,12 @@ pnpm dev
 - `pnpm test`：29 个测试文件、188 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 修复测试木屋开放入口辨识后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：29 个测试文件、188 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -245,6 +251,7 @@ pnpm dev
 - Tab 背包与 C 制作菜单打开后释放鼠标、鼠标点击关闭/选择配方/制作、关闭后恢复第一人称控制、菜单互斥和 E 屏蔽均需用户手动验收。
 - B Building Menu 的鼠标操作、Tab/C/B 互斥、Pointer Lock 切换、Ghost 跟随、Grid/Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
 - 正式 Foundation/Wall 的实际 Camera Collision、站立/跳跃，以及暴雪粒子被动态建筑 AABB 阻挡均需用户手动验收。
+- 固定测试木屋入口新增门框后的辨识度、开放通行和无误碰撞仍需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
@@ -284,6 +291,14 @@ pnpm dev
 推荐下一独立 Issue：**Campfire Gameplay + Fuel v0.1**，让玩家放置真正 Campfire、加入燃料并向现有 HeatSourceSystem 注册动态热源；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、Save、工具玩法或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — 测试木屋开放入口辨识修复
+
+- 根据浏览器截图确认中央白/蓝区域实际是开放入口外的雪地与天空，不是透明材质；原入口因黑色墙面缺乏门框而产生透明墙错觉。
+- 为固定测试木屋增加高对比木色左右门框、顶框和低门槛，明确表达开放门洞及墙体厚度。
+- 门框仅为不可拾取、无碰撞的静态占位表现，入口仍可通行；没有实现 Door Gameplay、开关、锁具或 Interaction。
+- `pnpm exec tsc -b --pretty false`、`pnpm test`（29 个测试文件、188 个测试）与 `git diff --check` 已通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；修改后画面等待用户刷新手动验收。
 
 ### 2026-08-31 — Building Foundation v0.1
 

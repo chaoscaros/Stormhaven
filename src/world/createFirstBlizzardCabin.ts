@@ -9,6 +9,9 @@ const WALL_THICKNESS = 0.25;
 const FLOOR_THICKNESS = 0.12;
 const DOOR_WIDTH = 2.4;
 const DOOR_HEIGHT = 2.5;
+const DOOR_FRAME_WIDTH = 0.16;
+const DOOR_FRAME_DEPTH = 0.42;
+const DOOR_THRESHOLD_HEIGHT = 0.055;
 
 /** 创建与 Scenario Volume 共用坐标的固定测试木屋与测试炉表现。 */
 export function createFirstBlizzardCabin(
@@ -28,7 +31,13 @@ export function createFirstBlizzardCabin(
   floorMaterial.specularColor = Color3.Black();
   floorMaterial.roughness = 1;
 
-  createCabinShell(scene, cabin.bounds, wallMaterial, floorMaterial);
+  const doorFrameMaterial = new StandardMaterial("test-cabin-door-frame-material", scene);
+  doorFrameMaterial.diffuseColor = new Color3(0.42, 0.25, 0.11);
+  doorFrameMaterial.emissiveColor = new Color3(0.035, 0.018, 0.006);
+  doorFrameMaterial.specularColor = Color3.Black();
+  doorFrameMaterial.roughness = 0.9;
+
+  createCabinShell(scene, cabin.bounds, wallMaterial, floorMaterial, doorFrameMaterial);
 
   const heaterMaterial = new StandardMaterial("debug-heater-material", scene);
   heaterMaterial.diffuseColor = new Color3(0.22, 0.07, 0.025);
@@ -52,6 +61,7 @@ function createCabinShell(
   bounds: AxisAlignedBounds,
   wallMaterial: StandardMaterial,
   floorMaterial: StandardMaterial,
+  doorFrameMaterial: StandardMaterial,
 ): void {
   const centerX = (bounds.min.x + bounds.max.x) / 2;
   const centerZ = (bounds.min.z + bounds.max.z) / 2;
@@ -142,4 +152,53 @@ function createCabinShell(
     frontZ,
     wallMaterial,
   );
+
+  // 入口保持开放，但用高对比木色框体明确表达“门洞”，避免看起来像透明墙面。
+  createDecorativePart(
+    "test-cabin-door-frame-left",
+    { width: DOOR_FRAME_WIDTH, height: DOOR_HEIGHT, depth: DOOR_FRAME_DEPTH },
+    centerX - DOOR_WIDTH / 2,
+    bounds.min.y + DOOR_HEIGHT / 2,
+    frontZ,
+    doorFrameMaterial,
+  );
+  createDecorativePart(
+    "test-cabin-door-frame-right",
+    { width: DOOR_FRAME_WIDTH, height: DOOR_HEIGHT, depth: DOOR_FRAME_DEPTH },
+    centerX + DOOR_WIDTH / 2,
+    bounds.min.y + DOOR_HEIGHT / 2,
+    frontZ,
+    doorFrameMaterial,
+  );
+  createDecorativePart(
+    "test-cabin-door-frame-header",
+    { width: DOOR_WIDTH + DOOR_FRAME_WIDTH * 2, height: DOOR_FRAME_WIDTH, depth: DOOR_FRAME_DEPTH },
+    centerX,
+    bounds.min.y + DOOR_HEIGHT,
+    frontZ,
+    doorFrameMaterial,
+  );
+  createDecorativePart(
+    "test-cabin-door-threshold",
+    { width: DOOR_WIDTH, height: DOOR_THRESHOLD_HEIGHT, depth: DOOR_FRAME_DEPTH },
+    centerX,
+    bounds.min.y + DOOR_THRESHOLD_HEIGHT / 2,
+    frontZ,
+    doorFrameMaterial,
+  );
+
+  function createDecorativePart(
+    name: string,
+    dimensions: { width: number; height: number; depth: number },
+    x: number,
+    y: number,
+    z: number,
+    material: StandardMaterial,
+  ): void {
+    const mesh = MeshBuilder.CreateBox(name, dimensions, scene);
+    mesh.position.set(x, y, z);
+    mesh.material = material;
+    mesh.checkCollisions = false;
+    mesh.isPickable = false;
+  }
 }
