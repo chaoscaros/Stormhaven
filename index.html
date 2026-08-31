@@ -38,6 +38,7 @@
             <span><kbd>E</kbd> 拾取</span>
             <span><kbd>TAB</kbd> 背包</span>
             <span><kbd>C</kbd> 制作</span>
+            <span><kbd>B</kbd> 建造</span>
           </p>
         </div>
         <p class="start-screen__footer">WEATHER PRESENTATION ONLINE // F1–F4 视觉预览</p>
@@ -112,6 +113,28 @@
             </div>
           </dl>
         </aside>
+        <aside id="building-panel" class="building-panel" aria-label="建造菜单" hidden>
+          <header>
+            <div>
+              <span>FIELD CONSTRUCTION</span>
+              <strong>BUILD MODE</strong>
+            </div>
+            <button id="building-close-button" type="button" aria-label="关闭建造菜单">关闭</button>
+          </header>
+          <div class="building-panel__layout">
+            <nav id="building-definition-list" class="building-panel__list" aria-label="建筑部件列表"></nav>
+            <section class="building-panel__detail">
+              <p class="building-panel__eyebrow">基础结构件 / 会话内保存</p>
+              <h2 id="building-definition-name">木制地基</h2>
+              <p id="building-definition-description" class="building-panel__description"></p>
+              <h3>所需材料</h3>
+              <ul id="building-requirements" class="building-panel__requirements"></ul>
+              <p id="building-status" class="building-panel__status">检查材料中</p>
+              <button id="building-select-button" class="building-panel__action" type="button">选择并进入放置</button>
+            </section>
+          </div>
+          <footer><span>鼠标选择结构件</span><strong>放置后不自动成为庇护所</strong></footer>
+        </aside>
         <aside id="crafting-panel" class="crafting-panel" aria-label="制作调试面板" hidden>
           <header>
             <span>FIELD CRAFTING</span>
@@ -152,7 +175,8 @@
         <div id="pickup-feedback" class="pickup-feedback" role="status" hidden></div>
         <div id="crosshair" class="crosshair" aria-hidden="true"></div>
         <div id="interaction-prompt" class="interaction-prompt" hidden></div>
-        <div class="hud__hint">E 交互 · TAB 背包 · C 制作 · F1–F4 天气预览 · ESC 释放鼠标</div>
+        <div id="building-placement-status" class="building-placement-status" role="status" hidden></div>
+        <div class="hud__hint">E 交互 · TAB 背包 · C 制作 · B 建造 · F1–F4 天气预览 · ESC 释放鼠标</div>
       </div>
 
       <div id="error-screen" class="error-screen" role="alert" hidden>

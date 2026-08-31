@@ -162,7 +162,17 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 34. 按 `Tab` 确认树枝/石头减少且石斧增加；石斧不能装备、使用、挥舞或砍树，这是当前预期。
 35. 点击“关闭”或再次按 `C` 后，面板关闭且 Pointer Lock 恢复；重新进入不会一次点击制作多次。
 36. 刷新页面后 Inventory 与 Crafting State 清空，这是当前未实现 Save 的预期行为。
-37. Browser console has no uncaught error.
+37. 收集至少 11 个木材；按 `B` 打开 Building Menu，确认 Pointer Lock 释放、鼠标出现，并可选择木制地基或木制墙体；Tab/C/B 三个菜单任意时刻最多显示一个。
+38. 选择木制地基后确认菜单关闭、Pointer Lock 恢复且出现半透明 Ghost；对准雪地时 Ghost 吸附 2m Grid，合法/非法颜色和状态文字明显不同。
+39. 按 `R` 确认 Ghost 以 90° 步进旋转；左键成功放置后木材减少 4、正式地基出现，Ghost 保持以便连续建造。
+40. 连续放置第二块地基；资源不足时下一次放置必须失败，但已建地基和已消耗的合法事务保持不变。
+41. 重新按 `B` 选择木制墙体；墙体只能吸附到地基 North/East/South/West 边缘，未对准地基边缘时显示“需要连接到地基边缘”。
+42. 左键放置墙体后木材减少 3；同一 Snap Point 不能重复占用。B 或 Esc 退出 Placement，恢复正常 Gameplay。
+43. 走向正式墙体确认玩家不能穿过；站上地基确认仍可落地和跳跃。Ghost 本身不能阻挡玩家或干扰 E Pickup。
+44. 使用 F4 预览暴雪，确认新建墙体/地基会按现有 AABB 规则阻挡降雪粒子；这不代表自建结构已成为 Shelter。
+45. 刷新页面后所有玩家建筑消失，这是当前 WorldBuildingRegistry 未接入 Save 的预期行为。
+46. 回归确认 WASD、Shift、Space、E、Tab、C、Weather、Snow、Thermal、固定 Cabin Shelter 和测试炉 Heat 均正常。
+47. Browser console has no uncaught error.
 
 ## CI or reproducible installation
 

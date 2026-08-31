@@ -5,12 +5,14 @@ import type { WeatherEnvironmentBindings } from "./WeatherEnvironmentBindings";
 import { WeatherPresentationController } from "./WeatherPresentationController";
 import { WeatherVisualMapper } from "./WeatherVisualMapper";
 import { WeatherVisualProfileCatalog } from "./WeatherVisualProfileCatalog";
+import type { PrecipitationObstacleRegistry } from "./PrecipitationObstacleRegistry";
 
 /** 从 JSON 视觉配置创建表现控制器。 */
 export function createWeatherPresentation(
   scene: Scene,
   camera: Camera,
   environment: WeatherEnvironmentBindings,
+  obstacles: PrecipitationObstacleRegistry,
 ): WeatherPresentationController {
   const profiles = WeatherVisualProfileCatalog.fromUnknown(weatherVisualsData);
   return new WeatherPresentationController(
@@ -18,5 +20,6 @@ export function createWeatherPresentation(
     camera,
     environment,
     new WeatherVisualMapper(profiles),
+    obstacles,
   );
 }

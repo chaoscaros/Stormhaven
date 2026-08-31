@@ -57,7 +57,10 @@ export function createFirstPersonCamera(
     );
     return scene.pickWithRay(
       groundProbe,
-      (mesh) => mesh.name === "snow-ground" || mesh.name === "test-cabin-floor",
+      (mesh) =>
+        mesh.name === "snow-ground"
+        || mesh.name === "test-cabin-floor"
+        || typeof mesh.metadata?.buildingEntityId === "string",
     )?.hit ?? false;
   };
 

@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Crafting Foundation v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Building Foundation v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：在 World Pickup → Interaction → Inventory 基础上，已完成 Recipe Validation/Catalog、Requirement、CraftingPlan、草稿 Inventory 原子事务、Stone Axe Recipe，以及支持鼠标交互的 Tab 背包与 C 键制作菜单
-- 明确未实现：Timed Crafting、Craft Queue、Workbench/Station System、Building、Campfire Gameplay、Fuel、Tool Gameplay、Item Use/Equipment、Durability Runtime、Container/Storage UI、Save/IndexedDB
+- 功能状态：在 Pickup → Inventory 与 Crafting 基础上，已完成 Building Definition/Catalog、B 键菜单、Ghost、Grid/Foundation Edge Snap、Placement Validation、原子资源事务、会话内 World Registry、动态 Camera Collision 和动态降水障碍
+- 明确未实现：Campfire/Fuel、Shelter Enclosure、Roof/Door/Window、Building Upgrade/Damage、Demolish/Repair、Storage/Container、Tool Gameplay、Save/IndexedDB
 
 ## 已完成内容
 
@@ -63,7 +63,16 @@
 - Craft Requirement、Missing Inputs、Max Craftable Count 与稳定 Failure Reason
 - Clone Draft → Consume → Add Output → Validate Final Snapshot → Atomic Commit
 - Tab 背包与 C 键制作菜单进入统一菜单态：释放 Pointer Lock、显示鼠标、支持点击关闭/选择配方/制作；打开时屏蔽 E Interaction
-- 23 个测试文件、145 个单元测试
+- JSON 驱动的 `foundation_wood` / `wall_wood` BuildDefinition 与完整 Runtime Validation
+- 单一 Gameplay/Inventory/Crafting/Building/BuildPlacement Mode；Tab/C/B 菜单互斥
+- B 键鼠标 Building Menu、Camera Forward Ground Ray 与单一半透明 Ghost
+- 2m Foundation Grid、90° Rotation、Foundation 四边 Wall Snap 与 5m Build Distance
+- 固定场景/World Building AABB Overlap、稳定失败 Reason 与实时资源重校验
+- Inventory Draft 消耗、Presentation Candidate、Inventory/Registry Commit 与失败回滚
+- 当前会话 WorldBuildingRegistry、SnapPoint 占用和连续建造
+- 正式 Mesh 动态 Camera Collision；Ghost 无碰撞、不可 Pick、不会注册 World Entity
+- PrecipitationObstacleRegistry 静态初始化及动态 add/remove/update；Snow 读取共享 Snapshot
+- 29 个测试文件、188 个单元与集成测试
 
 ## 关键架构入口
 
@@ -81,12 +90,22 @@
 | `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
 | `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换和基础 DOM 状态 |
+| `src/ui/GameUiModeController.ts` | Gameplay/Menu/BuildPlacement 单一状态与 Pointer Lock 契约 |
 | `src/items/ItemCatalog.ts` | Item JSON 校验、重复 ID 检查与稳定查询 |
 | `src/inventory/Inventory.ts` | Babylon/DOM 无关的 Slot、Stack、Weight 与 Partial Add |
 | `src/crafting/RecipeCatalog.ts` | Recipe JSON 校验、重复/未知 Item 检查与稳定 ID 查询 |
 | `src/crafting/CraftingService.ts` | Requirement、Plan、最大数量与原子 Craft Transaction |
 | `src/crafting/CraftingTypes.ts` | Requirement、Plan、Result 和稳定 Failure Reason 契约 |
 | `src/ui/setupCraftingDebugUi.ts` | 鼠标优先的 C 键制作菜单、键盘补充操作及 Listener 生命周期 |
+| `src/building/BuildDefinition.ts` | Build JSON Runtime Validation 与稳定字段契约 |
+| `src/building/BuildCatalog.ts` | 已验证 BuildDefinition 的稳定 ID 查询 |
+| `src/building/PlacementValidator.ts` | Grid/Wall Support/距离/AABB 的纯放置校验 |
+| `src/building/BuildService.ts` | Inventory Draft、Presentation Candidate 与 Registry 原子事务 |
+| `src/building/WorldBuildingRegistry.ts` | 会话内 World Entity、Bounds、SnapPoint 与占用状态 |
+| `src/building/presentation/BuildingPlacementController.ts` | Camera Ray、单 Ghost、左键/R/B/Esc 的 Babylon 适配 |
+| `src/building/presentation/BuildingPresentation.ts` | 正式 Mesh、Camera Collision 与动态降水障碍注册 |
+| `src/ui/setupBuildingDebugUi.ts` | B 键鼠标 Building Menu、材料状态和放置反馈 |
+| `data/building/buildings.json` | 木制地基与木制墙体定义 |
 | `data/crafting/recipes.json` | 即时手工石斧配方 |
 | `src/interaction/InteractionService.ts` | Inventory Add 与 Pickup Remaining 的纯事务服务 |
 | `src/interaction/InteractionRaycastController.ts` | Babylon Ray Picking、E 输入与监听器生命周期 |
@@ -104,6 +123,7 @@
 | `src/weather/presentation/WeatherVisualMapper.ts` | 纯插值、进度 Clamp 和端点映射 |
 | `src/weather/presentation/WeatherPresentationController.ts` | 每帧集中写入天空、雾、灯光和雪粒子 |
 | `src/weather/presentation/SnowParticleController.ts` | 相机局部单 ParticleSystem 及程序化纹理 |
+| `src/weather/presentation/PrecipitationObstacleRegistry.ts` | 固定/动态 AABB 的增量 add/remove/update 与缓存 Snapshot |
 | `src/survival/thermal/ThermalConfig.ts` | Thermal JSON Runtime Validation 与配置契约 |
 | `src/survival/thermal/EffectiveTemperature.ts` | 环境温度、修正和风寒的纯计算 |
 | `src/survival/thermal/ThermalModel.ts` | 确定性 Thermal Reserve 更新 |
@@ -212,11 +232,19 @@ pnpm dev
 - `pnpm test`：23 个测试文件、145 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 完成 Building Foundation v0.1 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：29 个测试文件、188 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
 - Pickup 可见性、Prompt 距离、E 单次拾取、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
 - Tab 背包与 C 制作菜单打开后释放鼠标、鼠标点击关闭/选择配方/制作、关闭后恢复第一人称控制、菜单互斥和 E 屏蔽均需用户手动验收。
+- B Building Menu 的鼠标操作、Tab/C/B 互斥、Pointer Lock 切换、Ghost 跟随、Grid/Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
+- 正式 Foundation/Wall 的实际 Camera Collision、站立/跳跃，以及暴雪粒子被动态建筑 AABB 阻挡均需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
@@ -232,14 +260,17 @@ pnpm dev
 - 第一人称控制当前使用 Babylon Camera Collision 加自有垂直速度，不是完整 Havok Character Controller。
 - 已修复缺少 Collision Coordinator Side Effect 和 Camera Speed 错误除以 60 的问题，但修复后的实际键鼠操作仍需用户浏览器验收。
 - Weather Presentation 已接入天空、Fog、Lighting、局部 Snow Particle 与视觉风向；没有 Audio、Screen Frost、Camera Shake、Snow Accumulation、Footprints、Lightning Damage 或 Tree Destruction。
-- 降水碰撞当前缓存启动时已有且启用 Camera Collision 的静态 Mesh AABB；未来动态 Building 需要增量注册/移除障碍并更新 Bounds。
+- 降水碰撞已改为共享 PrecipitationObstacleRegistry：固定场景启动注册，动态建筑激活时增量 add，并提供 remove/update；仍使用保守 AABB 而非精确三角形。
 - 第一版使用 AABB 而非精确三角形碰撞；对于旋转或复杂凹形 Mesh 会比视觉轮廓更保守。
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
 - 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭或燃料。
 - Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
 - Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
-- 当前菜单交互契约为 Gameplay Pointer Lock 与 Menu Mouse Cursor 两种状态；未来 Building 菜单必须复用该契约，但本次没有实现 Building System。
+- 当前输入契约为 Gameplay Pointer Lock、Menu Mouse Cursor 与 BuildPlacement Pointer Lock 三种模式，统一由 GameUiModeController 管理。
+- Building 当前只有木制地基和墙体、平面 Ground、2m Grid 与一级 Foundation Edge Snap；没有 Roof、Door、Window、二楼或 Support Graph。
+- 玩家建筑只进入 WorldBuildingRegistry、Camera Collision 和降水障碍，不进入 ShelterSystem；自建房间没有挡风/温度加成。
+- WorldBuildingRegistry 只存在内存，刷新页面后玩家建筑消失；没有 Save、Demolish、Repair、Upgrade 或 Building Damage。
 - Stone Axe durability 仅是 Definition 最大值；ItemStack 没有实例耐久，石斧不能装备、使用、砍树或挖矿。
 - Raycast 每帧仅测试 interaction-enabled Mesh；当前没有通用 NPC/门/热源交互，也没有复杂 Interaction Framework。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
@@ -250,9 +281,23 @@ pnpm dev
 
 本 Issue 已达到停止条件。不要在当前任务继续开发。
 
-推荐下一独立 Issue：**Building Foundation v0.1**，先定义 BuildDefinition、Ghost、Placement Validation 和资源消费边界；是否执行必须由用户另行授权。不得顺带进入 Campfire/Fuel、工具玩法或 Save。
+推荐下一独立 Issue：**Campfire Gameplay + Fuel v0.1**，让玩家放置真正 Campfire、加入燃料并向现有 HeatSourceSystem 注册动态热源；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、Save、工具玩法或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — Building Foundation v0.1
+
+- 新增 Data Driven `foundation_wood` / `wall_wood`、BuildCatalog 和 Item Cost 引用/数值/枚举 Runtime Validation。
+- 新增纯 Grid/Rotation/Bounds/Snap 逻辑、Foundation 四边 SnapPoint、5m 距离、Ground/Support 与静态/动态 AABB Placement Validation。
+- 新增 BuildService 原子事务：Inventory Draft 消耗、禁用的 Presentation Candidate、Inventory/World Registry Commit、激活失败回滚。
+- 新增当前会话 WorldBuildingRegistry；成功后保持同一 Ghost 连续建造，资源耗尽只阻止下一次事务。
+- 新增单一 GameUiMode，Tab/C/B 菜单互斥；B 菜单支持鼠标选择，BuildPlacement 支持 Camera Ray、Ghost、左键、R、B/Esc。
+- 新增 Babylon 木制 Primitive 正式 Mesh、动态 Camera Collision，并让玩家地基参与跳跃 Ground Probe。
+- 将启动时一次性降水 AABB 数组重构为 PrecipitationObstacleRegistry；固定场景初始注册，动态建筑增量 add，API 支持 remove/update。
+- 场景木材总量调整为 13，足够手动验收两个地基和一面墙；未增加 Harvesting。
+- 新增 6 个测试文件；最终 29 个测试文件、188 个测试通过，TypeScript 严格检查与 `git diff --check` 通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；Ghost、Pointer Lock、相机碰撞和动态降雪阻挡等待用户验收。
+- 严格停止；未实现 Campfire/Fuel、Shelter Enclosure、Roof/Door/Window、Storage、Demolish/Repair/Upgrade/Damage 或 Save。
 
 ### 2026-08-29 — 背包与制作栏鼠标交互修正
 

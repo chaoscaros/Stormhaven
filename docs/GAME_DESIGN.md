@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model、Shelter + Heat Source、Interaction + Item + Inventory，以及 Crafting Foundation v0.1：
+当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1，以及 Building Foundation v0.1：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -61,11 +61,18 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 玩家可徒手将树枝 ×2 与石头 ×2 即时制作成石斧 ×1
 - 制作面板明确展示所需/持有数量、缺失材料、产出和失败原因
 - 石斧只证明“收集材料 → 制作成品”链路，不可装备、挥舞、砍树或消耗耐久
+- 玩家可按 B 打开鼠标建造菜单，直接用 Inventory 木材选择木制地基或墙体
+- 木制地基使用 2m 世界 Grid，木墙只能吸附到地基 North/East/South/West 边缘
+- Placement Mode 使用单一半透明 Ghost，合法/非法状态不同；左键放置、R 旋转、B/Esc 退出
+- 成功建造会原子扣除材料并生成当前运行会话内的 World Building；刷新页面后消失
+- 正式建筑参与玩家碰撞和降水 AABB 阻挡，但自建建筑尚不提供 Shelter/挡风/保温
 - 可重复执行的类型检查、测试和生产构建
 
-当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于可建造房屋或 Campfire Gameplay。Crafting 只处理 Inventory Item → Inventory Item，不决定 Building 是否需要 Placeable Kit；明确不包含 Fuel、工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器、存档或建筑放置。Thermal Reserve 是游戏化资源，不是医学核心体温。
+当前 Shelter 仅是固定 Scenario Volume，Heat Source 仅是常开通用领域实例；它们不等于玩家建筑或 Campfire Gameplay。Crafting 只处理 Inventory Item → Inventory Item，Building 直接处理 Inventory Materials → World Entity；明确不包含 Fuel、工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。Thermal Reserve 是游戏化资源，不是医学核心体温。
 
-未来 Building Panel 必须复用相同菜单交互：打开时释放 Pointer Lock、显示鼠标并允许点击建筑选项；关闭后再恢复第一人称控制。该约束不代表 Building 已实现。
+Tab Inventory、C Crafting 与 B Building Menu 互斥；菜单态释放 Pointer Lock，选择建筑后进入锁定鼠标的 BuildPlacement。Building 直接执行 `Inventory Materials → World Building Entity`，不制作 Wall Item 或 Foundation Item。
+
+Building Foundation v0.1 只验证“收集木材 → Ghost 放置 → 地基 → 吸附墙体 → 世界发生变化”。没有 Door、Window、Roof、Campfire、Storage、拆除、维修、升级、伤害或存档；自建结构转化为 Shelter Zone 必须留给独立 Building Enclosure Issue。
 
 ## 非目标
 

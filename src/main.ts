@@ -4,6 +4,7 @@ import { createFirstBlizzardSimulation } from "./core/simulation/createFirstBliz
 import { setupFoundationUi } from "./ui/setupFoundationUi";
 import { createFirstBlizzardGameplayFoundation } from "./core/gameplay/createFirstBlizzardGameplayFoundation";
 import { setupCraftingDebugUi } from "./ui/setupCraftingDebugUi";
+import { setupBuildingDebugUi } from "./ui/setupBuildingDebugUi";
 
 const canvas = document.getElementById("game-canvas");
 if (!(canvas instanceof HTMLCanvasElement)) {
@@ -20,22 +21,47 @@ const craftingUi = setupCraftingDebugUi(
   gameplay.craftingService,
   gameplay.recipeCatalog,
   gameplay.itemCatalog,
+  ui.modes,
   {
     onInventoryChanged(): void {
       ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
     },
   },
 );
-const game = new Game(
+let game: Game | undefined;
+const buildingUi = setupBuildingDebugUi(
+  canvas,
+  gameplay.buildCatalog,
+  gameplay.inventory,
+  gameplay.itemCatalog,
+  ui.modes,
+  {
+    onSelect(definitionId): void {
+      game?.beginBuildingPlacement(definitionId);
+    },
+  },
+);
+game = new Game(
   canvas,
   simulation,
   gameplay,
   {
-    isInteractionBlocked: craftingUi.isOpen,
+    isInteractionBlocked: ui.modes.isWorldInteractionBlocked.bind(ui.modes),
     onTargetChanged: ui.updateInteractionPrompt,
     onInteraction(result, inventory): void {
       ui.updateInventory(inventory, gameplay.itemCatalog);
       ui.showInteractionResult(result, gameplay.itemCatalog);
+      craftingUi.refresh();
+      buildingUi.refresh();
+    },
+  },
+  ui.modes,
+  {
+    onStatus: buildingUi.showPlacementStatus,
+    onExit: buildingUi.hidePlacementStatus,
+    onInventoryChanged(): void {
+      ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
+      buildingUi.refresh();
       craftingUi.refresh();
     },
   },
@@ -55,7 +81,8 @@ const disposeApplication = (): void => {
   if (disposed) return;
   disposed = true;
   window.removeEventListener("beforeunload", disposeApplication);
-  game.dispose();
+  game?.dispose();
+  buildingUi.dispose();
   craftingUi.dispose();
   ui.dispose();
 };

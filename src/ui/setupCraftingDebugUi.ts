@@ -3,6 +3,7 @@ import type { CraftingService } from "../crafting/CraftingService";
 import type { CraftResult } from "../crafting/CraftingTypes";
 import type { RecipeCatalog } from "../crafting/RecipeCatalog";
 import type { ItemCatalog } from "../items/ItemCatalog";
+import type { GameUiModeController } from "./GameUiModeController";
 
 export interface CraftingDebugUi {
   isOpen(): boolean;
@@ -20,11 +21,10 @@ export function setupCraftingDebugUi(
   service: CraftingService,
   recipes: RecipeCatalog,
   items: ItemCatalog,
+  modes: GameUiModeController,
   callbacks: CraftingDebugUiCallbacks,
 ): CraftingDebugUi {
   const panel = getElement("crafting-panel");
-  const hud = getElement("hud");
-  const inventoryPanel = getElement("inventory-panel");
   const closeButton = getElement<HTMLButtonElement>("crafting-close-button");
   const actionButton = getElement<HTMLButtonElement>("crafting-action-button");
   const recipeListElement = getElement("crafting-recipe-list");
@@ -72,19 +72,12 @@ export function setupCraftingDebugUi(
   };
 
   const open = (): void => {
-    inventoryPanel.hidden = true;
-    panel.hidden = false;
-    hud.dataset.menuOpen = "true";
+    modes.openMenu("crafting_menu");
     feedback.hidden = true;
     render();
-    if (document.pointerLockElement === canvas) document.exitPointerLock();
   };
 
-  const closeAndResume = (): void => {
-    panel.hidden = true;
-    delete hud.dataset.menuOpen;
-    void canvas.requestPointerLock();
-  };
+  const closeAndResume = (): void => modes.resumeGameplay();
 
   const craftSelectedRecipe = (): void => {
     const recipe = recipeList[selectedIndex];
@@ -110,13 +103,16 @@ export function setupCraftingDebugUi(
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.repeat) return;
     if (event.code === CRAFTING_INPUT_CONFIG.toggleKeyCode) {
-      if (document.pointerLockElement !== canvas && panel.hidden && inventoryPanel.hidden) return;
+      if (
+        modes.mode === "build_placement"
+        || (document.pointerLockElement !== canvas && !modes.isMenuOpen())
+      ) return;
       event.preventDefault();
-      if (panel.hidden) open();
+      if (modes.mode !== "crafting_menu") open();
       else closeAndResume();
       return;
     }
-    if (panel.hidden) return;
+    if (modes.mode !== "crafting_menu") return;
     if (event.code === CRAFTING_INPUT_CONFIG.closeKeyCode) {
       closeAndResume();
       return;
@@ -139,9 +135,12 @@ export function setupCraftingDebugUi(
   window.addEventListener("keydown", handleKeyDown);
   closeButton.addEventListener("click", closeAndResume);
   actionButton.addEventListener("click", craftSelectedRecipe);
+  const unsubscribeMode = modes.subscribe((mode) => {
+    panel.hidden = mode !== "crafting_menu";
+  });
 
   return {
-    isOpen: () => !panel.hidden,
+    isOpen: () => modes.mode === "crafting_menu",
     refresh(): void {
       if (!panel.hidden) render();
     },
@@ -149,6 +148,7 @@ export function setupCraftingDebugUi(
       window.removeEventListener("keydown", handleKeyDown);
       closeButton.removeEventListener("click", closeAndResume);
       actionButton.removeEventListener("click", craftSelectedRecipe);
+      unsubscribeMode();
       recipeButtons.forEach(({ button, handleClick }) =>
         button.removeEventListener("click", handleClick));
     },

@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source、Interaction + Item + Inventory，以及 Crafting Foundation v0.1**。玩家可拾取树枝与石头，并通过即时手工配方制作石斧；工具使用、存档和建筑玩法尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1，以及 Building Foundation v0.1**。玩家可收集木材，使用鼠标建造地基并把墙体吸附到地基边缘；营火、工具使用、存档和自建建筑 Shelter 判定尚未实现。
 
 ## 当前完成内容
 
@@ -33,7 +33,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 通用 Heat Source Profile、smoothstep 距离衰减、多热源叠加和全局上限
 - 与领域坐标共用配置的固定测试木屋、入口和常开测试炉占位表现
 - 庇护状态、挡风比例、原始/有效风力和热源加成 Debug HUD
-- 局部降水粒子与静态碰撞障碍的路径检测：屋顶、墙体、地面和标杆会拦截雪花，开放入口仍允许风雪进入
+- 局部降水粒子与固定/动态碰撞障碍的路径检测：屋顶、墙体、地面、标杆和玩家建筑会拦截雪花，开放入口仍允许风雪进入
 - 屏幕中央 2.75m Interaction Raycast、`E` 单次拾取与可见 Prompt
 - JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup
 - 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
@@ -42,6 +42,10 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 草稿 Inventory 模拟输入消耗和输出加入，完整成功后原子提交
 - `C` 键 Crafting Debug Panel；鼠标点击配方、制作和关闭，键盘操作保留为补充
 - 石斧真实配方：树枝 ×2 + 石头 ×2 → 石斧 ×1
+- JSON 驱动的木制地基/墙体、BuildCatalog 与 Runtime Validation
+- `B` 键鼠标建造菜单、半透明 Ghost、2m Grid Snap、Foundation Edge Wall Snap 与 `R` 旋转
+- 5m 放置距离、静态/动态 AABB 重叠校验和 Inventory 草稿原子资源事务
+- 当前会话内 WorldBuildingRegistry、动态 Camera Collision 与增量降水障碍注册
 - GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup Transaction、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
 
@@ -71,7 +75,10 @@ pnpm dev
 | `E` | 拾取准星对准的物资 |
 | `Tab` | 打开/关闭只读 Inventory 菜单并切换鼠标控制 |
 | `C` | 打开/关闭 Crafting 菜单并切换鼠标控制 |
+| `B` | 打开建造菜单；放置中退出建造模式 |
 | 鼠标点击 | 选择配方、制作、关闭菜单 |
+| 建造放置中左键 | 确认放置并消耗材料 |
+| `R` | 建造放置中按配置步长旋转 Ghost |
 | `↑` / `↓` / `Enter` | Crafting 菜单的辅助键盘操作 |
 | `Esc` | 释放鼠标 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
@@ -98,8 +105,8 @@ pnpm build
 
 `src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager`、`ShelterSystem`、`HeatSourceSystem` 与 `ThermalModel`；相机位置只以普通 `{x,y,z}` 数据进入模拟，不把 Babylon 类型泄漏到领域层。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
 
-Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe JSON → `RecipeCatalog` → `CraftingService` → Inventory Draft → Final Snapshot Commit；UI 只读取 Requirement/Result，不直接增删物品。Crafting Domain 不依赖 Babylon 或 DOM。
+Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe JSON → `RecipeCatalog` → `CraftingService` → Inventory Draft → Final Snapshot Commit。Building 独立运行于 Building JSON → `BuildCatalog` → Placement Validation → Inventory Draft → `WorldBuildingRegistry` → Babylon Presentation；两者只共享 Inventory。UI 不直接增删物品，两个 Domain 均不依赖 Babylon 或 DOM。
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要继续扩展 Crafting，也不要实现 Building、Campfire、Fuel、Workbench、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 Building/Crafting，也不要实现 Campfire、Fuel、Shelter Enclosure、Demolish、Repair、Door、Window、Storage、工具使用、容器或存档。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。

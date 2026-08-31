@@ -19,12 +19,14 @@ import type { WeatherEnvironmentBindings } from "../weather/presentation/Weather
 import environmentScenarioData from "../../data/world/first-blizzard-environment.json";
 import { parseSurvivalEnvironmentScenario } from "../survival/environment/SurvivalEnvironmentScenario";
 import { createFirstBlizzardCabin } from "./createFirstBlizzardCabin";
+import { PrecipitationObstacleRegistry } from "../weather/presentation/PrecipitationObstacleRegistry";
 
 const GRAVITY = new Vector3(0, -9.81, 0);
 
 export interface WorldSceneRuntime {
   readonly scene: Scene;
   readonly weatherEnvironment: WeatherEnvironmentBindings;
+  readonly precipitationObstacles: PrecipitationObstacleRegistry;
 }
 
 /** 创建基础 Scene，并显式暴露天气表现层需要的最小环境引用。 */
@@ -49,6 +51,8 @@ export async function createWorldScene(engine: Engine): Promise<WorldSceneRuntim
     scene,
     parseSurvivalEnvironmentScenario(environmentScenarioData),
   );
+  const precipitationObstacles = new PrecipitationObstacleRegistry();
+  registerInitialPrecipitationObstacles(scene, precipitationObstacles);
 
   return Object.freeze({
     scene,
@@ -57,7 +61,23 @@ export async function createWorldScene(engine: Engine): Promise<WorldSceneRuntim
       hemisphericLight: lights.ambient,
       directionalLight: lights.sun,
     }),
+    precipitationObstacles,
   });
+}
+
+function registerInitialPrecipitationObstacles(
+  scene: Scene,
+  registry: PrecipitationObstacleRegistry,
+): void {
+  for (const mesh of scene.meshes.filter((candidate) =>
+    candidate.checkCollisions && candidate.isEnabled())) {
+    mesh.computeWorldMatrix(true);
+    const box = mesh.getBoundingInfo().boundingBox;
+    registry.add(`static:${mesh.uniqueId}`, {
+      min: { x: box.minimumWorld.x, y: box.minimumWorld.y, z: box.minimumWorld.z },
+      max: { x: box.maximumWorld.x, y: box.maximumWorld.y, z: box.maximumWorld.z },
+    });
+  }
 }
 
 function createSky(scene: Scene): ShaderMaterial {

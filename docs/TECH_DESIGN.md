@@ -32,6 +32,8 @@ src/main.ts
   ├─ inventory/                   纯 Slot/Stack/Weight Inventory
   ├─ interaction/                 Target/Result、事务服务与 Raycast Adapter
   ├─ crafting/                    Recipe Catalog、Requirement 与 Atomic Transaction
+  ├─ building/                    Definition、Placement、Snap、Atomic Transaction 与 World Registry
+  ├─ building/presentation/       单 Ghost、正式 Mesh、Camera Collision 与障碍注册
   ├─ world/pickups/               Pickup Registry、Placement 与 Babylon Presentation
   └─ ui/setupFoundationUi.ts      仅 DOM 的基础界面适配
 ```
@@ -58,13 +60,49 @@ src/main.ts
 | `src/interaction` | 通用 Target/Result、Pickup Transaction 和 Babylon Raycast 窄适配 |
 | `src/world/pickups` | World Pickup Domain Registry、Scenario Placement 与 Mesh Presentation |
 | `src/crafting` | Recipe Runtime Validation、Catalog、Requirement、Plan 与原子制作事务 |
-| `src/building` | 未来的 Ghost、放置校验和 Snap |
+| `src/building` | BuildDefinition/Catalog、Grid/Wall Snap、Placement Validation、原子事务与 WorldBuildingRegistry |
+| `src/building/presentation` | Babylon Ghost、Placement Ray/Input、正式 Mesh、Camera Collision 与降水障碍接线 |
 | `src/save` | 未来的版本化 IndexedDB 持久化 |
 | `data` | 按领域划分的未来 JSON 定义 |
 | `public/assets` | 未来的模型、贴图与音频 |
 | `tests` | 纯逻辑测试与高价值集成测试 |
 
-`src/building` 和 `src/save` 等其余功能目录在当前阶段仍只是预留边界。
+`src/save` 等其余功能目录在当前阶段仍只是预留边界。
+
+## Building Foundation
+
+Building 与 Crafting 是共享 Inventory 的独立链路：
+
+```text
+data/building/buildings.json
+  → BuildCatalog
+  → PlacementValidator
+  → BuildService / Inventory Draft
+  → WorldBuildingRegistry
+  → BuildingPresentation
+```
+
+`BuildDefinition` 使用稳定英文 snake_case ID，包含 category、cost、三轴 size、snapType、rotationStep、collision 和 tags。当前只有 `foundation_wood`（wood ×4、2m × 0.2m × 2m）与 `wall_wood`（wood ×3、2m × 2.4m × 0.18m），不创建可放入 Inventory 的墙/地基 Item。
+
+`PlacementValidator` 是纯逻辑：Foundation 只接受 Ground，并在 2m Grid 上吸附；Wall 必须使用 Foundation 注册的 North/East/South/West `SnapPoint`。最终位置还需满足 5m 距离、Snap 未占用，以及与固定场景和现有 World Building 的 AABB 不重叠。接触边界不算重叠，因此相邻 Foundation 和立于 Foundation 顶边的 Wall 合法。Rotation 统一规范到 `0..359`，只按 Definition Step 递增。
+
+`BuildService` 每次确认放置都会重新运行资源与 Placement 校验，不相信菜单缓存。事务为 `Plan → Clone Inventory → Consume Cost on Draft → Prepare Disabled Presentation Candidate → Commit Inventory + Registry → Activate Mesh`。Prepare 或 Activate 失败会释放候选并恢复 Inventory/Registry；失败不吞材料。成功后保持同一 Ghost，允许连续建造，直到资源不足或玩家按 B/Esc 退出。
+
+`WorldBuildingRegistry` 只保存纯 `WorldBuilding`、Bounds 与 SnapPoint，不持有 Mesh。状态仅存在当前运行会话，刷新即消失。Ghost 不进入 Registry、不参与碰撞、不参与 Picking；正式 Mesh 才启用 Babylon Camera Collision。玩家建筑没有 Interaction Target，也不会自动注册为 Shelter。
+
+输入统一为单一 `GameUiMode`：`gameplay / inventory_menu / crafting_menu / building_menu / build_placement`。Tab/C/B 菜单互斥并释放 Pointer Lock；Building Menu 点击结构件后恢复 Pointer Lock 并进入 BuildPlacement。放置中左键确认、R 旋转、B/Esc 退出，世界 E Interaction 被屏蔽。
+
+动态降水依赖保持窄接口：
+
+```text
+BuildingPresentation ──add/update/remove──→ PrecipitationObstacleRegistry
+                                           ↑
+SnowParticleController ───────read─────────┘
+```
+
+固定场景在启动时向 Registry 注册一次；玩家建筑激活时增量 add。雪粒子每帧读取已缓存的 Registry Snapshot，不扫描 Scene Mesh。Registry 已提供 remove/update API 供事务回滚和未来移动/拆除使用，但本 Issue 没有 Demolish Gameplay。
+
+自建几何转化为动态 Shelter/房间属于未来 Building Enclosure Issue。当前 Thermal Shelter 仍只有固定测试木屋；Building 不导入 ShelterSystem，Weather 也不导入 BuildingSystem。
 
 ## Interaction、Item 与 Inventory Foundation
 
@@ -82,9 +120,9 @@ Add 前先同时计算现有 Stack 空位、新 Slot 空位和剩余重量可接
 
 当前配方只有 `stick ×2 + stone ×2 → stone_axe ×1`，且 `craftTimeSeconds=0`。C 键 Debug Panel 读取 `CraftRequirementResult`，不直接查询/修改 Inventory。Tab/C 打开菜单前先写入 HUD Menu State，再退出 Pointer Lock；因此 `pointerlockchange` 会保持 HUD/Panel 可见并显示鼠标。配方、制作和关闭均可点击，方向键/Enter 只作为辅助输入。关闭菜单后从用户点击或快捷键事件恢复 Pointer Lock；所有 listener 均在 dispose 时移除。
 
-Crafting 只定义 `Inventory Items → Inventory Items`。未来 Building 应定义 `Inventory Materials / Placeable Definition → World Building Entity`；除非后续 Issue 明确决定 Placeable Kit，不默认建筑必须先成为 Inventory Item。石斧 Definition 的 durability 只是最大值元数据，未来 Tool Gameplay 引入 Item Instance State 时需另行设计 Runtime Durability。
+Crafting 只定义 `Inventory Items → Inventory Items`。Building 已独立定义 `Inventory Materials / BuildDefinition → World Building Entity`，建筑不需要先成为 Inventory Item。石斧 Definition 的 durability 只是最大值元数据，未来 Tool Gameplay 引入 Item Instance State 时需另行设计 Runtime Durability。
 
-Inventory、Crafting 和未来 Building 共用菜单交互契约：菜单打开时游戏保留渲染与 HUD，但释放第一人称 Pointer Lock；菜单元素显式启用 pointer events；关闭后才重新请求 Pointer Lock。不得把需要点击的菜单放在锁定鼠标状态内。
+Inventory、Crafting 和 Building 共用菜单交互契约：菜单打开时游戏保留渲染与 HUD，但释放第一人称 Pointer Lock；菜单元素显式启用 pointer events；关闭或进入 BuildPlacement 时重新请求 Pointer Lock。不得把需要点击的菜单放在锁定鼠标状态内。
 
 ## Game Time 与 Runtime
 
@@ -196,7 +234,7 @@ ForecastSystem
 - 更新 Scene 的 EXP2 Fog Color/Density。
 - 更新既有 HemisphericLight 和 DirectionalLight Intensity。
 - 更新一个容量 2000、围绕相机移动的 ParticleSystem；雪花纹理由 32×32 DynamicTexture 程序化生成。
-- 缓存启动时已有的静态 Camera Collision Mesh AABB；CPU 粒子每帧更新后用前后位置线段进行 Slab 相交检测，撞到屋顶、墙体或地面即回收。
+  - 从共享 `PrecipitationObstacleRegistry` 读取固定场景与动态建筑 AABB；CPU 粒子每帧更新后用前后位置线段进行 Slab 相交检测，撞到屋顶、墙体、地面或玩家建筑即回收。
 - 处理 F1–F4 视觉预览和 F5 恢复 Schedule。Preview 只覆盖 Mapper 输入，不写入 ForecastSystem、WeatherManager 或 WeatherTransition。
 - 在 `dispose()` 中移除键盘监听并释放粒子与纹理资源。
 
@@ -266,11 +304,12 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 23 个测试文件、145 个测试，新增覆盖三种失败原子性、Inventory Draft/Commit、释放 Slot/Weight、多 Stack 输入、Stackable/不可堆叠输出、批量制作、Station 和耗时配方边界。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项。
+当前共 29 个测试文件、188 个测试。Building 新增覆盖 Definition/引用/数值校验、正负 Grid 边界、Rotation、Ground Foundation、距离/重叠、Foundation Edge Wall、Snap 占用、连续资源消费、资源/Placement/Presentation 三类失败原子性、Obstacle add/remove/update/重复 ID，以及 Building → Dynamic Obstacle → Snow Segment 集成。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
 
 ## Weather Presentation 已知边界
 
-- 降水阻挡当前使用启动时缓存的静态碰撞 Mesh AABB；不支持动态建筑注册，复杂旋转/凹形 Mesh 也不是精确三角形碰撞。
+- 降水阻挡已支持固定场景与动态建筑的增量 AABB 注册；复杂旋转/凹形 Mesh 仍不是精确三角形碰撞。
+- Building 只有 Foundation/Wall、平面 Ground 与一级 Foundation Edge Snap；没有二楼、斜坡、Support Graph、Roof、Door、Window、拆除、维修、升级、伤害或存档。
 - 已有游戏化体感温度、风寒、Shelter、Heat Source 和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
 - 没有音频、屏幕结霜、镜头抖动、积雪、脚印、闪电伤害或树木破坏。
 - 没有 GPU/移动端 Profile；容量和 Emit Rate 是桌面 Vertical Slice 的保守初值，需以用户浏览器实际表现校准。

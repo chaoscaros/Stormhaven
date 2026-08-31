@@ -6,6 +6,7 @@ import type { WeatherId } from "../WeatherDefinition";
 import type { WeatherEnvironmentBindings } from "./WeatherEnvironmentBindings";
 import { SnowParticleController } from "./SnowParticleController";
 import { WeatherVisualMapper } from "./WeatherVisualMapper";
+import type { PrecipitationObstacleRegistry } from "./PrecipitationObstacleRegistry";
 
 const PREVIEW_KEYS: Readonly<Record<string, WeatherId>> = Object.freeze({
   F1: "clear",
@@ -31,8 +32,9 @@ export class WeatherPresentationController {
     private readonly camera: Camera,
     private readonly environment: WeatherEnvironmentBindings,
     private readonly mapper: WeatherVisualMapper,
+    obstacles: PrecipitationObstacleRegistry,
   ) {
-    this.#snow = new SnowParticleController(scene);
+    this.#snow = new SnowParticleController(scene, obstacles);
     window.addEventListener("keydown", this.#handlePreviewKey);
   }
 

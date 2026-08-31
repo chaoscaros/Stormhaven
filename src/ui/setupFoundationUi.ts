@@ -11,6 +11,7 @@ import { INTERACTION_CONFIG } from "../interaction/InteractionConfig";
 import { formatInteractionPrompt, type InteractionTarget } from "../interaction/InteractionTarget";
 import type { InventorySnapshot } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
+import { GameUiModeController } from "./GameUiModeController";
 
 const WEATHER_LABELS: Readonly<Record<WeatherId, string>> = Object.freeze({
   clear: "晴朗",
@@ -32,6 +33,7 @@ const THERMAL_TREND_LABELS: Readonly<Record<ThermalTrend, string>> = Object.free
 });
 
 export interface FoundationUi {
+  readonly modes: GameUiModeController;
   showReady(): void;
   showError(message: string): void;
   updateDebugHud(
@@ -70,43 +72,36 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const inventoryPanel = getElement("inventory-panel");
   const inventoryCloseButton = getElement<HTMLButtonElement>("inventory-close-button");
   const craftingPanel = getElement("crafting-panel");
+  const buildingPanel = getElement("building-panel");
   const inventoryItems = getElement<HTMLUListElement>("inventory-items");
   const inventoryWeight = getElement("inventory-weight");
   const inventorySlots = getElement("inventory-slots");
   const pickupFeedback = getElement("pickup-feedback");
   let feedbackTimeout: number | undefined;
+  const modes = new GameUiModeController(canvas);
 
   const requestControl = (): void => {
-    if (hud.dataset.menuOpen === "true") return;
+    if (modes.mode !== "gameplay") return;
     void canvas.requestPointerLock();
   };
 
-  const closeMenusAndResume = (): void => {
-    inventoryPanel.hidden = true;
-    craftingPanel.hidden = true;
-    delete hud.dataset.menuOpen;
-    void canvas.requestPointerLock();
-  };
-
-  const openInventory = (): void => {
-    craftingPanel.hidden = true;
-    inventoryPanel.hidden = false;
-    hud.dataset.menuOpen = "true";
-    if (document.pointerLockElement === canvas) document.exitPointerLock();
-  };
+  const closeMenusAndResume = (): void => modes.resumeGameplay();
 
   enterButton.addEventListener("click", requestControl);
   canvas.addEventListener("click", requestControl);
   const handlePointerLockChange = (): void => {
     const isPlaying = document.pointerLockElement === canvas;
-    const isMenuOpen = hud.dataset.menuOpen === "true";
+    const isMenuOpen = modes.isMenuOpen();
     startScreen.hidden = isPlaying || isMenuOpen;
     hud.hidden = !isPlaying && !isMenuOpen;
     if (isPlaying) {
       canvas.focus({ preventScroll: true });
     } else if (!isMenuOpen) {
-      inventoryPanel.hidden = true;
-      craftingPanel.hidden = true;
+      if (modes.mode === "gameplay") {
+        inventoryPanel.hidden = true;
+        craftingPanel.hidden = true;
+        buildingPanel.hidden = true;
+      }
     }
   };
   const handleInventoryKeyDown = (event: KeyboardEvent): void => {
@@ -114,18 +109,26 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
       event.code !== INTERACTION_CONFIG.inventoryKeyCode
       || event.repeat
       || (document.pointerLockElement !== canvas
-        && inventoryPanel.hidden
-        && craftingPanel.hidden)
+        && !modes.isMenuOpen())
     ) return;
     event.preventDefault();
-    if (inventoryPanel.hidden) openInventory();
-    else closeMenusAndResume();
+    if (modes.mode === "inventory_menu") modes.resumeGameplay();
+    else modes.openMenu("inventory_menu");
   };
+  const unsubscribeMode = modes.subscribe((mode) => {
+    inventoryPanel.hidden = mode !== "inventory_menu";
+    craftingPanel.hidden = mode !== "crafting_menu";
+    buildingPanel.hidden = mode !== "building_menu";
+    if (modes.isMenuOpen()) hud.dataset.menuOpen = "true";
+    else delete hud.dataset.menuOpen;
+    hud.dataset.mode = mode;
+  });
   inventoryCloseButton.addEventListener("click", closeMenusAndResume);
   document.addEventListener("pointerlockchange", handlePointerLockChange);
   window.addEventListener("keydown", handleInventoryKeyDown);
 
   return {
+    modes,
     showReady(): void {
       enterButton.disabled = false;
       enterButton.querySelector("span")?.replaceChildren("进入测试区域");
@@ -245,6 +248,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
       inventoryCloseButton.removeEventListener("click", closeMenusAndResume);
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
       window.removeEventListener("keydown", handleInventoryKeyDown);
+      unsubscribeMode();
       if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);
     },
   };

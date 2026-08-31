@@ -8,8 +8,8 @@ import type { Particle } from "@babylonjs/core/Particles/particle";
 import type { WeatherVisualState } from "./WeatherVisualState";
 import {
   segmentIntersectsPrecipitationBounds,
-  type PrecipitationCollisionBounds,
 } from "./PrecipitationCollision";
+import type { PrecipitationObstacleRegistry } from "./PrecipitationObstacleRegistry";
 
 const PARTICLE_CAPACITY = 2_000;
 const EMITTER_HEIGHT_METERS = 10;
@@ -26,10 +26,12 @@ export class SnowParticleController {
   readonly #emitter = Vector3.Zero();
   readonly #particleTexture: DynamicTexture;
   readonly #particles: ParticleSystem;
-  readonly #collisionBounds: readonly PrecipitationCollisionBounds[];
   readonly #previousParticleStates = new Map<number, PreviousParticleState>();
 
-  constructor(scene: Scene) {
+  constructor(
+    scene: Scene,
+    private readonly obstacles: PrecipitationObstacleRegistry,
+  ) {
     this.#particleTexture = createSnowParticleTexture(scene);
     this.#particles = new ParticleSystem("weather-local-snow", PARTICLE_CAPACITY, scene);
     this.#particles.particleTexture = this.#particleTexture;
@@ -46,7 +48,6 @@ export class SnowParticleController {
     this.#particles.blendMode = ParticleSystem.BLENDMODE_STANDARD;
     this.#particles.updateSpeed = 0.018;
     this.#particles.emitRate = 0;
-    this.#collisionBounds = collectStaticCollisionBounds(scene);
     const updateParticles = this.#particles.updateFunction;
     this.#particles.updateFunction = (particles): void => {
       updateParticles(particles);
@@ -89,6 +90,7 @@ export class SnowParticleController {
   }
 
   #recycleBlockedParticles(particles: Particle[]): void {
+    const collisionBounds = this.obstacles.getAll();
     for (let index = particles.length - 1; index >= 0; index -= 1) {
       const particle = particles[index];
       if (!particle) continue;
@@ -96,7 +98,7 @@ export class SnowParticleController {
       const wasReused = previous !== undefined && particle.age < previous.age;
       const blocked = previous !== undefined
         && !wasReused
-        && this.#collisionBounds.some((bounds) =>
+        && collisionBounds.some((bounds) =>
           segmentIntersectsPrecipitationBounds(previous, particle.position, bounds));
 
       if (blocked) {
@@ -120,27 +122,6 @@ export class SnowParticleController {
       }
     }
   }
-}
-
-function collectStaticCollisionBounds(scene: Scene): readonly PrecipitationCollisionBounds[] {
-  return Object.freeze(scene.meshes
-    .filter((mesh) => mesh.checkCollisions && mesh.isEnabled())
-    .map((mesh) => {
-      mesh.computeWorldMatrix(true);
-      const box = mesh.getBoundingInfo().boundingBox;
-      return Object.freeze({
-        min: Object.freeze({
-          x: box.minimumWorld.x,
-          y: box.minimumWorld.y,
-          z: box.minimumWorld.z,
-        }),
-        max: Object.freeze({
-          x: box.maximumWorld.x,
-          y: box.maximumWorld.y,
-          z: box.maximumWorld.z,
-        }),
-      });
-    }));
 }
 
 function createSnowParticleTexture(scene: Scene): DynamicTexture {

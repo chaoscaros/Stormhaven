@@ -1,0 +1,26 @@
+[
+  {
+    "id": "foundation_wood",
+    "displayName": "木制地基",
+    "description": "用于扩建基地的基础承重平台。",
+    "category": "foundation",
+    "cost": [{ "itemId": "wood", "quantity": 4 }],
+    "size": { "x": 2, "y": 0.2, "z": 2 },
+    "snapType": "grid",
+    "rotationStep": 90,
+    "collision": true,
+    "tags": ["wood", "structural", "ground_supported"]
+  },
+  {
+    "id": "wall_wood",
+    "displayName": "木制墙体",
+    "description": "必须吸附在木制地基边缘的基础墙体。",
+    "category": "wall",
+    "cost": [{ "itemId": "wood", "quantity": 3 }],
+    "size": { "x": 2, "y": 2.4, "z": 0.18 },
+    "snapType": "foundation_edge",
+    "rotationStep": 90,
+    "collision": true,
+    "tags": ["wood", "structural", "foundation_supported"]
+  }
+]

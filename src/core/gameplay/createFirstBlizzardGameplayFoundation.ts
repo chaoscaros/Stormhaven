@@ -9,6 +9,9 @@ import { PLAYER_INVENTORY_CONFIG } from "../../inventory/InventoryConfig";
 import { ItemCatalog } from "../../items/ItemCatalog";
 import { parseWorldPickupPlacements } from "../../world/pickups/WorldPickupPlacement";
 import { WorldPickupRegistry } from "../../world/pickups/WorldPickupRegistry";
+import buildingDefinitionsData from "../../../data/building/buildings.json";
+import { BuildCatalog } from "../../building/BuildCatalog";
+import { WorldBuildingRegistry } from "../../building/WorldBuildingRegistry";
 
 export type FirstBlizzardGameplayFoundation = ReturnType<
   typeof createFirstBlizzardGameplayFoundation
@@ -20,6 +23,7 @@ export function createFirstBlizzardGameplayFoundation() {
   const pickupPlacements = parseWorldPickupPlacements(pickupPlacementsData, itemCatalog);
   const inventory = new Inventory(itemCatalog, PLAYER_INVENTORY_CONFIG);
   const recipeCatalog = RecipeCatalog.fromUnknown(recipeDefinitionsData, itemCatalog);
+  const buildCatalog = BuildCatalog.fromUnknown(buildingDefinitionsData, itemCatalog);
   const pickupRegistry = new WorldPickupRegistry(
     pickupPlacements.map((placement) => placement.pickup),
   );
@@ -28,6 +32,8 @@ export function createFirstBlizzardGameplayFoundation() {
     pickupPlacements,
     inventory,
     recipeCatalog,
+    buildCatalog,
+    worldBuildingRegistry: new WorldBuildingRegistry(),
     pickupRegistry,
     interactionService: new InteractionService(itemCatalog, inventory, pickupRegistry),
     craftingService: new CraftingService(recipeCatalog, itemCatalog, inventory),

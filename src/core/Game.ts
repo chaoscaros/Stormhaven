@@ -17,6 +17,14 @@ import {
   InteractionRaycastController,
   type InteractionCallbacks,
 } from "../interaction/InteractionRaycastController";
+import type { GameUiModeController } from "../ui/GameUiModeController";
+import { PlacementValidator } from "../building/PlacementValidator";
+import { BuildService } from "../building/BuildService";
+import {
+  BuildingPresentation,
+  collectStaticBuildingBounds,
+} from "../building/presentation/BuildingPresentation";
+import { BuildingPlacementController } from "../building/presentation/BuildingPlacementController";
 
 /** 管理 Babylon 运行时生命周期，并将功能初始化委托给各自模块。 */
 export class Game {
@@ -25,12 +33,20 @@ export class Game {
   #weatherPresentation: WeatherPresentationController | undefined;
   #worldPickups: WorldPickupPresentation | undefined;
   #interaction: InteractionRaycastController | undefined;
+  #buildingPresentation: BuildingPresentation | undefined;
+  #buildingPlacement: BuildingPlacementController | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly simulation: GameSimulation,
     private readonly gameplay: FirstBlizzardGameplayFoundation,
     private readonly interactionCallbacks: InteractionCallbacks,
+    private readonly uiModes: GameUiModeController,
+    private readonly buildingCallbacks: {
+      readonly onStatus: (message: string, valid: boolean) => void;
+      readonly onExit: () => void;
+      readonly onInventoryChanged: () => void;
+    },
     private readonly onSimulationUpdate: (
       snapshot: GameSimulationSnapshot,
       presentation: WeatherPresentationSnapshot,
@@ -65,6 +81,34 @@ export class Game {
       world.scene,
       camera,
       world.weatherEnvironment,
+      world.precipitationObstacles,
+    );
+    const placementValidator = new PlacementValidator(
+      this.gameplay.worldBuildingRegistry,
+      collectStaticBuildingBounds(world.scene),
+    );
+    const buildService = new BuildService(
+      this.gameplay.buildCatalog,
+      this.gameplay.inventory,
+      this.gameplay.worldBuildingRegistry,
+      placementValidator,
+    );
+    this.#buildingPresentation = new BuildingPresentation(
+      world.scene,
+      this.gameplay.buildCatalog,
+      world.precipitationObstacles,
+    );
+    this.#buildingPlacement = new BuildingPlacementController(
+      world.scene,
+      camera,
+      this.canvas,
+      this.gameplay.buildCatalog,
+      this.gameplay.worldBuildingRegistry,
+      placementValidator,
+      buildService,
+      this.#buildingPresentation,
+      this.uiModes,
+      this.buildingCallbacks,
     );
 
     const initialPresentation = this.#weatherPresentation.update(this.simulation.snapshot);
@@ -83,6 +127,7 @@ export class Game {
         this.onSimulationUpdate(simulationUpdate.snapshot, presentation);
       }
       this.#interaction?.update();
+      this.#buildingPlacement?.update();
       this.#scene?.render();
     });
 
@@ -91,6 +136,10 @@ export class Game {
 
   dispose(): void {
     window.removeEventListener("resize", this.#handleResize);
+    this.#buildingPlacement?.dispose();
+    this.#buildingPlacement = undefined;
+    this.#buildingPresentation?.dispose();
+    this.#buildingPresentation = undefined;
     this.#weatherPresentation?.dispose();
     this.#weatherPresentation = undefined;
     this.#interaction?.dispose();
@@ -99,6 +148,10 @@ export class Game {
     this.#worldPickups = undefined;
     this.#scene?.dispose();
     this.#engine.dispose();
+  }
+
+  beginBuildingPlacement(definitionId: string): void {
+    this.#buildingPlacement?.begin(definitionId);
   }
 
   readonly #handleResize = (): void => {
