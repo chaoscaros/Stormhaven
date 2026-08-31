@@ -377,6 +377,12 @@ pnpm dev
 
 ## 变更记录
 
+### 2026-08-31 — 树枝图标辨识度修正
+
+- 根据用户浏览器截图，将 `stick` 从类似节点关系图的 Phosphor `tree-structure` 改为更具自然资源辨识度的 `leaf`。
+- 稳定游戏语义 ID 仍为 `stick`，只修改 UI Registry 的 regular/bold/duotone/fill 映射；ItemDefinition、Inventory、Crafting 与玩法数据均未变化。
+- 本次由 AI 完成源码静态检查和 `git diff --check`；未执行 typecheck/test/build、服务重启或浏览器操作，最终视觉由用户在已启动服务中验收。
+
 ### 2026-08-31 — Phosphor Icon Visual Pass
 
 - 新增 `src/ui/icons/GameIcon.ts` 与 `iconRegistry.ts`，用稳定游戏语义 ID 统一映射 `@phosphor-icons/core` 包内 SVG；不使用 CDN 或运行时外部请求。

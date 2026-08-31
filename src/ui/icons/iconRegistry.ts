@@ -36,6 +36,10 @@ import jarBold from "@phosphor-icons/core/bold/jar-bold.svg?raw";
 import jarDuotone from "@phosphor-icons/core/duotone/jar-duotone.svg?raw";
 import jarFill from "@phosphor-icons/core/fill/jar-fill.svg?raw";
 import jarRegular from "@phosphor-icons/core/regular/jar.svg?raw";
+import leafBold from "@phosphor-icons/core/bold/leaf-bold.svg?raw";
+import leafDuotone from "@phosphor-icons/core/duotone/leaf-duotone.svg?raw";
+import leafFill from "@phosphor-icons/core/fill/leaf-fill.svg?raw";
+import leafRegular from "@phosphor-icons/core/regular/leaf.svg?raw";
 import logBold from "@phosphor-icons/core/bold/log-bold.svg?raw";
 import logDuotone from "@phosphor-icons/core/duotone/log-duotone.svg?raw";
 import logFill from "@phosphor-icons/core/fill/log-fill.svg?raw";
@@ -56,10 +60,6 @@ import shirtFill from "@phosphor-icons/core/fill/t-shirt-fill.svg?raw";
 import shirtRegular from "@phosphor-icons/core/regular/t-shirt.svg?raw";
 import thermometerBold from "@phosphor-icons/core/bold/thermometer-bold.svg?raw";
 import thermometerRegular from "@phosphor-icons/core/regular/thermometer.svg?raw";
-import treeStructureBold from "@phosphor-icons/core/bold/tree-structure-bold.svg?raw";
-import treeStructureDuotone from "@phosphor-icons/core/duotone/tree-structure-duotone.svg?raw";
-import treeStructureFill from "@phosphor-icons/core/fill/tree-structure-fill.svg?raw";
-import treeStructureRegular from "@phosphor-icons/core/regular/tree-structure.svg?raw";
 import wallBold from "@phosphor-icons/core/bold/wall-bold.svg?raw";
 import wallDuotone from "@phosphor-icons/core/duotone/wall-duotone.svg?raw";
 import wallFill from "@phosphor-icons/core/fill/wall-fill.svg?raw";
@@ -82,7 +82,7 @@ const iconRegistry = Object.freeze({
   campfire: { bold: campfireBold, duotone: campfireDuotone, fill: campfireFill },
   wood: { regular: logRegular, bold: logBold, duotone: logDuotone, fill: logFill },
   stone: { regular: mountainsRegular, bold: mountainsBold, duotone: mountainsDuotone, fill: mountainsFill },
-  stick: { regular: treeStructureRegular, bold: treeStructureBold, duotone: treeStructureDuotone, fill: treeStructureFill },
+  stick: { regular: leafRegular, bold: leafBold, duotone: leafDuotone, fill: leafFill },
   cloth: { regular: shirtRegular, bold: shirtBold, duotone: shirtDuotone, fill: shirtFill },
   scrap_metal: { regular: gearSixRegular, bold: gearSixBold, duotone: gearSixDuotone, fill: gearSixFill },
   water_bottle: { regular: flaskRegular, bold: flaskBold, duotone: flaskDuotone, fill: flaskFill },
