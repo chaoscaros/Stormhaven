@@ -22,7 +22,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 高对比 Crosshair：默认、可交互、建造合法与建造非法四种状态
 - 8 格独立 Hotbar：初始前三格直达木地基、木墙和篝火；打开 Player Menu 时仍固定在屏幕底部，支持物品/建筑拖入、槽位交换、点击覆盖和独立清空
 - 简化玩家状态 HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
-- Inventory/Crafting/Building 图标卡片、详情区及统一寒地工业主题
+- Inventory 使用真实 24 Slot 多列方格、数量角标、悬停 Tooltip 与即时详情；Crafting/Building 保持图标卡片和详情区
 - 确定性的 GameClock、暂停和 Time Scale
 - Data Driven WeatherDefinition、WeatherCatalog 和 WeatherManager
 - 基于游戏时间的 WeatherTransition 与 ForecastSystem
@@ -88,7 +88,8 @@ pnpm dev
 | `Tab` | 打开背包 Tab；生存菜单已打开时关闭整个菜单 |
 | `C` | 直接打开或切换到生存菜单的制造 Tab |
 | `B` | 直接打开或切换到建造 Tab；放置中退出建造模式 |
-| 鼠标点击 | 选择配方、制作、操作篝火、关闭菜单 |
+| 鼠标悬停 | 背包物品格立即显示 Tooltip 并更新右侧详情，无需点击 |
+| 鼠标点击 | 选择配方、制作、操作篝火、关闭菜单；Player Menu 中点击 Hotbar 可快速绑定当前物品/建筑 |
 | 建造放置中左键 | 确认放置并消耗材料 |
 | `R` | 建造放置中按配置步长旋转 Ghost |
 | `↑` / `↓` / `Enter` | Crafting 菜单的辅助键盘操作 |

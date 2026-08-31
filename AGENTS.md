@@ -24,7 +24,7 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 当前阶段
 
-当前已完成基础工程至 **HUD + UX Overhaul v0.1**。正常 Gameplay 使用高对比状态准星、8 格 Hotbar、简化玩家状态 HUD 与可用 F6 切换的 Debug Telemetry；Tab/C/B 进入统一图标卡片式生存菜单，E 篝火继续使用独立 Interaction Menu。Hotbar 初始 1–3 为木制地基、木制墙体和篝火；Player Menu 打开时快捷栏仍作为独立底部 HUD 显示，背包物品和建造项可拖入任意槽位，槽位间可交换并可独立清空，1–8/滚轮负责 Gameplay 选择。
+当前已完成基础工程至 **HUD + UX Overhaul v0.1**。正常 Gameplay 使用高对比状态准星、8 格 Hotbar、简化玩家状态 HUD 与可用 F6 切换的 Debug Telemetry；Tab/C/B 进入统一生存菜单，Inventory 按真实 24 Slot 显示多列方格，悬停/聚焦立即显示 Tooltip 与详情，E 篝火继续使用独立 Interaction Menu。Hotbar 初始 1–3 为木制地基、木制墙体和篝火；Player Menu 打开时快捷栏仍作为独立底部 HUD 显示，背包物品和建造项可拖入任意槽位，槽位间可交换并可独立清空，1–8/滚轮负责 Gameplay 选择。
 
 本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 HUD/Hotbar、Game Shell、Campfire、Fuel、Building 或 Crafting，也不得实现 Save/IndexedDB、Load/Continue、快捷栏持久化/多套布局、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Wetness 或其他范围禁止项。
 

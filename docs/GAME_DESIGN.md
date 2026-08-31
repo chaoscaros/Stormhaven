@@ -57,7 +57,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 玩家可在 2.75m 内对准场景资源并按 E 拾取；Prompt 会显示物品名和数量，实体墙体会正常遮挡墙后的资源
 - 9 类物品由 JSON 定义，第一场暴雪场景放置 6 个少量测试资源
 - 24 Slot / 30kg 背包支持 Stack 和容量/重量限制下的 Partial Add
-- 背包、制造与建造已整合为统一生存菜单 Tab，菜单态释放第一人称鼠标；Inventory 仍只读，不包含拖放或物品使用
+- 背包、制造与建造已整合为统一生存菜单 Tab，菜单态释放第一人称鼠标；Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦即时显示 Tooltip 和详情；背包内部仍只读，不包含格内移动、丢弃或物品使用
 - 玩家可徒手将树枝 ×2 与石头 ×2 即时制作成石斧 ×1
 - 制作面板明确展示所需/持有数量、缺失材料、产出和失败原因
 - 石斧只证明“收集材料 → 制作成品”链路，不可装备、挥舞、砍树或消耗耐久
@@ -79,7 +79,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 正常 Gameplay 只常驻高对比状态准星、交互提示、8 格 Hotbar、简化状态摘要和极简快捷键提示
 - Hotbar 初始前三格为木制地基、木制墙体和篝火；Player Menu 打开时仍作为独立底部 HUD 显示，不嵌入背包/建造弹窗；物品/建筑卡片可拖入任意槽，槽位可交换、点击覆盖并单格清空；1–8 与滚轮只在 Gameplay/BuildPlacement 选择
 - Debug Telemetry 保留完整开发数据但默认隐藏，以 F6 切换；F1–F5 天气预览契约不变
-- Player Menu 的背包、制造与建造改为图标卡片 + 详情区，仍共享同一实时 Inventory
+- Player Menu 的背包使用 Slot Grid + Hover Tooltip + 详情区，制造与建造使用图标卡片 + 详情区，三者仍共享同一实时 Inventory
 - 可重复执行的类型检查、测试和生产构建
 
 当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。Thermal Reserve 是游戏化资源，不是医学核心体温。

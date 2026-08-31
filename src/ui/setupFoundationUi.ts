@@ -121,10 +121,14 @@ export function setupFoundationUi(
   const inventoryDetailDescription = getElement("inventory-detail-description");
   const inventoryDetailQuantity = getElement("inventory-detail-quantity");
   const inventoryDetailWeight = getElement("inventory-detail-weight");
+  const inventoryTooltip = getElement("inventory-tooltip");
+  const inventoryTooltipName = getElement("inventory-tooltip-name");
+  const inventoryTooltipMeta = getElement("inventory-tooltip-meta");
   const pickupFeedback = getElement("pickup-feedback");
   let feedbackTimeout: number | undefined;
   let suppressEscapeUntil = 0;
   let selectedInventoryItemId: string | undefined;
+  let selectedInventorySlotIndex: number | undefined;
   const modes = new GameUiModeController(canvas);
 
   const requestControl = (): void => {
@@ -187,6 +191,7 @@ export function setupFoundationUi(
     playerMenu.hidden = mode !== "player_menu";
     pauseMenu.hidden = mode !== "paused";
     inventoryPanel.hidden = mode !== "player_menu" || playerMenuTab !== "inventory";
+    if (inventoryPanel.hidden) hideInventoryTooltip();
     craftingPanel.hidden = mode !== "player_menu" || playerMenuTab !== "crafting";
     buildingPanel.hidden = mode !== "player_menu" || playerMenuTab !== "building";
     campfirePanel.hidden = mode !== "interaction_menu";
@@ -316,67 +321,89 @@ export function setupFoundationUi(
       for (const stack of snapshot.slots) {
         if (stack) totals.set(stack.itemId, (totals.get(stack.itemId) ?? 0) + stack.quantity);
       }
+      hideInventoryTooltip();
       if (totals.size === 0) {
-        const empty = document.createElement("li");
-        empty.className = "inventory-panel__empty";
-        empty.textContent = "暂无物资";
-        inventoryItems.replaceChildren(empty);
         selectedInventoryItemId = undefined;
+        selectedInventorySlotIndex = undefined;
         renderEmptyInventoryDetail();
       } else {
-        if (!selectedInventoryItemId || !totals.has(selectedInventoryItemId)) {
-          selectedInventoryItemId = totals.keys().next().value;
+        const selectedStack = selectedInventorySlotIndex === undefined
+          ? undefined
+          : snapshot.slots[selectedInventorySlotIndex];
+        if (!selectedStack || selectedStack.itemId !== selectedInventoryItemId) {
+          const nextSlotIndex = snapshot.slots.findIndex((stack) =>
+            stack && (!selectedInventoryItemId || stack.itemId === selectedInventoryItemId));
+          selectedInventorySlotIndex = nextSlotIndex >= 0
+            ? nextSlotIndex
+            : snapshot.slots.findIndex(Boolean);
+          selectedInventoryItemId = selectedInventorySlotIndex >= 0
+            ? snapshot.slots[selectedInventorySlotIndex]?.itemId
+            : undefined;
         }
-        const fragment = document.createDocumentFragment();
-        for (const [itemId, quantity] of totals) {
+      }
+      const fragment = document.createDocumentFragment();
+      snapshot.slots.forEach((stack, slotIndex) => {
+        const cell = document.createElement("li");
+        cell.className = "inventory-panel__slot";
+        cell.dataset.slot = `${slotIndex + 1}`.padStart(2, "0");
+        if (!stack) {
+          cell.dataset.empty = "true";
+          const emptyMarker = document.createElement("span");
+          emptyMarker.className = "inventory-panel__empty-slot";
+          emptyMarker.setAttribute("aria-hidden", "true");
+          cell.append(emptyMarker);
+        } else {
+          const { itemId, quantity } = stack;
           const definition = catalog.get(itemId);
-          const row = document.createElement("li");
           const button = document.createElement("button");
           button.type = "button";
           button.draggable = true;
           button.title = "拖到下方快捷栏";
-          button.dataset.selected = itemId === selectedInventoryItemId ? "true" : "false";
+          button.setAttribute("aria-describedby", "inventory-tooltip");
+          button.setAttribute("aria-label", `${definition.displayName}，数量 ${quantity}`);
+          button.dataset.selected = slotIndex === selectedInventorySlotIndex ? "true" : "false";
           const icon = document.createElement("span");
           icon.className = "ui-icon";
           icon.dataset.icon = definition.icon ?? definition.id;
           icon.setAttribute("aria-hidden", "true");
-          const body = document.createElement("span");
-          body.className = "inventory-panel__item-copy";
-          const name = document.createElement("strong");
-          const category = document.createElement("small");
           const count = document.createElement("strong");
           count.className = "inventory-panel__item-count";
-          name.textContent = definition.displayName;
-          category.textContent = ITEM_CATEGORY_LABELS[definition.category];
           count.textContent = `×${quantity}`;
-          body.append(name, category);
-          button.append(icon, body, count);
-          button.addEventListener("click", () => {
+          button.append(icon, count);
+          const preview = (): void => {
             selectedInventoryItemId = itemId;
+            selectedInventorySlotIndex = slotIndex;
             for (const candidate of inventoryItems.querySelectorAll("button")) {
               candidate.dataset.selected = candidate === button ? "true" : "false";
             }
-            renderInventoryDetail(itemId, quantity, catalog);
-          });
+            renderInventoryDetail(itemId, totals.get(itemId) ?? quantity, catalog);
+            showInventoryTooltip(button, itemId, quantity, catalog);
+          };
+          button.addEventListener("pointerenter", preview);
+          button.addEventListener("focus", preview);
+          button.addEventListener("pointerleave", hideInventoryTooltip);
+          button.addEventListener("blur", hideInventoryTooltip);
           button.addEventListener("dragstart", (event) => {
             if (!event.dataTransfer) return;
             selectedInventoryItemId = itemId;
+            selectedInventorySlotIndex = slotIndex;
+            hideInventoryTooltip();
             writeHotbarDragData(event.dataTransfer, {
               source: "catalog",
               entry: { type: "item", id: itemId },
             });
           });
-          row.append(button);
-          fragment.append(row);
+          cell.append(button);
         }
-        inventoryItems.replaceChildren(fragment);
-        if (selectedInventoryItemId) {
-          renderInventoryDetail(
-            selectedInventoryItemId,
-            totals.get(selectedInventoryItemId) ?? 0,
-            catalog,
-          );
-        }
+        fragment.append(cell);
+      });
+      inventoryItems.replaceChildren(fragment);
+      if (selectedInventoryItemId) {
+        renderInventoryDetail(
+          selectedInventoryItemId,
+          totals.get(selectedInventoryItemId) ?? 0,
+          catalog,
+        );
       }
       setTextIfChanged(
         inventoryWeight,
@@ -421,6 +448,34 @@ export function setupFoundationUi(
     setTextIfChanged(inventoryDetailDescription, definition.description);
     setTextIfChanged(inventoryDetailQuantity, `${quantity}`);
     setTextIfChanged(inventoryDetailWeight, `${definition.weight.toFixed(2)} kg`);
+  }
+
+  function showInventoryTooltip(
+    anchor: HTMLElement,
+    itemId: string,
+    quantity: number,
+    catalog: ItemCatalog,
+  ): void {
+    const definition = catalog.get(itemId);
+    const bounds = anchor.getBoundingClientRect();
+    const tooltipWidth = 210;
+    const preferredLeft = bounds.right + 12;
+    const left = preferredLeft + tooltipWidth <= window.innerWidth - 12
+      ? preferredLeft
+      : Math.max(12, bounds.left - tooltipWidth - 12);
+    const top = Math.min(bounds.top, window.innerHeight - 124);
+    setTextIfChanged(inventoryTooltipName, definition.displayName);
+    setTextIfChanged(
+      inventoryTooltipMeta,
+      `${ITEM_CATEGORY_LABELS[definition.category]} · 当前格 ×${quantity} · ${definition.weight.toFixed(2)} kg/件`,
+    );
+    inventoryTooltip.style.left = `${left}px`;
+    inventoryTooltip.style.top = `${Math.max(12, top)}px`;
+    inventoryTooltip.hidden = false;
+  }
+
+  function hideInventoryTooltip(): void {
+    inventoryTooltip.hidden = true;
   }
 
   function renderEmptyInventoryDetail(): void {

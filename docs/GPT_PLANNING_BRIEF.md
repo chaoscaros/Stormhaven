@@ -370,7 +370,7 @@ Recipe 必须 Data Driven，至少包含：
 - 高对比状态 Crosshair、可读 Interaction Prompt 与 BuildPlacement 合法/非法状态色
 - 8 格独立底部 Hotbar；1–8/滚轮选择，初始前三格直接进入木地基、木墙与篝火放置；Player Menu 内物品/建筑卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空
 - 简化 Player Status HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
-- Inventory/Crafting/Building 图标卡片、详情区与统一寒地工业主题
+- Inventory 真实 24 Slot 多列方格、数量角标、Hover/Focus Tooltip 与即时详情；Crafting/Building 图标卡片、详情区与统一寒地工业主题
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
 - Requirement/Missing Inputs/Max Count、草稿 Inventory 与原子 Craft Commit
 - 统一生存菜单的 Crafting Tab，可点击配方/制作；方向键/Enter 为辅助输入
@@ -522,10 +522,17 @@ src/main.ts
 - `pnpm exec tsc -b --pretty false`：通过。
 - `git diff --check`：通过。
 
+2026-08-31 完成背包 Slot Grid 与悬停 Tooltip 后实际执行并通过：
+
+- `pnpm test`：36 个测试文件、240 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+- `git diff --check`：通过。
+- CSS 大括号检查：314/314。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
 - 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
-- 标题页冻结、开始游戏、Pointer Lock、统一 Tab/实时库存、Esc 层级、Pause 全链，以及独立 Hotbar 的拖入/交换/覆盖/清空、F6 遥测和原有 Weather/Shelter/Building/Campfire 流程仍需要浏览器手动验收。
+- 标题页冻结、开始游戏、Pointer Lock、统一 Tab/实时库存、Esc 层级、Pause 全链，以及 Inventory 24 格布局/悬停 Tooltip/即时详情、独立 Hotbar 的拖入/交换/覆盖/清空、F6 遥测和原有 Weather/Shelter/Building/Campfire 流程仍需要浏览器手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 
 仓库已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。

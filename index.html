@@ -206,6 +206,11 @@
             <ul id="inventory-items" class="inventory-panel__items">
               <li class="inventory-panel__empty">暂无物资</li>
             </ul>
+            <div id="inventory-tooltip" class="inventory-tooltip" role="tooltip" hidden>
+              <strong id="inventory-tooltip-name">物资</strong>
+              <span id="inventory-tooltip-meta">类别 · 数量</span>
+              <small id="inventory-tooltip-hint">拖到屏幕底部快捷栏</small>
+            </div>
             <section class="inventory-panel__detail" aria-live="polite">
               <span id="inventory-detail-icon" class="ui-icon ui-icon--hero" data-icon="empty" aria-hidden="true"></span>
               <p id="inventory-detail-category">物资详情</p>
@@ -215,7 +220,7 @@
                 <div><dt>数量</dt><dd id="inventory-detail-quantity">0</dd></div>
                 <div><dt>单件重量</dt><dd id="inventory-detail-weight">—</dd></div>
               </dl>
-              <p class="menu-drag-hint">拖动左侧物品卡片到屏幕底部快捷栏</p>
+              <p class="menu-drag-hint">鼠标悬停查看物资详情 · 拖动格子到屏幕底部快捷栏</p>
             </section>
           </div>
           <footer>

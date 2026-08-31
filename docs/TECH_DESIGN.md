@@ -111,7 +111,7 @@ Debug Telemetry    完整开发遥测，默认隐藏，F6 切换
 
 Crosshair 使用同一 DOM Component 的状态属性表达默认、可交互、Placement Valid 与 Placement Invalid。样式包含深色轮廓和阴影，避免在雪地、深色木墙和低光照中失去对比。BuildPlacement 只显示准星、当前结构名/合法性和左键/R/B/Esc 提示，不展开 Player Menu。
 
-Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/Service，只将表现升级为图标卡片、列表与详情区。CSS 几何占位图标不是美术资产系统；Campfire 仍是独立 Interaction Menu，但复用相同的颜色、边框、按钮和间距 Token。
+Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/Service。Inventory 直接遍历不可变 Snapshot 的全部 24 个 Slot，按多列方格渲染占用格和空格；物品格 `pointerenter/focus` 同步右侧详情并显示固定定位 Tooltip，`pointerleave/blur` 隐藏，无需点击选择。Tooltip 只读取 ItemCatalog 与当前 Stack，不修改 Inventory。Crafting/Building 继续使用图标卡片、列表与详情区。CSS 几何占位图标不是美术资产系统；Campfire 仍是独立 Interaction Menu，但复用相同的颜色、边框、按钮和间距 Token。
 
 ## Building Foundation
 

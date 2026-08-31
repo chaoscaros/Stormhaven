@@ -8,7 +8,7 @@
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 使用图标卡片与详情区，Hotbar 不嵌入弹窗而保持为独立底部 HUD；Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
+- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
 - 明确未实现：Save/IndexedDB、Load/Continue、Hotbar 持久化/多套布局、Equipment/Item Use、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
@@ -31,7 +31,7 @@
 - Gameplay HUD Overhaul、高对比状态 Crosshair 与清晰 Interaction Prompt
 - 8 格 Hotbar 纯逻辑模型、1–8/滚轮选择、默认三项 Build Shortcut、拖入/交换/点击覆盖/清空与 Placement 联动
 - 简化 Player Status HUD 与默认折叠、F6 切换的 Debug Telemetry
-- Inventory/Crafting/Building 图标卡片、详情分区与 Campfire 统一视觉主题
+- Inventory 真实 24 Slot Grid、数量角标、Hover/Focus Tooltip 与即时详情；Crafting/Building 图标卡片、详情分区与 Campfire 统一视觉主题
 - 基础配置单元测试
 - 中文 README、游戏设计、技术设计和协作规范
 - 后续模块目录占位
@@ -102,7 +102,7 @@
 | `src/player/cameraSpeed.ts` | 米/秒配置到 Babylon Camera Speed 的换算 |
 | `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
-| `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换和基础 DOM 状态 |
+| `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换、Inventory Slot Grid/Tooltip 和基础 DOM 状态 |
 | `src/ui/GameUiModeController.ts` | 纯 Game Shell State、Player Tab 路由与 Pointer Lock 契约 |
 | `src/ui/hotbar/HotbarModel.ts` | 8 格 Hotbar 纯状态、覆盖/清空/交换、数字键映射、滚轮回绕与 Mode Gate |
 | `src/ui/hotbar/HotbarDragData.ts` | Inventory/Building/Hotbar 共用的内部拖拽 Payload 写入与校验 |
@@ -303,6 +303,13 @@ pnpm dev
 - `pnpm test`：36 个测试文件、240 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 完成背包 Slot Grid 与悬停 Tooltip 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：36 个测试文件、240 个测试通过
+- `git diff --check`：通过
+- CSS 大括号检查：314/314
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -318,7 +325,7 @@ pnpm dev
 - 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
 - 标题页期间时间冻结、开始后的 Pointer Lock、统一 Tab 切换、共享库存即时联动、Esc 各层优先级、Pause Input 屏蔽与 Pause/Resume 全链仍需用户浏览器验收。
 - Loading Overlay 只在真实异步初始化期间显示，速度较快时可能一闪而过；实际可见性需用户确认。
-- 新 HUD 的雪地/深墙/夜间准星对比、Hotbar 数字键/滚轮/Build Shortcut、独立底部布局、Inventory/Building 拖入、槽位交换、点击覆盖与逐格清空、F6 遥测切换、菜单卡片布局和 Campfire 主题一致性需用户浏览器验收。
+- 新 HUD 的雪地/深墙/夜间准星对比、Inventory 24 格布局/空槽/悬停 Tooltip/即时详情、Hotbar 数字键/滚轮/Build Shortcut、独立底部布局、Inventory/Building 拖入、槽位交换、点击覆盖与逐格清空、F6 遥测切换、菜单卡片布局和 Campfire 主题一致性需用户浏览器验收。
 
 仓库当前已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。
 
@@ -335,7 +342,7 @@ pnpm dev
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
 - 固定木屋不是 Building System；原常开测试炉已移除，正常运行时热量只来自点燃的玩家篝火。
-- Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
+- Inventory 当前只在内存中存在，刷新即丢失；面板按真实 Slot 只读展示，物品格可拖到 Hotbar，但不支持背包格内移动/合并/拆分、丢弃、装备、使用、容器或持久化。
 - Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
 - 当前输入契约由单一 Game Shell State 管理；Player Menu 内只有一个 active Tab，Campfire 为独立 Interaction Menu。
 - Building 当前只有木制地基、墙体和篝火、Ground、2m Foundation Grid 与一级 Foundation Edge Snap；没有 Roof、Door、Window、二楼或 Support Graph。
@@ -358,6 +365,14 @@ pnpm dev
 推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — 背包 Slot Grid 与悬停 Tooltip
+
+- 将 Inventory 左侧纵向文字卡片列表改为真实 24 Slot 多列方格；每个 Snapshot Slot 都有固定位置，空槽继续显示，物品数量使用角标。
+- 物品格在 `pointerenter` 或键盘 `focus` 时立即更新右侧详情并显示 Tooltip，内容包含名称、类别、当前 Stack 数量与单件重量；不再要求点击查看。
+- `pointerleave/blur`、切换 Tab、关闭菜单或开始拖拽时隐藏 Tooltip，避免残留覆盖其他界面。
+- 物品格继续支持拖到独立底部 Hotbar；选择状态精确到单个 Slot，重复 Item Stack 不会同时高亮。
+- `pnpm exec tsc -b --pretty false`、`pnpm test`（36 个测试文件、240 个测试）与 `git diff --check` 已通过；CSS 大括号 314/314；未执行 dev/build/preview 或浏览器操作。
 
 ### 2026-08-31 — 独立快捷栏拖拽交互
 
