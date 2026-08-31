@@ -7,6 +7,7 @@ import { setupCraftingDebugUi } from "./ui/setupCraftingDebugUi";
 import { setupBuildingDebugUi } from "./ui/setupBuildingDebugUi";
 import { createFirstBlizzardSurvivalEnvironment } from "./core/simulation/createFirstBlizzardSurvivalEnvironment";
 import { setupCampfireUi } from "./ui/setupCampfireUi";
+import { setupHotbarUi } from "./ui/hotbar/setupHotbarUi";
 
 const canvas = document.getElementById("game-canvas");
 if (!(canvas instanceof HTMLCanvasElement)) {
@@ -94,6 +95,21 @@ game = new Game(
   },
   ui.updateDebugHud,
 );
+const hotbarUi = setupHotbarUi(
+  canvas,
+  gameplay.inventory,
+  gameplay.itemCatalog,
+  gameplay.buildCatalog,
+  ui.modes,
+  {
+    onBuildSelected(definitionId): void {
+      game?.beginBuildingPlacement(definitionId);
+    },
+    onNonBuildSelected(): void {
+      game?.cancelBuildingPlacement();
+    },
+  },
+);
 
 try {
   ui.setLoadingStage("正在创建世界与天气系统……");
@@ -110,6 +126,7 @@ const disposeApplication = (): void => {
   disposed = true;
   window.removeEventListener("beforeunload", disposeApplication);
   game?.dispose();
+  hotbarUi.dispose();
   campfireUi.dispose();
   buildingUi.dispose();
   craftingUi.dispose();

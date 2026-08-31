@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source、Interaction + Item + Inventory、Crafting、Building、Campfire + Fuel，以及 Game Shell + Unified Menu + Pause v0.1**。玩家从正式标题界面开始会话，通过统一生存菜单管理背包、制造与建造，并可用 Esc 真正暂停时间、天气、体热和篝火燃料；存档与读取尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链，并完成 **HUD + UX Overhaul v0.1**。正常游玩界面现在使用高对比状态准星、8 格建造快捷栏、简化状态摘要与可切换调试遥测；统一生存菜单以图标卡片和详情区展示背包、制造与建造。存档与读取尚未实现。
 
 ## 当前完成内容
 
@@ -19,6 +19,10 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 单一 Game Shell State：Boot、Main Menu、Gameplay、Player Menu、Interaction Menu、Build Placement、Paused
 - Tab/C/B 统一生存菜单及背包/制造/建造 Tab；三个页面共享同一 Inventory
 - Esc 状态优先级与 Pause Menu；暂停时冻结 GameTime、Weather、Thermal、Campfire Fuel 并卸载玩家输入
+- 高对比 Crosshair：默认、可交互、建造合法与建造非法四种状态
+- 8 格 Hotbar：数字键与滚轮选择，前三格直达木地基、木墙和篝火放置
+- 简化玩家状态 HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
+- Inventory/Crafting/Building 图标卡片、详情区及统一寒地工业主题
 - 确定性的 GameClock、暂停和 Time Scale
 - Data Driven WeatherDefinition、WeatherCatalog 和 WeatherManager
 - 基于游戏时间的 WeatherTransition 与 ForecastSystem
@@ -91,6 +95,9 @@ pnpm dev
 | `Esc` | 关闭当前菜单/放置；Gameplay 中暂停；暂停时继续 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
 | `F5` | 退出视觉预览，恢复跟随天气计划 |
+| `1`–`8` | 选择 Hotbar 槽位；建造槽会直接进入对应放置模式 |
+| 鼠标滚轮 | 循环选择 Hotbar 槽位 |
+| `F6` | 显示或隐藏完整 Debug Telemetry |
 
 ## 质量检查
 
@@ -117,4 +124,4 @@ Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe J
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 Game Shell、Campfire/Fuel、Building/Crafting，也不要实现 Save/Load/Continue、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Wetness 或工具使用。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 HUD/Hotbar、Game Shell、Campfire/Fuel 或 Building/Crafting，也不要实现 Save/Load/Continue、快捷栏拖拽、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Wetness 或工具使用。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。

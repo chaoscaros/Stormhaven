@@ -68,6 +68,11 @@ export class BuildingPlacementController {
     this.modes.enterBuildPlacement();
   }
 
+  cancel(): void {
+    if (this.modes.mode !== "build_placement") return;
+    this.#exitPlacement();
+  }
+
   update(): void {
     if (this.modes.mode !== "build_placement" || !this.#selectedDefinitionId || !this.#ghost) {
       return;

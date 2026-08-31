@@ -60,7 +60,11 @@ export class GameUiStateMachine {
   }
 
   enterBuildPlacement(): void {
-    if (this.#state.mode === "player_menu" && this.#state.playerMenuTab === "building") {
+    if (
+      this.#state.mode === "gameplay"
+      || this.#state.mode === "build_placement"
+      || (this.#state.mode === "player_menu" && this.#state.playerMenuTab === "building")
+    ) {
       this.#setState({ mode: "build_placement" });
     }
   }

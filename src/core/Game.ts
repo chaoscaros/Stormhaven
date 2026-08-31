@@ -174,6 +174,10 @@ export class Game {
     this.#buildingPlacement?.begin(definitionId);
   }
 
+  cancelBuildingPlacement(): void {
+    this.#buildingPlacement?.cancel();
+  }
+
   readonly #handleResize = (): void => {
     this.#engine.resize();
   };

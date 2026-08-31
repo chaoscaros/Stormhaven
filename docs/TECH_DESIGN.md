@@ -92,6 +92,25 @@ Main Menu 出现前 Runtime 已完成异步 World/Havok 初始化，但 `GameSim
 
 `setupFoundationUi` 暴露 `showLoading(stage) / setLoadingStage(stage) / hideLoading()` 窄契约，仅显示真实初始化阶段文本，不提供虚假百分比或延时。未来 Loading Pipeline v0.1 才负责 Config、Save、GLB、Texture、Audio、Scene、World Restore 的真实进度。
 
+## HUD + UX Layer
+
+UI 分为四个视觉与职责层，仍不进入 Domain：
+
+```text
+Gameplay HUD       Crosshair / Interaction Prompt / Hotbar / Player Status
+Player Menu        Inventory / Crafting / Building Tabs
+Interaction Menu   Campfire 等世界对象菜单
+Debug Telemetry    完整开发遥测，默认隐藏，F6 切换
+```
+
+`src/ui/hotbar/HotbarModel.ts` 是 DOM/Babylon 无关的固定 8 格模型。`HotbarSlot` 使用从 0 开始的 `slotIndex`，`entry` 为 `empty | item | build` 判别联合；第一版默认 1–3 分别绑定 `foundation_wood`、`wall_wood`、`campfire_basic`，其余为空。它只负责数字键映射、滚轮回绕和选中状态，不管理 Inventory、装备或建筑事务。
+
+`setupHotbarUi` 只在 `gameplay` / `build_placement` 接收数字键与 Canvas 滚轮。Build Entry 通过 `Game.beginBuildingPlacement` 复用既有 Placement Controller；切到空槽或 Item Entry 时只退出当前建造放置，不产生工具使用。Player Menu、Interaction Menu 与 Pause 中不会发生 Hotbar Gameplay Side Effect。F1–F5 保留天气预览，因此 Debug Telemetry 使用 F6，避免输入冲突。
+
+Crosshair 使用同一 DOM Component 的状态属性表达默认、可交互、Placement Valid 与 Placement Invalid。样式包含深色轮廓和阴影，避免在雪地、深色木墙和低光照中失去对比。BuildPlacement 只显示准星、当前结构名/合法性和左键/R/B/Esc 提示，不展开 Player Menu。
+
+Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/Service，只将表现升级为图标卡片、列表与详情区。CSS 几何占位图标不是美术资产系统；Campfire 仍是独立 Interaction Menu，但复用相同的颜色、边框、按钮和间距 Token。
+
 ## Building Foundation
 
 Building 与 Crafting 是共享 Inventory 的独立链路：
@@ -305,7 +324,7 @@ Day 1 18:00  Blizzard 成为 currentWeather
 
 ## Debug HUD 边界
 
-右上角 Debug HUD 展示 Simulation Snapshot（时间、天气、预报、Transition、环境/体感温度、原始→有效风力、庇护、挡风、热源加成、体热、趋势和热状态）以及 Presentation Snapshot（当前视觉天气与 Preview 标识）。DOM 更新保留在 `src/ui/setupFoundationUi.ts` 中，并跳过未变化文本，避免每帧无意义写入。
+右上角默认 Player Status 只展示时间、天气、室内/室外、体感温度和 Thermal Trend。完整 Debug Telemetry 仍展示 Simulation Snapshot（预报、Transition、环境/体感温度、原始→有效风力、庇护、挡风、热源加成、体热、趋势和热状态）以及 Presentation Snapshot，但默认隐藏并以 F6 切换。DOM 更新保留在 `src/ui/setupFoundationUi.ts` 中，并跳过未变化文本，避免每帧无意义写入。
 
 F1–F4 只用于快速视觉验收，F5 恢复正常 Schedule 驱动。HUD 的 Domain Weather 与 Visual Weather 分行展示，可直接确认预览没有污染 Domain。
 
@@ -345,7 +364,7 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 34 个测试文件、227 个测试。Game Shell 新增覆盖 Boot/Main/Gameplay、Player Menu Tabs、Interaction/Pause 互斥、Esc 优先级、BuildPlacement Esc，以及 Pause 同时冻结/恢复 GameTime、Thermal 和 Campfire Fuel。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
+当前共 36 个测试文件、236 个测试。Hotbar 覆盖默认配置、数字键、滚轮、边界、空槽、Item/Build 类型和 Shell Mode 输入门控；共享 Inventory 集成覆盖 Craft 成功后的 Inventory/Requirement 更新，以及 Build 材料预览和成功消费后的同步状态。Game Shell 继续覆盖 Esc、Pause 和 BuildPlacement 优先级。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段由 AI 执行类型检查、测试和 diff 检查，生产构建与浏览器验收由用户执行。
 
 ## Weather Presentation 已知边界
 

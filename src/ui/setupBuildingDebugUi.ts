@@ -27,11 +27,13 @@ export function setupBuildingDebugUi(
   const closeButton = getElement<HTMLButtonElement>("building-close-button");
   const definitionListElement = getElement("building-definition-list");
   const name = getElement("building-definition-name");
+  const detailIcon = getElement("building-definition-icon");
   const description = getElement("building-definition-description");
   const requirements = getElement<HTMLUListElement>("building-requirements");
   const status = getElement("building-status");
   const selectButton = getElement<HTMLButtonElement>("building-select-button");
   const placementStatus = getElement("building-placement-status");
+  const crosshair = getElement("crosshair");
   const definitionList = definitions.getAll();
   let selectedIndex = 0;
 
@@ -41,6 +43,7 @@ export function setupBuildingDebugUi(
     const definition = getSelected();
     if (!definition) return;
     name.textContent = definition.displayName;
+    detailIcon.dataset.icon = definition.id;
     description.textContent = definition.description;
     const costState = definition.cost.map((cost) => {
       const available = inventory.getItemCount(cost.itemId);
@@ -73,6 +76,12 @@ export function setupBuildingDebugUi(
     const button = document.createElement("button");
     button.type = "button";
     const title = document.createElement("span");
+    const icon = document.createElement("span");
+    icon.className = "ui-icon";
+    icon.dataset.icon = definition.id;
+    icon.setAttribute("aria-hidden", "true");
+    const copy = document.createElement("span");
+    copy.className = "menu-list-card__copy";
     const meta = document.createElement("small");
     title.textContent = definition.displayName;
     meta.textContent = definition.category === "foundation"
@@ -80,7 +89,8 @@ export function setupBuildingDebugUi(
       : definition.category === "wall"
         ? "EDGE / SNAP"
         : "SURVIVAL / GROUND";
-    button.append(title, meta);
+    copy.append(title, meta);
+    button.append(icon, copy);
     const handleClick = (): void => {
       selectedIndex = index;
       render();
@@ -112,9 +122,11 @@ export function setupBuildingDebugUi(
       placementStatus.textContent = message;
       placementStatus.dataset.valid = valid ? "true" : "false";
       placementStatus.hidden = false;
+      crosshair.dataset.buildValid = valid ? "true" : "false";
     },
     hidePlacementStatus(): void {
       placementStatus.hidden = true;
+      delete crosshair.dataset.buildValid;
     },
     dispose(): void {
       closeButton.removeEventListener("click", close);

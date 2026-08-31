@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model、Shelter + Heat Source、Interaction + Item + Inventory、Crafting、Building、Campfire + Fuel，以及 Game Shell + Unified Menu + Pause v0.1：
+当前已完成现代桌面浏览器技术基础至 HUD + UX Overhaul v0.1：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -76,6 +76,10 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - Esc 优先退出建造放置、篝火菜单或生存菜单；Gameplay 中才打开暂停菜单
 - Pause 释放鼠标并冻结 GameTime、Weather Schedule、Thermal 与 Campfire Fuel；继续后恢复
 - Loading Overlay 只展示真实初始化阶段，不伪造百分比
+- 正常 Gameplay 只常驻高对比状态准星、交互提示、8 格 Hotbar、简化状态摘要和极简快捷键提示
+- Hotbar 前三格固定为木制地基、木制墙体和篝火；1–8 与滚轮选择，建造槽直接进入放置，菜单和暂停时不会触发
+- Debug Telemetry 保留完整开发数据但默认隐藏，以 F6 切换；F1–F5 天气预览契约不变
+- Player Menu 的背包、制造与建造改为图标卡片 + 详情区，仍共享同一实时 Inventory
 - 可重复执行的类型检查、测试和生产构建
 
 当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。Thermal Reserve 是游戏化资源，不是医学核心体温。

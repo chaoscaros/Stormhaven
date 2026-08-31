@@ -30,6 +30,8 @@ export function setupCraftingDebugUi(
   const recipePosition = getElement("crafting-recipe-position");
   const recipeName = getElement("crafting-recipe-name");
   const recipeDescription = getElement("crafting-recipe-description");
+  const detailIcon = document.querySelector<HTMLElement>(".crafting-panel__detail .ui-icon--hero");
+  if (!detailIcon) throw new Error("缺少制作详情图标。");
   const requirements = getElement<HTMLUListElement>("crafting-requirements");
   const output = getElement("crafting-output");
   const status = getElement("crafting-status");
@@ -50,6 +52,7 @@ export function setupCraftingDebugUi(
     recipePosition.textContent = `${selectedIndex + 1} / ${recipeList.length}`;
     recipeName.textContent = recipe.displayName;
     recipeDescription.textContent = recipe.description;
+    detailIcon.dataset.icon = recipe.outputs[0]?.itemId ?? "empty";
     requirements.replaceChildren(...evaluation.requiredInputs.map((input) => {
       const row = document.createElement("li");
       const name = document.createElement("span");
@@ -86,7 +89,18 @@ export function setupCraftingDebugUi(
   const recipeButtons = recipeList.map((recipe, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = recipe.displayName;
+    const icon = document.createElement("span");
+    icon.className = "ui-icon";
+    icon.dataset.icon = recipe.outputs[0]?.itemId ?? "empty";
+    icon.setAttribute("aria-hidden", "true");
+    const copy = document.createElement("span");
+    copy.className = "menu-list-card__copy";
+    const title = document.createElement("strong");
+    const meta = document.createElement("small");
+    title.textContent = recipe.displayName;
+    meta.textContent = recipe.requiredStation === "hand" ? "手工制作" : recipe.requiredStation;
+    copy.append(title, meta);
+    button.append(icon, copy);
     const handleClick = (): void => selectRecipe(index);
     button.addEventListener("click", handleClick);
     recipeListElement.append(button);

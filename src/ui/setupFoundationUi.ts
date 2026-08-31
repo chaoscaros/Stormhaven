@@ -13,6 +13,7 @@ import { BUILDING_INPUT_CONFIG } from "../building/BuildingConfig";
 import { formatInteractionPrompt, type InteractionTarget } from "../interaction/InteractionTarget";
 import type { InventorySnapshot } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
+import type { ItemCategory } from "../items/ItemDefinition";
 import { GameUiModeController } from "./GameUiModeController";
 
 const WEATHER_LABELS: Readonly<Record<WeatherId, string>> = Object.freeze({
@@ -32,6 +33,14 @@ const THERMAL_TREND_LABELS: Readonly<Record<ThermalTrend, string>> = Object.free
   warming: "回暖",
   stable: "稳定",
   cooling: "流失",
+});
+const ITEM_CATEGORY_LABELS: Readonly<Record<ItemCategory, string>> = Object.freeze({
+  resource: "基础资源",
+  food: "食物",
+  drink: "饮品",
+  material: "制造材料",
+  tool: "工具",
+  misc: "杂项",
 });
 
 export interface FoundationUi {
@@ -74,6 +83,12 @@ export function setupFoundationUi(
   const resumeButton = getElement<HTMLButtonElement>("resume-button");
   const errorScreen = getElement("error-screen");
   const errorMessage = getElement("error-message");
+  const playerStatus = getElement("debug-telemetry");
+  const statusTime = getElement("status-time");
+  const statusWeather = getElement("status-weather");
+  const statusShelter = getElement("status-shelter");
+  const statusTemperature = getElement("status-temperature");
+  const statusTrend = getElement("status-trend");
   const debugTime = getElement("debug-time");
   const debugWeather = getElement("debug-weather");
   const debugVisualWeather = getElement("debug-visual-weather");
@@ -98,9 +113,16 @@ export function setupFoundationUi(
   const inventoryItems = getElement<HTMLUListElement>("inventory-items");
   const inventoryWeight = getElement("inventory-weight");
   const inventorySlots = getElement("inventory-slots");
+  const inventoryDetailIcon = getElement("inventory-detail-icon");
+  const inventoryDetailCategory = getElement("inventory-detail-category");
+  const inventoryDetailName = getElement("inventory-detail-name");
+  const inventoryDetailDescription = getElement("inventory-detail-description");
+  const inventoryDetailQuantity = getElement("inventory-detail-quantity");
+  const inventoryDetailWeight = getElement("inventory-detail-weight");
   const pickupFeedback = getElement("pickup-feedback");
   let feedbackTimeout: number | undefined;
   let suppressEscapeUntil = 0;
+  let selectedInventoryItemId: string | undefined;
   const modes = new GameUiModeController(canvas);
 
   const requestControl = (): void => {
@@ -129,6 +151,11 @@ export function setupFoundationUi(
         event.preventDefault();
         modes.handleEscape();
       }
+      return;
+    }
+    if (event.code === "F6" && !["boot", "main_menu"].includes(modes.mode)) {
+      event.preventDefault();
+      playerStatus.hidden = !playerStatus.hidden;
       return;
     }
     if (event.code === INTERACTION_CONFIG.inventoryKeyCode) {
@@ -218,6 +245,12 @@ export function setupFoundationUi(
     ): void {
       setTextIfChanged(debugTime, formatGameTime(snapshot.time));
       setTextIfChanged(debugWeather, snapshot.weather.displayName);
+      setTextIfChanged(statusTime, formatGameTime(snapshot.time));
+      setTextIfChanged(statusWeather, snapshot.weather.displayName);
+      setTextIfChanged(statusShelter, snapshot.shelter.displayName ?? "室外");
+      setTextIfChanged(statusTemperature, formatCelsius(snapshot.thermal.effectiveTemperatureCelsius));
+      setTextIfChanged(statusTrend, THERMAL_TREND_LABELS[snapshot.thermal.trend]);
+      statusTrend.dataset.trend = snapshot.thermal.trend;
       setTextIfChanged(
         debugVisualWeather,
         presentation
@@ -286,18 +319,52 @@ export function setupFoundationUi(
         empty.className = "inventory-panel__empty";
         empty.textContent = "暂无物资";
         inventoryItems.replaceChildren(empty);
+        selectedInventoryItemId = undefined;
+        renderEmptyInventoryDetail();
       } else {
+        if (!selectedInventoryItemId || !totals.has(selectedInventoryItemId)) {
+          selectedInventoryItemId = totals.keys().next().value;
+        }
         const fragment = document.createDocumentFragment();
         for (const [itemId, quantity] of totals) {
+          const definition = catalog.get(itemId);
           const row = document.createElement("li");
-          const name = document.createElement("span");
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.selected = itemId === selectedInventoryItemId ? "true" : "false";
+          const icon = document.createElement("span");
+          icon.className = "ui-icon";
+          icon.dataset.icon = definition.icon ?? definition.id;
+          icon.setAttribute("aria-hidden", "true");
+          const body = document.createElement("span");
+          body.className = "inventory-panel__item-copy";
+          const name = document.createElement("strong");
+          const category = document.createElement("small");
           const count = document.createElement("strong");
-          name.textContent = catalog.get(itemId).displayName;
+          count.className = "inventory-panel__item-count";
+          name.textContent = definition.displayName;
+          category.textContent = ITEM_CATEGORY_LABELS[definition.category];
           count.textContent = `×${quantity}`;
-          row.append(name, count);
+          body.append(name, category);
+          button.append(icon, body, count);
+          button.addEventListener("click", () => {
+            selectedInventoryItemId = itemId;
+            for (const candidate of inventoryItems.querySelectorAll("button")) {
+              candidate.dataset.selected = candidate === button ? "true" : "false";
+            }
+            renderInventoryDetail(itemId, quantity, catalog);
+          });
+          row.append(button);
           fragment.append(row);
         }
         inventoryItems.replaceChildren(fragment);
+        if (selectedInventoryItemId) {
+          renderInventoryDetail(
+            selectedInventoryItemId,
+            totals.get(selectedInventoryItemId) ?? 0,
+            catalog,
+          );
+        }
       }
       setTextIfChanged(
         inventoryWeight,
@@ -330,6 +397,25 @@ export function setupFoundationUi(
       if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);
     },
   };
+
+  function renderInventoryDetail(itemId: string, quantity: number, catalog: ItemCatalog): void {
+    const definition = catalog.get(itemId);
+    inventoryDetailIcon.dataset.icon = definition.icon ?? definition.id;
+    setTextIfChanged(inventoryDetailCategory, ITEM_CATEGORY_LABELS[definition.category]);
+    setTextIfChanged(inventoryDetailName, definition.displayName);
+    setTextIfChanged(inventoryDetailDescription, definition.description);
+    setTextIfChanged(inventoryDetailQuantity, `${quantity}`);
+    setTextIfChanged(inventoryDetailWeight, `${definition.weight.toFixed(2)} kg`);
+  }
+
+  function renderEmptyInventoryDetail(): void {
+    inventoryDetailIcon.dataset.icon = "empty";
+    setTextIfChanged(inventoryDetailCategory, "物资详情");
+    setTextIfChanged(inventoryDetailName, "背包为空");
+    setTextIfChanged(inventoryDetailDescription, "探索雪地并拾取资源后，可在这里查看用途与重量。");
+    setTextIfChanged(inventoryDetailQuantity, "0");
+    setTextIfChanged(inventoryDetailWeight, "—");
+  }
 }
 
 function formatInteractionResult(result: InteractionResult, catalog: ItemCatalog): string {

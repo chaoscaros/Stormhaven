@@ -24,9 +24,9 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 当前阶段
 
-当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1**、**Shelter + Heat Source v0.1**、**Interaction + Item + Inventory Foundation v0.1**、**Crafting Foundation v0.1**、**Building Foundation v0.1**、**Campfire Gameplay + Fuel v0.1** 和 **Game Shell + Unified Menu + Pause v0.1**。开始游戏前 Simulation 保持暂停；Tab/C/B 共用生存菜单，E 篝火保持独立 Interaction Menu，Esc 按状态优先级关闭当前层或真正暂停游戏规则。
+当前已完成基础工程至 **HUD + UX Overhaul v0.1**。正常 Gameplay 使用高对比状态准星、8 格 Hotbar、简化玩家状态 HUD 与可用 F6 切换的 Debug Telemetry；Tab/C/B 进入统一图标卡片式生存菜单，E 篝火继续使用独立 Interaction Menu。Hotbar 前三格固定为木制地基、木制墙体和篝火，可由 1–8 或滚轮选择并直接进入建造放置。
 
-本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 Game Shell、Campfire、Fuel、Building 或 Crafting，也不得实现 Save/IndexedDB、Load/Continue、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Wetness 或其他范围禁止项。
+本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 HUD/Hotbar、Game Shell、Campfire、Fuel、Building 或 Crafting，也不得实现 Save/IndexedDB、Load/Continue、快捷栏拖拽绑定、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Wetness 或其他范围禁止项。
 
 ## 包管理和命令
 

@@ -54,7 +54,19 @@
           <span>测试区域 01</span>
           <strong>STORMHAVEN</strong>
         </div>
-        <aside class="hud__telemetry" aria-label="游戏时间、天气与体热调试信息">
+        <aside class="player-status" aria-label="玩家状态摘要">
+          <div class="player-status__weather">
+            <span id="status-weather">晴朗</span>
+            <strong id="status-time">14:00</strong>
+          </div>
+          <div class="player-status__thermal">
+            <span id="status-shelter">室外</span>
+            <strong id="status-temperature">-5.4℃</strong>
+            <i id="status-trend" data-trend="stable">稳定</i>
+          </div>
+          <small>F6 详细遥测</small>
+        </aside>
+        <aside id="debug-telemetry" class="hud__telemetry" aria-label="游戏时间、天气与体热调试信息" hidden>
           <header>
             <span>SCENARIO TELEMETRY</span>
             <strong>FIRST BLIZZARD</strong>
@@ -144,8 +156,10 @@
             <nav id="building-definition-list" class="building-panel__list" aria-label="建筑部件列表"></nav>
             <section class="building-panel__detail">
               <p class="building-panel__eyebrow">基础结构件 / 当前会话</p>
-              <h2 id="building-definition-name">木制地基</h2>
-              <p id="building-definition-description" class="building-panel__description"></p>
+              <div class="menu-detail__hero">
+                <span id="building-definition-icon" class="ui-icon ui-icon--hero" data-icon="foundation_wood" aria-hidden="true"></span>
+                <div><h2 id="building-definition-name">木制地基</h2><p id="building-definition-description" class="building-panel__description"></p></div>
+              </div>
               <h3>所需材料</h3>
               <ul id="building-requirements" class="building-panel__requirements"></ul>
               <p id="building-status" class="building-panel__status">检查材料中</p>
@@ -160,21 +174,25 @@
             <div><strong id="crafting-recipe-position">1 / 1</strong><button id="crafting-close-button" type="button" aria-label="关闭制作面板" hidden>关闭</button></div>
           </header>
           <div class="crafting-panel__body">
-            <p class="crafting-panel__eyebrow">即时手工制作</p>
             <nav id="crafting-recipe-list" class="crafting-panel__recipe-list" aria-label="配方列表"></nav>
-            <h2 id="crafting-recipe-name">石斧</h2>
-            <p id="crafting-recipe-description" class="crafting-panel__description"></p>
-            <section>
-              <h3>所需材料</h3>
-              <ul id="crafting-requirements" class="crafting-panel__requirements"></ul>
+            <section class="crafting-panel__detail">
+              <p class="crafting-panel__eyebrow">即时手工制作</p>
+              <div class="menu-detail__hero">
+                <span class="ui-icon ui-icon--hero" data-icon="stone_axe" aria-hidden="true"></span>
+                <div><h2 id="crafting-recipe-name">石斧</h2><p id="crafting-recipe-description" class="crafting-panel__description"></p></div>
+              </div>
+              <section>
+                <h3>所需材料</h3>
+                <ul id="crafting-requirements" class="crafting-panel__requirements"></ul>
+              </section>
+              <section class="crafting-panel__output">
+                <h3>产出</h3>
+                <strong id="crafting-output">石斧 ×1</strong>
+              </section>
+              <p id="crafting-status" class="crafting-panel__status">检查材料中</p>
+              <p id="crafting-feedback" class="crafting-panel__feedback" role="status" hidden></p>
+              <button id="crafting-action-button" class="crafting-panel__action" type="button">制作当前物品</button>
             </section>
-            <section class="crafting-panel__output">
-              <h3>产出</h3>
-              <strong id="crafting-output">石斧 ×1</strong>
-            </section>
-            <p id="crafting-status" class="crafting-panel__status">检查材料中</p>
-            <p id="crafting-feedback" class="crafting-panel__feedback" role="status" hidden></p>
-            <button id="crafting-action-button" class="crafting-panel__action" type="button">制作当前物品</button>
           </div>
           <footer><span>鼠标选择配方</span><strong>点击按钮制作 · C 直达</strong></footer>
         </aside>
@@ -183,9 +201,21 @@
             <span>FIELD INVENTORY</span>
             <div><strong>背包</strong><button id="inventory-close-button" type="button" aria-label="关闭背包" hidden>关闭</button></div>
           </header>
-          <ul id="inventory-items" class="inventory-panel__items">
-            <li class="inventory-panel__empty">暂无物资</li>
-          </ul>
+          <div class="inventory-panel__layout">
+            <ul id="inventory-items" class="inventory-panel__items">
+              <li class="inventory-panel__empty">暂无物资</li>
+            </ul>
+            <section class="inventory-panel__detail" aria-live="polite">
+              <span id="inventory-detail-icon" class="ui-icon ui-icon--hero" data-icon="empty" aria-hidden="true"></span>
+              <p id="inventory-detail-category">物资详情</p>
+              <h2 id="inventory-detail-name">选择一件物资</h2>
+              <p id="inventory-detail-description">拾取物资后，可在这里查看用途、重量与类别。</p>
+              <dl>
+                <div><dt>数量</dt><dd id="inventory-detail-quantity">0</dd></div>
+                <div><dt>单件重量</dt><dd id="inventory-detail-weight">—</dd></div>
+              </dl>
+            </section>
+          </div>
           <footer>
             <span>重量 <strong id="inventory-weight">0.0 / 30.0 kg</strong></span>
             <span>槽位 <strong id="inventory-slots">0 / 24</strong></span>
@@ -200,7 +230,7 @@
             <button id="campfire-close-button" type="button" aria-label="关闭篝火菜单">关闭</button>
           </header>
           <div class="campfire-panel__body">
-            <p class="campfire-panel__eyebrow">PLAYER HEAT SOURCE / SESSION RUNTIME</p>
+            <div class="campfire-panel__hero"><span class="ui-icon ui-icon--hero" data-icon="campfire_basic" aria-hidden="true"></span><p class="campfire-panel__eyebrow">玩家热源<br />添加燃料后点燃</p></div>
             <div class="campfire-panel__status-block">
               <span>状态</span>
               <strong id="campfire-status" data-status="unlit">未点燃</strong>
@@ -234,7 +264,8 @@
         <div id="crosshair" class="crosshair" aria-hidden="true"></div>
         <div id="interaction-prompt" class="interaction-prompt" hidden></div>
         <div id="building-placement-status" class="building-placement-status" role="status" hidden></div>
-        <div class="hud__hint">E 交互 · TAB 生存菜单 · C 制造 · B 建造 · F1–F4 天气预览 · ESC 暂停</div>
+        <nav id="hotbar" class="hotbar" aria-label="快捷栏"></nav>
+        <div class="hud__hint">TAB 菜单 · C 制造 · B 建造 · ESC 暂停</div>
       </div>
 
       <div id="error-screen" class="error-screen" role="alert" hidden>

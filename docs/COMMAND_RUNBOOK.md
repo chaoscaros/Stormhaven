@@ -188,6 +188,13 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 60. 分别验证 Esc 层级：BuildPlacement 只退出放置；Campfire Menu 只关闭交互；Player Menu 只关闭菜单；Gameplay 才暂停；Paused 才恢复。
 61. 在背包、制造、建造 Tab 间切换并执行制作/建造，确认三个页面立即读取同一个最新 Inventory，不出现旧数量或叠层。
 62. Browser console has no uncaught error.
+63. Gameplay 默认只显示轻量玩家状态、中央准星、交互提示、底部 8 格 Hotbar 与极简快捷键提示；完整 Telemetry 不应默认展开。
+64. 在白色雪地、深色木墙和低光照环境分别观察准星；默认白色带深描边、可交互为橙色、合法放置为绿色、非法放置为红色。
+65. 按 `1`、`2`、`3` 分别直接进入木制地基、木制墙体和篝火放置；按 `4`–`8` 选择空槽时安全退出当前放置且不产生 Item Use。
+66. 滚轮可在 8 格间循环，首尾正确回绕；当前槽位有明显橙色高亮。Player Menu、Campfire Menu 与 Pause 中数字键/滚轮不触发建造。
+67. 按 Tab/C/B 检查背包、制造、建造均为图标卡片 + 详情区；拾取、制作或建造后，三页数量继续读取同一份最新 Inventory。
+68. 按 `F6` 显示完整 Debug Telemetry，再按一次隐藏；F1–F5 天气视觉预览行为保持不变。
+69. `[E] 拾取/使用` 提示具有深色背景和高对比边框，不与准星或 Hotbar 重叠；Campfire 菜单与 Player Menu 使用一致的按钮、边框和间距主题。
 
 ## CI or reproducible installation
 

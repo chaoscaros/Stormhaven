@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Game Shell + Unified Menu + Pause v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 HUD + UX Overhaul v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：已完成正式标题页、真实初始化 Loading Contract、单一 Game Shell State、Tab/C/B 统一生存菜单、E Interaction Menu、Esc 优先级和真正 Pause/Resume；暂停会冻结 GameTime/Weather/Thermal/Campfire Fuel 并卸载玩家输入
-- 明确未实现：Save/IndexedDB、Load/Continue、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
+- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 使用图标卡片与详情区，仍保持 Inventory/Crafting/Building 实时共享 Inventory；Pause 与 Esc 契约不变
+- 明确未实现：Save/IndexedDB、Load/Continue、Hotbar 拖拽绑定、Equipment/Item Use、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
 
@@ -28,6 +28,10 @@
 - Player Menu 的 Inventory/Crafting/Building Tab、快捷键路由与实时 Inventory 联动
 - Esc 层级、Pointer Lock 主动/意外释放同步和 Pause Menu
 - Boot/Main/Pause 的 Simulation Pause；非 Gameplay/Placement 的 Camera Input Detach
+- Gameplay HUD Overhaul、高对比状态 Crosshair 与清晰 Interaction Prompt
+- 8 格 Hotbar 纯逻辑模型、1–8/滚轮选择、默认三项 Build Shortcut 与 Placement 联动
+- 简化 Player Status HUD 与默认折叠、F6 切换的 Debug Telemetry
+- Inventory/Crafting/Building 图标卡片、详情分区与 Campfire 统一视觉主题
 - 基础配置单元测试
 - 中文 README、游戏设计、技术设计和协作规范
 - 后续模块目录占位
@@ -81,7 +85,7 @@
 - CampfireSystem 的原子加柴、点燃、熄灭、重燃、燃料耗尽与动态 HeatSource 生命周期
 - E 篝火鼠标菜单、稳定反馈、石圈/木柴/火焰/点光源状态表现
 - 燃料和 Thermal 共用 Clamp 后真实 Delta；Pause 为零且不受 `timeScale=240` 影响
-- 34 个测试文件、227 个单元与集成测试
+- 36 个测试文件、236 个单元与集成测试
 
 ## 关键架构入口
 
@@ -100,6 +104,8 @@
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
 | `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换和基础 DOM 状态 |
 | `src/ui/GameUiModeController.ts` | 纯 Game Shell State、Player Tab 路由与 Pointer Lock 契约 |
+| `src/ui/hotbar/HotbarModel.ts` | 8 格 Hotbar 纯状态、数字键映射、滚轮回绕与 Mode Gate |
+| `src/ui/hotbar/setupHotbarUi.ts` | Hotbar DOM/Input 与既有 BuildPlacement 的窄绑定 |
 | `src/items/ItemCatalog.ts` | Item JSON 校验、重复 ID 检查与稳定查询 |
 | `src/inventory/Inventory.ts` | Babylon/DOM 无关的 Slot、Stack、Weight 与 Partial Add |
 | `src/crafting/RecipeCatalog.ts` | Recipe JSON 校验、重复/未知 Item 检查与稳定 ID 查询 |
@@ -278,6 +284,12 @@ pnpm dev
 - `pnpm test`：34 个测试文件、227 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 完成 HUD + UX Overhaul v0.1 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：36 个测试文件、236 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -293,6 +305,7 @@ pnpm dev
 - 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
 - 标题页期间时间冻结、开始后的 Pointer Lock、统一 Tab 切换、共享库存即时联动、Esc 各层优先级、Pause Input 屏蔽与 Pause/Resume 全链仍需用户浏览器验收。
 - Loading Overlay 只在真实异步初始化期间显示，速度较快时可能一闪而过；实际可见性需用户确认。
+- 新 HUD 的雪地/深墙/夜间准星对比、Hotbar 数字键/滚轮/Build Shortcut、F6 遥测切换、菜单卡片布局和 Campfire 主题一致性需用户浏览器验收。
 
 仓库当前已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。
 
@@ -322,6 +335,8 @@ pnpm dev
 - Thermal 与 Campfire Fuel 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；Pause 时均为零，未来系统增多时可评估 Fixed Simulation Tick。
 - Campfire 当前只有 wood 单一 Fuel、即时点火和基础 Primitive 表现；没有点火物、烹饪、灰烬、烟雾伤害、音效或存档。
 - Pause Menu 的保存、设置和返回标题明确 Disabled；没有伪造行为。完整 Session Reset、Save/Load 与 Loading Pipeline 尚未实现。
+- Hotbar 第一版使用固定默认布局，不支持拖拽、保存、多套栏位或 Item Use；Item Entry 类型已预留，但默认配置只放置三个 Build Shortcut。
+- F3 保留为降雪视觉预览；为避免输入冲突，Debug Telemetry 使用 F6，而不是 F3。
 
 ## 推荐下一步
 
@@ -330,6 +345,17 @@ pnpm dev
 推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — HUD + UX Overhaul v0.1
+
+- 将 Gameplay 常驻界面收敛为高对比状态准星、可读 Interaction Prompt、8 格 Hotbar、简化 Player Status 与极简快捷键提示。
+- 新增 DOM/Babylon 无关的 HotbarModel：固定 8 格、`empty/item/build` Entry、1–8 选择、滚轮回绕与越界安全处理。
+- 默认 1–3 绑定木制地基、木制墙体和篝火；Build Shortcut 复用现有 BuildPlacement，切换空槽或 Esc 可退出，不在菜单或暂停中误触发。
+- Player Menu 的 Inventory/Crafting/Building 改为 CSS 几何图标卡片、列表与详情区；三个页面继续读取同一 Inventory，Campfire 保持独立 Interaction Menu。
+- 右上角默认只展示时间、天气、庇护、体感和趋势；完整 Debug Telemetry 默认隐藏并由 F6 切换，F1–F5 天气预览保持不变。
+- 新增 Hotbar 与共享 Inventory 联动测试；最终 36 个测试文件、236 个测试通过。
+- `pnpm exec tsc -b --pretty false`、`pnpm test` 与 `git diff --check` 已通过；未执行 dev/build/preview 或浏览器操作。
+- 严格停止；未实现 Save/Load、Equipment、Item Use、Hotbar 拖拽绑定、Settings 或完整 Loading Pipeline。
 
 ### 2026-08-31 — Game Shell + Unified Menu + Pause v0.1
 

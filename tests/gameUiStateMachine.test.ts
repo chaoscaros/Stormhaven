@@ -70,6 +70,16 @@ describe("GameUiStateMachine", () => {
     shell.handleEscape();
     expect(shell.state.mode).toBe("gameplay");
   });
+
+  it("Gameplay 可由 Hotbar 直接进入并切换 BuildPlacement", () => {
+    const shell = runningShell();
+    shell.enterBuildPlacement();
+    expect(shell.state.mode).toBe("build_placement");
+    shell.enterBuildPlacement();
+    expect(shell.state.mode).toBe("build_placement");
+    shell.handleEscape();
+    expect(shell.state.mode).toBe("gameplay");
+  });
 });
 
 function runningShell(): GameUiStateMachine {
