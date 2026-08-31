@@ -1,4 +1,3 @@
-import { BUILDING_INPUT_CONFIG } from "../building/BuildingConfig";
 import type { BuildCatalog } from "../building/BuildCatalog";
 import type { BuildDefinition } from "../building/BuildingTypes";
 import type { Inventory } from "../inventory/Inventory";
@@ -18,7 +17,6 @@ interface BuildingDebugUiCallbacks {
 
 /** 鼠标优先的工业遥测风格 Building Menu；只读取 Catalog 与 Inventory。 */
 export function setupBuildingDebugUi(
-  canvas: HTMLCanvasElement,
   definitions: BuildCatalog,
   inventory: Inventory,
   items: ItemCatalog,
@@ -92,31 +90,18 @@ export function setupBuildingDebugUi(
     return { button, handleClick };
   });
 
-  const open = (): void => {
-    modes.openMenu("building_menu");
-    render();
-  };
   const close = (): void => modes.resumeGameplay();
   const select = (): void => {
     const definition = getSelected();
     if (!definition || selectButton.disabled) return;
     callbacks.onSelect(definition.id);
   };
-  const handleKeyDown = (event: KeyboardEvent): void => {
-    if (event.repeat || event.code !== BUILDING_INPUT_CONFIG.toggleKeyCode) return;
-    if (modes.mode === "build_placement") return;
-    if (document.pointerLockElement !== canvas && !modes.isMenuOpen()) return;
-    event.preventDefault();
-    if (modes.mode === "building_menu") close();
-    else open();
-  };
-  const unsubscribeMode = modes.subscribe((mode) => {
-    panel.hidden = mode !== "building_menu";
-    if (mode === "building_menu") render();
-    if (mode !== "build_placement") placementStatus.hidden = true;
+  const unsubscribeMode = modes.subscribe((state) => {
+    panel.hidden = state.mode !== "player_menu" || state.playerMenuTab !== "building";
+    if (!panel.hidden) render();
+    if (state.mode !== "build_placement") placementStatus.hidden = true;
   });
 
-  window.addEventListener("keydown", handleKeyDown);
   closeButton.addEventListener("click", close);
   selectButton.addEventListener("click", select);
   render();
@@ -132,7 +117,6 @@ export function setupBuildingDebugUi(
       placementStatus.hidden = true;
     },
     dispose(): void {
-      window.removeEventListener("keydown", handleKeyDown);
       closeButton.removeEventListener("click", close);
       selectButton.removeEventListener("click", select);
       unsubscribeMode();

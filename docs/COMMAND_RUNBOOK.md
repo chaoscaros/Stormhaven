@@ -126,14 +126,14 @@ pnpm preview
 
 After `pnpm dev` or `pnpm preview`, ask the user to verify:
 
-1. The Chinese Stormhaven start screen appears.
-2. No startup failure panel appears.
-3. Clicking `进入测试区域` locks the pointer.
-4. Moving the mouse changes the first-person view relative to the four calibration beacons.
+1. 初始化期间只显示真实阶段文案的 Stormhaven Loading Overlay，不出现虚假百分比或故意延时。
+2. 初始化完成后显示“第一场暴雪”标题页和“开始游戏”；没有启动失败面板，也没有假的继续游戏/读取存档按钮。
+3. 在标题页等待数秒，时间必须保持 `14:00`；点击“开始游戏”后才进入场景并请求 Pointer Lock。
+4. 开始后移动鼠标会相对四个校准标杆改变第一人称视角。
 5. `W A S D` changes the distance and direction to those beacons.
 6. Holding `Shift` increases movement speed.
 7. Pressing `Space` jumps and the player lands on the ground.
-8. Pressing `Esc` releases the pointer.
+8. Gameplay 中按 `Esc` 打开暂停菜单并释放 Pointer Lock；再次按 Esc 或点击“继续游戏”恢复。
 9. The upper-right Debug HUD starts at `14:00`, shows `晴朗`, and forecasts `18:00 暴雪`.
 10. 17:30 前 Scene 保持晴朗；17:30–18:00 天空、雾、灯光和雪连续增强；18:00 HUD Domain Weather 变为暴雪。
 11. `F1`、`F2`、`F3`、`F4` 可依次预览晴朗、多云、降雪、暴雪，HUD 的“视觉”行显示“预览”。
@@ -152,17 +152,17 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 24. 暴雪中进入木屋：雪花不能穿过屋顶、墙体或地面；站在开放入口附近仍可看到并允许少量风雪从入口飘入，不能表现为一进 Shelter 就让所有降雪瞬间消失。
 25. 出生点与木屋附近能看到 6 个少量 Primitive 资源；实体木墙必须遮住墙后的资源，只有通过开放入口才能看到屋外物体；准星在约 2.75m 内对准后显示 `[E] 拾取 名称 ×N`，移开或走远即消失。
 26. 每按一次 `E` 只触发一次拾取；完全拾取后 Mesh 消失，容量或重量只允许部分拾取时 Mesh 保留且 Prompt 显示余量。
-27. 按 `Tab` 打开只读背包：Pointer Lock 应主动释放、鼠标出现、HUD 和背包保持可见；可点击“关闭”并恢复第一人称鼠标控制。
+27. 按 `Tab` 打开统一生存菜单的背包 Tab：Pointer Lock 主动释放、鼠标出现；顶部可切换“背包 / 制造 / 建造”，任意时刻只显示一个 Tab。
 28. 重复拾取木材确认 Stack 合并；接近容量上限时，未被接受的世界物品不得消失。
 29. 刷新页面后背包恢复为空，这是当前未实现 Save 的预期行为。
 30. 回归确认 WASD、Shift、Space、Pointer Lock、Weather、雪粒子、木屋碰撞和 Shelter HUD 均正常。
-31. 拾取至少树枝 ×2、石头 ×2；按 `C` 打开 Crafting Debug Panel，确认鼠标出现，且石斧配方显示所需数量、持有数量和产出。
+31. 拾取至少树枝 ×2、石头 ×2；按 `C` 直接打开统一生存菜单的制造 Tab，确认石斧配方显示所需数量、持有数量和产出。
 32. 材料不足时状态明确列出缺失材料；拾取补足后重新打开面板，状态变为“可以制作”。
 33. 用鼠标点击石斧配方和“制作当前物品”，确认只制作一次并显示“制作完成：石斧 ×1”；菜单内 E 拾取不会触发。
 34. 按 `Tab` 确认树枝/石头减少且石斧增加；石斧不能装备、使用、挥舞或砍树，这是当前预期。
-35. 点击“关闭”或再次按 `C` 后，面板关闭且 Pointer Lock 恢复；重新进入不会一次点击制作多次。
+35. 制造 Tab 中按 C 保持/切回制造页；按 Tab、Esc 或点击“返回游戏”关闭整个生存菜单并恢复 Pointer Lock；重新进入不会一次点击制作多次。
 36. 刷新页面后 Inventory 与 Crafting State 清空，这是当前未实现 Save 的预期行为。
-37. 收集至少 16 个木材和 6 个石头；按 `B` 打开 Building Menu，确认 Pointer Lock 释放、鼠标出现，并可选择木制地基、木制墙体或篝火；Tab/C/B 与篝火菜单任意时刻最多显示一个。
+37. 收集至少 16 个木材和 6 个石头；按 `B` 直接打开生存菜单的建造 Tab，确认可选择木制地基、木制墙体或篝火；Tab/C/B 只切换同一菜单，篝火 Interaction Menu 不与其叠加。
 38. 选择木制地基后确认菜单关闭、Pointer Lock 恢复且出现半透明 Ghost；对准雪地时 Ghost 吸附 2m Grid，合法/非法颜色和状态文字明显不同；在固定木屋四周放置时，地基应能与木屋外沿贴合，不应出现约 1m 间隙或因网格错位被迫插入墙体。
 39. 按 `R` 确认 Ghost 以 90° 步进旋转；左键成功放置后木材减少 4、正式地基出现，Ghost 保持以便连续建造。
 40. 连续放置第二块地基；资源不足时下一次放置必须失败，但已建地基和已消耗的合法事务保持不变。
@@ -183,7 +183,11 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 55. 使用 F4 预览暴雪，在木屋内点燃篝火，确认“室外快速失温 → 无火木屋减缓 → 火旁回暖”的完整链路；雪仍由屋顶/墙体/建筑 AABB 阻挡，而不是因篝火或 Shelter 全局停掉。
 56. 刷新页面后篝火、燃料与 Inventory 一并清空，这是当前未实现 Save 的预期行为。
 57. 回归确认 WASD、Shift、Space、E 拾取、Tab、C、B、Pointer Lock、Weather、Snow、Thermal、固定 Cabin Shelter 和动态 Campfire Heat 均正常。
-58. Browser console has no uncaught error.
+58. 点燃篝火后在 Gameplay 按 Esc：暂停菜单出现，记录 HUD 时间、体热和燃料；等待数秒后三者应完全不变，继续游戏后恢复变化。
+59. 暂停期间 Tab/C/B/E/WASD/Shift/Space 不应产生 Gameplay 行为；保存游戏、设置和返回标题均明确 Disabled。
+60. 分别验证 Esc 层级：BuildPlacement 只退出放置；Campfire Menu 只关闭交互；Player Menu 只关闭菜单；Gameplay 才暂停；Paused 才恢复。
+61. 在背包、制造、建造 Tab 间切换并执行制作/建造，确认三个页面立即读取同一个最新 Inventory，不出现旧数量或叠层。
+62. Browser console has no uncaught error.
 
 ## CI or reproducible installation
 

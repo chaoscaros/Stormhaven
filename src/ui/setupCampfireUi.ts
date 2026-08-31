@@ -104,23 +104,16 @@ export function setupCampfireUi(
     modes.resumeGameplay();
   };
 
-  const handleKeyDown = (event: KeyboardEvent): void => {
-    if (event.repeat || modes.mode !== "campfire_menu" || event.code !== "Escape") return;
-    event.preventDefault();
-    close();
-  };
-
   closeButton.addEventListener("click", close);
   addFuelButton.addEventListener("click", addFuel);
   igniteButton.addEventListener("click", ignite);
   extinguishButton.addEventListener("click", extinguish);
-  window.addEventListener("keydown", handleKeyDown);
-  const unsubscribeMode = modes.subscribe((mode) => {
-    panel.hidden = mode !== "campfire_menu";
-    if (mode === "campfire_menu") render();
+  const unsubscribeMode = modes.subscribe((state) => {
+    panel.hidden = state.mode !== "interaction_menu" || state.interactionMenu?.type !== "campfire";
+    if (!panel.hidden) render();
   });
   const unsubscribeCampfire = campfires.subscribe((state) => {
-    if (state.id === activeCampfireId && modes.mode === "campfire_menu") render();
+    if (state.id === activeCampfireId && modes.mode === "interaction_menu") render();
   });
 
   return {
@@ -128,18 +121,17 @@ export function setupCampfireUi(
       if (!campfires.has(campfireId)) return;
       activeCampfireId = campfireId;
       feedback.hidden = true;
-      modes.openMenu("campfire_menu");
+      modes.openInteractionMenu("campfire", campfireId);
       render();
     },
     refresh(): void {
-      if (modes.mode === "campfire_menu") render();
+      if (modes.mode === "interaction_menu") render();
     },
     dispose(): void {
       closeButton.removeEventListener("click", close);
       addFuelButton.removeEventListener("click", addFuel);
       igniteButton.removeEventListener("click", ignite);
       extinguishButton.removeEventListener("click", extinguish);
-      window.removeEventListener("keydown", handleKeyDown);
       unsubscribeMode();
       unsubscribeCampfire();
     },

@@ -9,16 +9,22 @@
       name="description"
       content="Stormhaven——一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。"
     />
-    <title>Stormhaven — 基础工程</title>
+    <title>Stormhaven — 第一场暴雪</title>
   </head>
   <body>
     <main id="app">
       <canvas id="game-canvas" tabindex="0" aria-label="Stormhaven 3D 游戏画面"></canvas>
 
-      <section id="start-screen" class="start-screen" aria-labelledby="game-title">
+      <section id="loading-overlay" class="loading-overlay" aria-live="polite">
+        <div class="loading-overlay__mark" aria-hidden="true">SH</div>
+        <p>STORMHAVEN / SESSION BOOT</p>
+        <strong id="loading-stage">正在初始化……</strong>
+      </section>
+
+      <section id="start-screen" class="start-screen" aria-labelledby="game-title" hidden>
         <div class="start-screen__signal" aria-hidden="true">
-          <span>基础工程版本</span>
-          <span>v0.1 / 500 米测试区域</span>
+          <span>生存会话 / DAY 01</span>
+          <span>v0.1 / FIRST BLIZZARD</span>
         </div>
         <div class="start-screen__content">
           <p class="eyebrow">第一场暴雪</p>
@@ -26,8 +32,8 @@
           <p class="start-screen__intro">
             寒冷边境之外危机四伏，而安全之所仍待亲手建成。
           </p>
-          <button id="enter-button" type="button">
-            <span>进入测试区域</span>
+          <button id="enter-button" type="button" disabled>
+            <span>准备中</span>
             <kbd>点击</kbd>
           </button>
           <p class="start-screen__controls">
@@ -36,12 +42,11 @@
             <span><kbd>空格</kbd> 跳跃</span>
             <span><kbd>SHIFT</kbd> 奔跑</span>
             <span><kbd>E</kbd> 交互</span>
-            <span><kbd>TAB</kbd> 背包</span>
-            <span><kbd>C</kbd> 制作</span>
-            <span><kbd>B</kbd> 建造</span>
+            <span><kbd>TAB</kbd> 生存菜单</span>
+            <span><kbd>ESC</kbd> 暂停</span>
           </p>
         </div>
-        <p class="start-screen__footer">WEATHER PRESENTATION ONLINE // F1–F4 视觉预览</p>
+        <p class="start-screen__footer">NO SAVE DATA // LOCAL SESSION ONLY</p>
       </section>
 
       <div id="hud" class="hud" hidden>
@@ -113,18 +118,32 @@
             </div>
           </dl>
         </aside>
-        <aside id="building-panel" class="building-panel" aria-label="建造菜单" hidden>
+        <aside id="player-menu" class="player-menu" aria-label="生存菜单" hidden>
+          <header class="player-menu__header">
+            <div>
+              <span>SURVIVAL OPERATIONS</span>
+              <strong>生存菜单</strong>
+            </div>
+            <button id="player-menu-close-button" type="button">返回游戏</button>
+          </header>
+          <nav class="player-menu__tabs" role="tablist" aria-label="生存菜单页面">
+            <button id="player-tab-inventory" role="tab" aria-controls="inventory-panel" aria-selected="true" type="button">背包 <kbd>TAB</kbd></button>
+            <button id="player-tab-crafting" role="tab" aria-controls="crafting-panel" aria-selected="false" type="button">制造 <kbd>C</kbd></button>
+            <button id="player-tab-building" role="tab" aria-controls="building-panel" aria-selected="false" type="button">建造 <kbd>B</kbd></button>
+          </nav>
+          <div class="player-menu__content">
+        <aside id="building-panel" class="building-panel" role="tabpanel" aria-labelledby="player-tab-building" hidden>
           <header>
             <div>
               <span>FIELD CONSTRUCTION</span>
               <strong>BUILD MODE</strong>
             </div>
-            <button id="building-close-button" type="button" aria-label="关闭建造菜单">关闭</button>
+            <button id="building-close-button" type="button" aria-label="关闭建造菜单" hidden>关闭</button>
           </header>
           <div class="building-panel__layout">
             <nav id="building-definition-list" class="building-panel__list" aria-label="建筑部件列表"></nav>
             <section class="building-panel__detail">
-              <p class="building-panel__eyebrow">基础结构件 / 会话内保存</p>
+              <p class="building-panel__eyebrow">基础结构件 / 当前会话</p>
               <h2 id="building-definition-name">木制地基</h2>
               <p id="building-definition-description" class="building-panel__description"></p>
               <h3>所需材料</h3>
@@ -135,10 +154,10 @@
           </div>
           <footer><span>鼠标选择结构件</span><strong>放置后不自动成为庇护所</strong></footer>
         </aside>
-        <aside id="crafting-panel" class="crafting-panel" aria-label="制作调试面板" hidden>
+        <aside id="crafting-panel" class="crafting-panel" role="tabpanel" aria-labelledby="player-tab-crafting" hidden>
           <header>
             <span>FIELD CRAFTING</span>
-            <div><strong id="crafting-recipe-position">1 / 1</strong><button id="crafting-close-button" type="button" aria-label="关闭制作面板">关闭</button></div>
+            <div><strong id="crafting-recipe-position">1 / 1</strong><button id="crafting-close-button" type="button" aria-label="关闭制作面板" hidden>关闭</button></div>
           </header>
           <div class="crafting-panel__body">
             <p class="crafting-panel__eyebrow">即时手工制作</p>
@@ -157,12 +176,12 @@
             <p id="crafting-feedback" class="crafting-panel__feedback" role="status" hidden></p>
             <button id="crafting-action-button" class="crafting-panel__action" type="button">制作当前物品</button>
           </div>
-          <footer><span>鼠标选择配方</span><strong>点击按钮制作 · C 关闭</strong></footer>
+          <footer><span>鼠标选择配方</span><strong>点击按钮制作 · C 直达</strong></footer>
         </aside>
-        <aside id="inventory-panel" class="inventory-panel" aria-label="背包调试面板" hidden>
+        <aside id="inventory-panel" class="inventory-panel" role="tabpanel" aria-labelledby="player-tab-inventory" hidden>
           <header>
             <span>FIELD INVENTORY</span>
-            <div><strong>背包</strong><button id="inventory-close-button" type="button" aria-label="关闭背包">关闭</button></div>
+            <div><strong>背包</strong><button id="inventory-close-button" type="button" aria-label="关闭背包" hidden>关闭</button></div>
           </header>
           <ul id="inventory-items" class="inventory-panel__items">
             <li class="inventory-panel__empty">暂无物资</li>
@@ -171,6 +190,9 @@
             <span>重量 <strong id="inventory-weight">0.0 / 30.0 kg</strong></span>
             <span>槽位 <strong id="inventory-slots">0 / 24</strong></span>
           </footer>
+        </aside>
+          </div>
+          <footer class="player-menu__footer"><span>库存、制造与建造共享实时物资</span><strong>ESC / TAB 返回</strong></footer>
         </aside>
         <aside id="campfire-panel" class="campfire-panel" aria-label="篝火控制菜单" hidden>
           <header>
@@ -199,11 +221,20 @@
           </div>
           <footer><span>E 打开控制</span><strong>燃料耗尽后自动熄灭</strong></footer>
         </aside>
+        <aside id="pause-menu" class="pause-menu" aria-labelledby="pause-title" hidden>
+          <p>SESSION CONTROL / DAY 01</p>
+          <h2 id="pause-title">已暂停</h2>
+          <strong>STORMHAVEN</strong>
+          <button id="resume-button" type="button">继续游戏 <kbd>ESC</kbd></button>
+          <button type="button" disabled>保存游戏 <small>存档功能将在下一阶段开放</small></button>
+          <button type="button" disabled>设置 <small>尚未开放</small></button>
+          <button type="button" disabled>返回标题 <small>等待会话重置能力</small></button>
+        </aside>
         <div id="pickup-feedback" class="pickup-feedback" role="status" hidden></div>
         <div id="crosshair" class="crosshair" aria-hidden="true"></div>
         <div id="interaction-prompt" class="interaction-prompt" hidden></div>
         <div id="building-placement-status" class="building-placement-status" role="status" hidden></div>
-        <div class="hud__hint">E 交互 · TAB 背包 · C 制作 · B 建造 · F1–F4 天气预览 · ESC 释放鼠标</div>
+        <div class="hud__hint">E 交互 · TAB 生存菜单 · C 制造 · B 建造 · F1–F4 天气预览 · ESC 暂停</div>
       </div>
 
       <div id="error-screen" class="error-screen" role="alert" hidden>

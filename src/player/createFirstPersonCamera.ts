@@ -20,6 +20,7 @@ const GROUND_PROBE_MARGIN_METERS = 0.12;
 export function createFirstPersonCamera(
   scene: Scene,
   canvas: HTMLCanvasElement,
+  isInputEnabled: () => boolean = () => true,
 ): UniversalCamera {
   const spawn = PLAYER_CONFIG.spawnPosition;
   const camera = new UniversalCamera(
@@ -65,6 +66,7 @@ export function createFirstPersonCamera(
   };
 
   const handleKeyDown = (event: KeyboardEvent): void => {
+    if (!isInputEnabled()) return;
     if (event.keyCode === KEY_SHIFT) {
       camera.speed = toBabylonCameraSpeed(PLAYER_CONFIG.runSpeedMetersPerSecond);
     }
@@ -81,6 +83,7 @@ export function createFirstPersonCamera(
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
   const verticalMotionObserver = scene.onBeforeRenderObservable.add(() => {
+    if (!isInputEnabled()) return;
     const deltaSeconds = Math.min(scene.getEngine().getDeltaTime() / 1_000, MAX_FRAME_SECONDS);
     camera.cameraDirection.y += verticalMotion.update(deltaSeconds, isGrounded());
   });

@@ -8,6 +8,8 @@ import type {
 } from "../survival/thermal/ThermalState";
 import type { InteractionResult } from "../interaction/InteractionResult";
 import { INTERACTION_CONFIG } from "../interaction/InteractionConfig";
+import { CRAFTING_INPUT_CONFIG } from "../crafting/CraftingConfig";
+import { BUILDING_INPUT_CONFIG } from "../building/BuildingConfig";
 import { formatInteractionPrompt, type InteractionTarget } from "../interaction/InteractionTarget";
 import type { InventorySnapshot } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
@@ -34,6 +36,9 @@ const THERMAL_TREND_LABELS: Readonly<Record<ThermalTrend, string>> = Object.free
 
 export interface FoundationUi {
   readonly modes: GameUiModeController;
+  showLoading(stage: string): void;
+  setLoadingStage(stage: string): void;
+  hideLoading(): void;
   showReady(): void;
   showError(message: string): void;
   updateDebugHud(
@@ -46,11 +51,27 @@ export interface FoundationUi {
   dispose(): void;
 }
 
+interface FoundationUiCallbacks {
+  readonly onSimulationPausedChanged: (paused: boolean) => void;
+}
+
 /** 将基础启动界面与 Pointer Lock 入口连接起来。 */
-export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
+export function setupFoundationUi(
+  canvas: HTMLCanvasElement,
+  callbacks: FoundationUiCallbacks,
+): FoundationUi {
   const startScreen = getElement("start-screen");
   const enterButton = getElement<HTMLButtonElement>("enter-button");
+  const loadingOverlay = getElement("loading-overlay");
+  const loadingStage = getElement("loading-stage");
   const hud = getElement("hud");
+  const playerMenu = getElement("player-menu");
+  const playerMenuCloseButton = getElement<HTMLButtonElement>("player-menu-close-button");
+  const inventoryTabButton = getElement<HTMLButtonElement>("player-tab-inventory");
+  const craftingTabButton = getElement<HTMLButtonElement>("player-tab-crafting");
+  const buildingTabButton = getElement<HTMLButtonElement>("player-tab-building");
+  const pauseMenu = getElement("pause-menu");
+  const resumeButton = getElement<HTMLButtonElement>("resume-button");
   const errorScreen = getElement("error-screen");
   const errorMessage = getElement("error-message");
   const debugTime = getElement("debug-time");
@@ -79,11 +100,12 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const inventorySlots = getElement("inventory-slots");
   const pickupFeedback = getElement("pickup-feedback");
   let feedbackTimeout: number | undefined;
+  let suppressEscapeUntil = 0;
   const modes = new GameUiModeController(canvas);
 
   const requestControl = (): void => {
-    if (modes.mode !== "gameplay") return;
-    void canvas.requestPointerLock();
+    if (modes.mode === "main_menu") modes.startGame();
+    else if (modes.mode === "gameplay") void canvas.requestPointerLock();
   };
 
   const closeMenusAndResume = (): void => modes.resumeGameplay();
@@ -91,53 +113,101 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   enterButton.addEventListener("click", requestControl);
   canvas.addEventListener("click", requestControl);
   const handlePointerLockChange = (): void => {
-    const isPlaying = document.pointerLockElement === canvas;
-    const isMenuOpen = modes.isMenuOpen();
-    startScreen.hidden = isPlaying || isMenuOpen;
-    hud.hidden = !isPlaying && !isMenuOpen;
-    if (isPlaying) {
+    if (document.pointerLockElement === canvas) {
       canvas.focus({ preventScroll: true });
-    } else if (!isMenuOpen) {
-      if (modes.mode === "gameplay") {
-        inventoryPanel.hidden = true;
-        craftingPanel.hidden = true;
-        buildingPanel.hidden = true;
-        campfirePanel.hidden = true;
-      }
+    } else if (modes.mode === "gameplay") {
+      suppressEscapeUntil = performance.now() + 250;
+      modes.pauseFromPointerUnlock();
     }
   };
-  const handleInventoryKeyDown = (event: KeyboardEvent): void => {
-    if (
-      event.code !== INTERACTION_CONFIG.inventoryKeyCode
-      || event.repeat
-      || (document.pointerLockElement !== canvas
-        && !modes.isMenuOpen())
-    ) return;
-    event.preventDefault();
-    if (modes.mode === "inventory_menu") modes.resumeGameplay();
-    else modes.openMenu("inventory_menu");
+  const handleShellKeyDown = (event: KeyboardEvent): void => {
+    if (event.repeat) return;
+    if (event.code === "Escape") {
+      if (modes.mode === "build_placement") return;
+      if (performance.now() < suppressEscapeUntil) return;
+      if (["gameplay", "player_menu", "interaction_menu", "paused"].includes(modes.mode)) {
+        event.preventDefault();
+        modes.handleEscape();
+      }
+      return;
+    }
+    if (event.code === INTERACTION_CONFIG.inventoryKeyCode) {
+      if (modes.mode !== "gameplay" && modes.mode !== "player_menu") return;
+      event.preventDefault();
+      modes.toggleInventoryMenu();
+      return;
+    }
+    if (event.code === CRAFTING_INPUT_CONFIG.toggleKeyCode) {
+      if (modes.mode !== "gameplay" && modes.mode !== "player_menu") return;
+      event.preventDefault();
+      modes.openPlayerMenu("crafting");
+      return;
+    }
+    if (event.code === BUILDING_INPUT_CONFIG.toggleKeyCode) {
+      if (modes.mode !== "gameplay" && modes.mode !== "player_menu") return;
+      event.preventDefault();
+      modes.openPlayerMenu("building");
+    }
   };
-  const unsubscribeMode = modes.subscribe((mode) => {
-    inventoryPanel.hidden = mode !== "inventory_menu";
-    craftingPanel.hidden = mode !== "crafting_menu";
-    buildingPanel.hidden = mode !== "building_menu";
-    campfirePanel.hidden = mode !== "campfire_menu";
+  const openPlayerTab = (tab: "inventory" | "crafting" | "building"): void =>
+    modes.openPlayerMenu(tab);
+  const unsubscribeMode = modes.subscribe((state) => {
+    const { mode, playerMenuTab } = state;
+    startScreen.hidden = mode !== "main_menu";
+    hud.hidden = mode === "boot" || mode === "main_menu";
+    playerMenu.hidden = mode !== "player_menu";
+    pauseMenu.hidden = mode !== "paused";
+    inventoryPanel.hidden = mode !== "player_menu" || playerMenuTab !== "inventory";
+    craftingPanel.hidden = mode !== "player_menu" || playerMenuTab !== "crafting";
+    buildingPanel.hidden = mode !== "player_menu" || playerMenuTab !== "building";
+    campfirePanel.hidden = mode !== "interaction_menu";
+    for (const [button, tab] of [
+      [inventoryTabButton, "inventory"],
+      [craftingTabButton, "crafting"],
+      [buildingTabButton, "building"],
+    ] as const) {
+      const selected = playerMenuTab === tab;
+      button.setAttribute("aria-selected", selected ? "true" : "false");
+      button.tabIndex = selected ? 0 : -1;
+    }
+    callbacks.onSimulationPausedChanged(mode === "boot" || mode === "main_menu" || mode === "paused");
     if (modes.isMenuOpen()) hud.dataset.menuOpen = "true";
     else delete hud.dataset.menuOpen;
     hud.dataset.mode = mode;
   });
   inventoryCloseButton.addEventListener("click", closeMenusAndResume);
+  playerMenuCloseButton.addEventListener("click", closeMenusAndResume);
+  resumeButton.addEventListener("click", closeMenusAndResume);
+  const inventoryTabClick = (): void => openPlayerTab("inventory");
+  const craftingTabClick = (): void => openPlayerTab("crafting");
+  const buildingTabClick = (): void => openPlayerTab("building");
+  inventoryTabButton.addEventListener("click", inventoryTabClick);
+  craftingTabButton.addEventListener("click", craftingTabClick);
+  buildingTabButton.addEventListener("click", buildingTabClick);
   document.addEventListener("pointerlockchange", handlePointerLockChange);
-  window.addEventListener("keydown", handleInventoryKeyDown);
+  window.addEventListener("keydown", handleShellKeyDown);
 
   return {
     modes,
+    showLoading(stage: string): void {
+      setTextIfChanged(loadingStage, stage);
+      loadingOverlay.hidden = false;
+    },
+    setLoadingStage(stage: string): void {
+      setTextIfChanged(loadingStage, stage);
+    },
+    hideLoading(): void {
+      loadingOverlay.hidden = true;
+    },
     showReady(): void {
       enterButton.disabled = false;
-      enterButton.querySelector("span")?.replaceChildren("进入测试区域");
+      enterButton.querySelector("span")?.replaceChildren("开始游戏");
+      loadingOverlay.hidden = true;
+      modes.showMainMenu();
     },
     showError(message: string): void {
       startScreen.hidden = true;
+      loadingOverlay.hidden = true;
       hud.hidden = true;
       errorMessage.textContent = message;
       errorScreen.hidden = false;
@@ -249,8 +319,13 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
       enterButton.removeEventListener("click", requestControl);
       canvas.removeEventListener("click", requestControl);
       inventoryCloseButton.removeEventListener("click", closeMenusAndResume);
+      playerMenuCloseButton.removeEventListener("click", closeMenusAndResume);
+      resumeButton.removeEventListener("click", closeMenusAndResume);
+      inventoryTabButton.removeEventListener("click", inventoryTabClick);
+      craftingTabButton.removeEventListener("click", craftingTabClick);
+      buildingTabButton.removeEventListener("click", buildingTabClick);
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
-      window.removeEventListener("keydown", handleInventoryKeyDown);
+      window.removeEventListener("keydown", handleShellKeyDown);
       unsubscribeMode();
       if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);
     },

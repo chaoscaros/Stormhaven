@@ -326,7 +326,7 @@ Recipe 必须 Data Driven，至少包含：
 
 ## 9. 当前仓库真实状态
 
-基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1、Building Foundation v0.1 和 Campfire Gameplay + Fuel v0.1 已经建立，目前包含：
+基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1、Shelter + Heat Source、Interaction + Item + Inventory、Crafting、Building、Campfire + Fuel 和 Game Shell + Unified Menu + Pause v0.1 已经建立，目前包含：
 
 - Vite + TypeScript 严格模式
 - Babylon.js 9 与 Havok Physics 依赖
@@ -340,7 +340,7 @@ Recipe 必须 Data Driven，至少包含：
 - 显式 Babylon Collision Coordinator 注册
 - 米/秒 Camera Speed 换算、Pointer Lock 后 Canvas 聚焦
 - 四个无玩法含义的雪地控制校准标杆
-- Pointer Lock 启动界面
+- 正式标题界面、真实初始化 Loading Overlay Contract 与开始前 Simulation Pause
 - 基础 HUD、天气 Debug HUD 和错误提示
 - 纯 GameClock、Pause、Time Scale 和后台 Delta Clamp
 - Data Driven WeatherDefinition、WeatherCatalog 和 Runtime Validation
@@ -363,19 +363,22 @@ Recipe 必须 Data Driven，至少包含：
 - 6 个 JSON Scenario World Pickup、Primitive Mesh 与 Registry
 - 2.75m Camera Forward Interaction Raycast、Target/Result 和 E 单次拾取
 - 24 Slot/30kg 纯 Inventory、Stack、Weight 和 Partial Add Transaction
-- Tab 键只读 Inventory 菜单，打开时释放 Pointer Lock 并支持鼠标关闭
+- 单一 Game Shell State：Boot/Main/Gameplay/Player/Interaction/BuildPlacement/Paused
+- Tab/C/B 统一 Player Survival Menu，通过 Inventory/Crafting/Building Tab 共享实时库存
+- E Campfire 独立 Interaction Menu、Esc 层级、Pause Menu 与 Pointer Lock 同步
+- Pause 冻结 GameTime/Weather/Thermal/Campfire Fuel，并卸载玩家移动输入
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
 - Requirement/Missing Inputs/Max Count、草稿 Inventory 与原子 Craft Commit
-- C 键鼠标式 Crafting Debug UI，可点击配方/制作/关闭；方向键/Enter 为辅助输入
+- 统一生存菜单的 Crafting Tab，可点击配方/制作；方向键/Enter 为辅助输入
 - BuildDefinition/Catalog、木制地基/墙体/篝火 JSON 与 Runtime Validation
-- B 键鼠标 Building Menu、Gameplay/Menu/BuildPlacement 单一输入状态
+- 生存菜单 Building Tab、Gameplay/PlayerMenu/BuildPlacement 单一输入状态
 - Camera Forward Ground Ray、单一 Ghost、2m Grid、Foundation Edge Wall Snap、R 旋转与 5m 距离限制
 - AABB 静态/动态重叠校验、Inventory Draft 原子资源消费与 Presentation 失败回滚
 - 当前会话 WorldBuildingRegistry、动态 Babylon Camera Collision 和动态降水障碍 add/remove/update
 - FuelCatalog、wood 180 秒/件、Campfire 900 秒容量与稳定状态机
 - 篝火原子建造/加柴、点燃/熄灭/耗尽、E 鼠标菜单和动态 HeatSource → Thermal 链路
 - 真实秒且暂停感知的燃料消耗、基础石圈/木柴/火焰/点光源表现
-- 32 个测试文件、220 个单元/集成测试
+- 34 个测试文件、227 个单元/集成测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -390,6 +393,7 @@ Recipe 必须 Data Driven，至少包含：
 - Building 扩展：Roof、Door、Window、二楼/Support Graph、Upgrade、Damage、Repair、Demolish
 - 自建建筑 Shelter Enclosure/Room Detection
 - IndexedDB Save
+- Load/Continue、Save Slot、Autosave、Settings 与完整 Loading Pipeline
 - 完整地图内容
 - 音效和最终美术
 
@@ -489,10 +493,16 @@ src/main.ts
 - `pnpm exec tsc -b --pretty false`：通过。
 - `git diff --check`：通过。
 
+2026-08-31 完成 Game Shell + Unified Menu + Pause v0.1 后实际执行并通过：
+
+- `pnpm test`：34 个测试文件、227 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+- `git diff --check`：通过。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
 - 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
-- Weather Presentation、Shelter/Heat/Thermal、Pickup、Tab/C/B/E 篝火菜单、Building/Campfire Ghost/交互/动态热量/降水阻挡与 14:00 → 18:00 的实时流程仍需要手动验收。
+- 标题页冻结、开始游戏、Pointer Lock、统一 Tab/实时库存、Esc 层级、Pause 全链，以及原有 Weather/Shelter/Building/Campfire 流程仍需要浏览器手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 
 仓库已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。

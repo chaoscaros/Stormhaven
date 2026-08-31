@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Campfire Gameplay + Fuel v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Game Shell + Unified Menu + Pause v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：在 Building Foundation 上已完成 Data Driven Fuel/Campfire、篝火建造与原子回滚、E 鼠标菜单、加柴/点燃/熄灭/真实秒燃烧、动态 HeatSource、Thermal 集成和基础火焰表现；固定常开测试炉已移除
-- 明确未实现：Shelter Enclosure、Roof/Door/Window、Building Upgrade/Damage、Demolish/Repair、Cooking/Ash、Storage/Container、Tool Gameplay、Wetness、Save/IndexedDB
+- 功能状态：已完成正式标题页、真实初始化 Loading Contract、单一 Game Shell State、Tab/C/B 统一生存菜单、E Interaction Menu、Esc 优先级和真正 Pause/Resume；暂停会冻结 GameTime/Weather/Thermal/Campfire Fuel 并卸载玩家输入
+- 明确未实现：Save/IndexedDB、Load/Continue、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
 
@@ -23,7 +23,11 @@
 - 显式 Babylon Collision Coordinator 注册
 - 米/秒到 Babylon Camera Speed 的集中换算
 - Pointer Lock 后 Canvas 聚焦与四个控制校准标杆
-- 指针锁定启动界面、HUD 和错误提示
+- 正式标题界面、真实初始化 Loading Overlay、HUD 和错误提示
+- 单一 Boot/Main/Gameplay/Player/Interaction/BuildPlacement/Paused Shell State
+- Player Menu 的 Inventory/Crafting/Building Tab、快捷键路由与实时 Inventory 联动
+- Esc 层级、Pointer Lock 主动/意外释放同步和 Pause Menu
+- Boot/Main/Pause 的 Simulation Pause；非 Gameplay/Placement 的 Camera Input Detach
 - 基础配置单元测试
 - 中文 README、游戏设计、技术设计和协作规范
 - 后续模块目录占位
@@ -77,7 +81,7 @@
 - CampfireSystem 的原子加柴、点燃、熄灭、重燃、燃料耗尽与动态 HeatSource 生命周期
 - E 篝火鼠标菜单、稳定反馈、石圈/木柴/火焰/点光源状态表现
 - 燃料和 Thermal 共用 Clamp 后真实 Delta；Pause 为零且不受 `timeScale=240` 影响
-- 32 个测试文件、220 个单元与集成测试
+- 34 个测试文件、227 个单元与集成测试
 
 ## 关键架构入口
 
@@ -95,7 +99,7 @@
 | `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
 | `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换和基础 DOM 状态 |
-| `src/ui/GameUiModeController.ts` | Gameplay/Menu/BuildPlacement 单一状态与 Pointer Lock 契约 |
+| `src/ui/GameUiModeController.ts` | 纯 Game Shell State、Player Tab 路由与 Pointer Lock 契约 |
 | `src/items/ItemCatalog.ts` | Item JSON 校验、重复 ID 检查与稳定查询 |
 | `src/inventory/Inventory.ts` | Babylon/DOM 无关的 Slot、Stack、Weight 与 Partial Add |
 | `src/crafting/RecipeCatalog.ts` | Recipe JSON 校验、重复/未知 Item 检查与稳定 ID 查询 |
@@ -123,7 +127,7 @@
 | `src/interaction/InteractionRaycastController.ts` | Babylon Ray Picking、E 输入与监听器生命周期 |
 | `src/world/pickups/WorldPickupRegistry.ts` | Pickup 剩余数量与消费状态，不持有 Mesh |
 | `src/world/pickups/WorldPickupPresentation.ts` | Primitive Mesh、Target ID 映射与 dispose |
-| `data/items/items.json` | 8 个稳定 ID 的物品定义 |
+| `data/items/items.json` | 9 个稳定 ID 的物品定义 |
 | `data/world/first-blizzard-pickups.json` | 6 个 Scenario Pickup Placement |
 | `src/weather/WeatherCatalog.ts` | 天气定义验证、重复检查和稳定 ID 查询 |
 | `src/weather/WeatherManager.ts` | 当前天气与 Transition Domain 状态 |
@@ -268,12 +272,18 @@ pnpm dev
 - `pnpm test`：32 个测试文件、220 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 完成 Game Shell + Unified Menu + Pause v0.1 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：34 个测试文件、227 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
 - Pickup 墙体遮挡、Prompt 距离、E 单次拾取、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
-- Tab 背包与 C 制作菜单打开后释放鼠标、鼠标点击关闭/选择配方/制作、关闭后恢复第一人称控制、菜单互斥和 E 屏蔽均需用户手动验收。
-- B Building Menu 的鼠标操作、Tab/C/B 互斥、Pointer Lock 切换、Ghost 跟随、木屋边缘 Grid 对齐、Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
+- 统一生存菜单的 Tab/C/B 路由、鼠标切页、实时库存联动、关闭后恢复 Pointer Lock 和 E 屏蔽均需用户手动验收。
+- Building Tab 到 BuildPlacement 的 Pointer Lock、Ghost 跟随、木屋边缘 Grid 对齐、Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
 - 正式 Foundation/Wall 的实际 Camera Collision、站立/跳跃，以及暴雪粒子被动态建筑 AABB 阻挡均需用户手动验收。
 - 固定测试木屋入口新增门框后的辨识度、开放通行和无误碰撞仍需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃，以及暴雪中室外/无火屋内/玩家篝火旁差异仍需用户手动验收。
@@ -281,6 +291,8 @@ pnpm dev
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
 - 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
+- 标题页期间时间冻结、开始后的 Pointer Lock、统一 Tab 切换、共享库存即时联动、Esc 各层优先级、Pause Input 屏蔽与 Pause/Resume 全链仍需用户浏览器验收。
+- Loading Overlay 只在真实异步初始化期间显示，速度较快时可能一闪而过；实际可见性需用户确认。
 
 仓库当前已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。
 
@@ -299,7 +311,7 @@ pnpm dev
 - 固定木屋不是 Building System；原常开测试炉已移除，正常运行时热量只来自点燃的玩家篝火。
 - Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
 - Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
-- 当前输入契约为 Gameplay Pointer Lock、Menu Mouse Cursor 与 BuildPlacement Pointer Lock 三种模式，统一由 GameUiModeController 管理。
+- 当前输入契约由单一 Game Shell State 管理；Player Menu 内只有一个 active Tab，Campfire 为独立 Interaction Menu。
 - Building 当前只有木制地基、墙体和篝火、Ground、2m Foundation Grid 与一级 Foundation Edge Snap；没有 Roof、Door、Window、二楼或 Support Graph。
 - 玩家建筑只进入 WorldBuildingRegistry、Camera Collision 和降水障碍，不进入 ShelterSystem；自建房间没有挡风/温度加成。
 - WorldBuildingRegistry 只存在内存，刷新页面后玩家建筑消失；没有 Save、Demolish、Repair、Upgrade 或 Building Damage。
@@ -309,6 +321,7 @@ pnpm dev
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
 - Thermal 与 Campfire Fuel 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；Pause 时均为零，未来系统增多时可评估 Fixed Simulation Tick。
 - Campfire 当前只有 wood 单一 Fuel、即时点火和基础 Primitive 表现；没有点火物、烹饪、灰烬、烟雾伤害、音效或存档。
+- Pause Menu 的保存、设置和返回标题明确 Disabled；没有伪造行为。完整 Session Reset、Save/Load 与 Loading Pipeline 尚未实现。
 
 ## 推荐下一步
 
@@ -317,6 +330,18 @@ pnpm dev
 推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — Game Shell + Unified Menu + Pause v0.1
+
+- 将旧 Pointer Lock 启动器升级为第一场暴雪标题页；Runtime 初始化完成前显示真实阶段 Loading Overlay，开始前 Simulation 保持暂停。
+- 将 GameUiModeController 重构为单一纯状态机：Boot、Main Menu、Gameplay、Player Menu、Interaction Menu、Build Placement、Paused；Player Menu 内部使用 Inventory/Crafting/Building Tab。
+- Tab 打开背包或关闭整个 Player Menu，C/B 直接打开或切换对应 Tab；三个 Tab 始终读取同一 Inventory，事务后及 Tab 激活时刷新。
+- Campfire 保持独立 Interaction Menu；统一视觉、鼠标与关闭契约，不与 Player Menu 叠加。
+- 实现 Esc 优先级和 Pointer Lock 意外释放 Pause；Pause Menu 的保存、设置、返回标题均明确 Disabled。
+- Boot/Main/Pause 复用 `GameSimulation.setPaused`，冻结 GameTime、Forecast/Weather、Thermal 和 Campfire Fuel；Camera 在非 Gameplay/BuildPlacement 时 detach。
+- 新增纯 Shell State 和 Pause Integration 测试；最终 34 个测试文件、227 个测试通过。
+- `pnpm exec tsc -b --pretty false`、`pnpm test` 与 `git diff --check` 已通过；未执行 dev/build/preview 或浏览器操作。
+- 严格停止；未实现 IndexedDB、Save/Load/Continue、Settings 或完整 Loading Pipeline。
 
 ### 2026-08-31 — Campfire Gameplay + Fuel v0.1
 

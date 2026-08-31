@@ -36,6 +36,7 @@ export class Game {
   #interaction: InteractionRaycastController | undefined;
   #buildingPresentation: BuildingPresentation | undefined;
   #buildingPlacement: BuildingPlacementController | undefined;
+  #unsubscribeUiMode: (() => void) | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -63,7 +64,20 @@ export class Game {
   async start(): Promise<void> {
     const world = await createWorldScene(this.#engine);
     this.#scene = world.scene;
-    const camera = createFirstPersonCamera(world.scene, this.canvas);
+    const isPlayerInputEnabled = (): boolean =>
+      this.uiModes.mode === "gameplay" || this.uiModes.mode === "build_placement";
+    const camera = createFirstPersonCamera(world.scene, this.canvas, isPlayerInputEnabled);
+    let controlsAttached = true;
+    this.#unsubscribeUiMode = this.uiModes.subscribe(() => {
+      const shouldAttach = isPlayerInputEnabled();
+      if (shouldAttach === controlsAttached) return;
+      if (shouldAttach) camera.attachControl(this.canvas, true);
+      else {
+        camera.detachControl();
+        camera.cameraDirection.setAll(0);
+      }
+      controlsAttached = shouldAttach;
+    });
     this.#worldPickups = new WorldPickupPresentation(
       world.scene,
       this.gameplay.pickupPlacements,
@@ -139,6 +153,8 @@ export class Game {
 
   dispose(): void {
     window.removeEventListener("resize", this.#handleResize);
+    this.#unsubscribeUiMode?.();
+    this.#unsubscribeUiMode = undefined;
     this.#buildingPlacement?.dispose();
     this.#buildingPlacement = undefined;
     this.#buildingPresentation?.dispose();

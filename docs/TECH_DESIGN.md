@@ -35,7 +35,7 @@ src/main.ts
   ├─ building/                    Definition、Placement、Snap、Atomic Transaction 与 World Registry
   ├─ building/presentation/       单 Ghost、正式 Mesh、Camera Collision 与障碍注册
   ├─ world/pickups/               Pickup Registry、Placement 与 Babylon Presentation
-  └─ ui/setupFoundationUi.ts      仅 DOM 的基础界面适配
+  └─ ui/                           Game Shell State、DOM Menu Renderers 与 Pointer Lock 适配
 ```
 
 `Game` 是小型编排器，不是业务 God Class。后续模块应该通过窄接口、事件或服务通信。确定性的游戏规则应尽可能独立于 Babylon 和 DOM。
@@ -70,6 +70,28 @@ src/main.ts
 
 `src/save` 等其余功能目录在当前阶段仍只是预留边界。
 
+## Game Shell + Unified Menu + Pause
+
+`GameUiStateMachine` 是 DOM/Babylon 无关的唯一顶层 Shell State，`GameUiModeController` 只负责把它连接到 Pointer Lock：
+
+```text
+boot → main_menu → gameplay
+                      ├─ player_menu ─┬─ inventory
+                      │               ├─ crafting
+                      │               └─ building
+                      ├─ interaction_menu（campfire）
+                      ├─ build_placement
+                      └─ paused
+```
+
+Player Menu Tab 是 `player_menu` 的子路由，不是三套顶层 Overlay State。Tab 在 Gameplay 打开 Inventory，Player Menu 已打开时关闭整个菜单；C/B 打开或切换到对应 Tab。Interaction Menu 记录 Target Type/ID，与 Player Menu 互斥。所有 UI renderer 读取同一个 Inventory，事务完成或 Tab 激活时轻量刷新，不在 Render Loop 重建 DOM。
+
+Esc 优先级为 BuildPlacement → Interaction Menu → Player Menu → Gameplay Pause → Resume。BuildPlacement 保留自身 Ghost 清理入口，其他 Esc 由 Shell 集中路由。Pointer Lock 主动释放前先切换 Shell Mode，因此 `pointerlockchange` 不会误判；Gameplay 中浏览器意外释放 Pointer Lock 会进入 Pause，并短暂抑制同一次 Esc 的重复处理。
+
+Main Menu 出现前 Runtime 已完成异步 World/Havok 初始化，但 `GameSimulation` 从 Boot 起保持 Pause；点击开始才进入 Gameplay、恢复 Simulation 并请求 Pointer Lock。Paused/Main Menu/Boot 会调用 `GameSimulation.setPaused(true)`；只有 Paused 是运行中暂停。Pause 时 GameClock、Forecast/Weather、Thermal 和所有 Runtime System（包括 Campfire Fuel）均接收零推进量。Camera 在非 Gameplay/BuildPlacement Mode 下 detach，阻止 WASD、Jump 和 Look。
+
+`setupFoundationUi` 暴露 `showLoading(stage) / setLoadingStage(stage) / hideLoading()` 窄契约，仅显示真实初始化阶段文本，不提供虚假百分比或延时。未来 Loading Pipeline v0.1 才负责 Config、Save、GLB、Texture、Audio、Scene、World Restore 的真实进度。
+
 ## Building Foundation
 
 Building 与 Crafting 是共享 Inventory 的独立链路：
@@ -91,7 +113,7 @@ data/building/buildings.json
 
 `WorldBuildingRegistry` 只保存纯 `WorldBuilding`、Bounds 与 SnapPoint，不持有 Mesh。Ghost 不进入 Registry、不参与碰撞、不参与 Picking。正式篝火由 `CampfireBuildingBinding` 创建独立 Gameplay State 和 Interaction Target；其他玩家建筑仍没有 Interaction Target。所有状态仅存在当前运行会话，且不会自动注册为 Shelter。
 
-输入统一为单一 `GameUiMode`：`gameplay / inventory_menu / crafting_menu / building_menu / build_placement / campfire_menu`。Tab/C/B/E 篝火菜单互斥并释放 Pointer Lock；Building Menu 点击结构件后恢复 Pointer Lock 并进入 BuildPlacement。放置中左键确认、R 旋转、B/Esc 退出，世界 E Interaction 被屏蔽。
+输入统一由 Game Shell Mode 与 Player Menu Tab 路由；Building Tab 点击结构件后恢复 Pointer Lock 并进入 BuildPlacement。放置中左键确认、R 旋转、B/Esc 退出，世界 E Interaction 被屏蔽。
 
 动态降水依赖保持窄接口：
 
@@ -137,11 +159,11 @@ Add 前先同时计算现有 Stack 空位、新 Slot 空位和剩余重量可接
 
 事务流程为 `Plan → Clone Inventory → Consume Inputs on Draft → Add Outputs on Draft → Validate Final Snapshot → Commit Snapshot`。真实 Inventory 在 Plan 阶段完全不变；材料、Slot、Weight、Station 或耗时语义任一失败都会丢弃草稿。输入消耗释放出的 Slot 和重量自然参与输出容量判断，不使用危险 rollback。
 
-当前配方只有 `stick ×2 + stone ×2 → stone_axe ×1`，且 `craftTimeSeconds=0`。C 键 Debug Panel 读取 `CraftRequirementResult`，不直接查询/修改 Inventory。Tab/C 打开菜单前先写入 HUD Menu State，再退出 Pointer Lock；因此 `pointerlockchange` 会保持 HUD/Panel 可见并显示鼠标。配方、制作和关闭均可点击，方向键/Enter 只作为辅助输入。关闭菜单后从用户点击或快捷键事件恢复 Pointer Lock；所有 listener 均在 dispose 时移除。
+当前配方只有 `stick ×2 + stone ×2 → stone_axe ×1`，且 `craftTimeSeconds=0`。统一生存菜单的 Crafting Tab 读取 `CraftRequirementResult`，不直接查询/修改 Inventory。配方、制作均可点击，方向键/Enter 只作为辅助输入；所有 listener 均在 dispose 时移除。
 
 Crafting 只定义 `Inventory Items → Inventory Items`。Building 已独立定义 `Inventory Materials / BuildDefinition → World Building Entity`，建筑不需要先成为 Inventory Item。石斧 Definition 的 durability 只是最大值元数据，未来 Tool Gameplay 引入 Item Instance State 时需另行设计 Runtime Durability。
 
-Inventory、Crafting 和 Building 共用菜单交互契约：菜单打开时游戏保留渲染与 HUD，但释放第一人称 Pointer Lock；菜单元素显式启用 pointer events；关闭或进入 BuildPlacement 时重新请求 Pointer Lock。不得把需要点击的菜单放在锁定鼠标状态内。
+Inventory、Crafting 和 Building 共用一个 Player Menu 容器：菜单打开时保留渲染与 HUD，但释放 Pointer Lock；菜单元素显式启用 pointer events；关闭或进入 BuildPlacement 时重新请求 Pointer Lock。Campfire 使用相同视觉/鼠标契约，但属于独立 Interaction Menu。
 
 ## Game Time 与 Runtime
 
@@ -323,7 +345,7 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 32 个测试文件、220 个测试。Campfire 新增覆盖 Fuel 配置、初始状态、加柴原子性、容量边界、点燃/熄灭/重燃、耗尽 Clamp、30/60/120 FPS 一致性、动态 HeatSource 生命周期、远近热量、交互映射、Building 回滚、固定墙体/玩家重叠和无固定热源 Thermal 集成。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
+当前共 34 个测试文件、227 个测试。Game Shell 新增覆盖 Boot/Main/Gameplay、Player Menu Tabs、Interaction/Pause 互斥、Esc 优先级、BuildPlacement Esc，以及 Pause 同时冻结/恢复 GameTime、Thermal 和 Campfire Fuel。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
 
 ## Weather Presentation 已知边界
 

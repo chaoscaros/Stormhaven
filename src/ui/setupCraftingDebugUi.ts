@@ -17,7 +17,6 @@ interface CraftingDebugUiCallbacks {
 
 /** 鼠标优先的 Debug Crafting UI；所有规则均读取 CraftingService 结果。 */
 export function setupCraftingDebugUi(
-  canvas: HTMLCanvasElement,
   service: CraftingService,
   recipes: RecipeCatalog,
   items: ItemCatalog,
@@ -71,12 +70,6 @@ export function setupCraftingDebugUi(
     }
   };
 
-  const open = (): void => {
-    modes.openMenu("crafting_menu");
-    feedback.hidden = true;
-    render();
-  };
-
   const closeAndResume = (): void => modes.resumeGameplay();
 
   const craftSelectedRecipe = (): void => {
@@ -102,21 +95,7 @@ export function setupCraftingDebugUi(
 
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.repeat) return;
-    if (event.code === CRAFTING_INPUT_CONFIG.toggleKeyCode) {
-      if (
-        modes.mode === "build_placement"
-        || (document.pointerLockElement !== canvas && !modes.isMenuOpen())
-      ) return;
-      event.preventDefault();
-      if (modes.mode !== "crafting_menu") open();
-      else closeAndResume();
-      return;
-    }
-    if (modes.mode !== "crafting_menu") return;
-    if (event.code === CRAFTING_INPUT_CONFIG.closeKeyCode) {
-      closeAndResume();
-      return;
-    }
+    if (modes.mode !== "player_menu" || modes.playerMenuTab !== "crafting") return;
     if (
       event.code === CRAFTING_INPUT_CONFIG.previousRecipeKeyCode
       || event.code === CRAFTING_INPUT_CONFIG.nextRecipeKeyCode
@@ -135,12 +114,13 @@ export function setupCraftingDebugUi(
   window.addEventListener("keydown", handleKeyDown);
   closeButton.addEventListener("click", closeAndResume);
   actionButton.addEventListener("click", craftSelectedRecipe);
-  const unsubscribeMode = modes.subscribe((mode) => {
-    panel.hidden = mode !== "crafting_menu";
+  const unsubscribeMode = modes.subscribe((state) => {
+    panel.hidden = state.mode !== "player_menu" || state.playerMenuTab !== "crafting";
+    if (!panel.hidden) render();
   });
 
   return {
-    isOpen: () => modes.mode === "crafting_menu",
+    isOpen: () => modes.mode === "player_menu" && modes.playerMenuTab === "crafting",
     refresh(): void {
       if (!panel.hidden) render();
     },

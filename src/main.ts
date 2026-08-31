@@ -13,17 +13,21 @@ if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error("Stormhaven 需要一个 id 为 'game-canvas' 的画布元素。");
 }
 
-const ui = setupFoundationUi(canvas);
 const survivalEnvironment = createFirstBlizzardSurvivalEnvironment();
 const gameplay = createFirstBlizzardGameplayFoundation(survivalEnvironment.heatSourceSystem);
 const simulation = createFirstBlizzardSimulation(
   survivalEnvironment,
   Object.freeze([gameplay.campfireSystem]),
 );
+const ui = setupFoundationUi(canvas, {
+  onSimulationPausedChanged(paused): void {
+    simulation.setPaused(paused);
+  },
+});
+ui.showLoading("正在初始化游戏世界……");
 ui.updateDebugHud(simulation.snapshot);
 ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
 const craftingUi = setupCraftingDebugUi(
-  canvas,
   gameplay.craftingService,
   gameplay.recipeCatalog,
   gameplay.itemCatalog,
@@ -49,7 +53,6 @@ const campfireUi = setupCampfireUi(
 );
 let game: Game | undefined;
 const buildingUi = setupBuildingDebugUi(
-  canvas,
   gameplay.buildCatalog,
   gameplay.inventory,
   gameplay.itemCatalog,
@@ -93,6 +96,7 @@ game = new Game(
 );
 
 try {
+  ui.setLoadingStage("正在创建世界与天气系统……");
   await game.start();
   ui.showReady();
 } catch (error: unknown) {

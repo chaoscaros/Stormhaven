@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1、Building Foundation v0.1，以及 Campfire Gameplay + Fuel v0.1：
+当前已完成现代桌面浏览器技术基础、与渲染解耦的时间/天气 Domain、独立 Weather Presentation Layer、纯逻辑 Player Thermal Model、Shelter + Heat Source、Interaction + Item + Inventory、Crafting、Building、Campfire + Fuel，以及 Game Shell + Unified Menu + Pause v0.1：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -55,9 +55,9 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 暴雪中室外失温、无火木屋内减缓失温、点燃篝火旁回暖的纯领域链路
 - 降水粒子被屋顶、墙体和地面拦截，但仍可从开放入口随风飘入
 - 玩家可在 2.75m 内对准场景资源并按 E 拾取；Prompt 会显示物品名和数量，实体墙体会正常遮挡墙后的资源
-- 8 类物品由 JSON 定义，第一场暴雪场景放置 6 个少量测试资源
+- 9 类物品由 JSON 定义，第一场暴雪场景放置 6 个少量测试资源
 - 24 Slot / 30kg 背包支持 Stack 和容量/重量限制下的 Partial Add
-- Tab 背包与 C 制作栏进入菜单态并释放第一人称鼠标，可点击内容与关闭；这仍是 Debug UI，不包含拖放或物品使用
+- 背包、制造与建造已整合为统一生存菜单 Tab，菜单态释放第一人称鼠标；Inventory 仍只读，不包含拖放或物品使用
 - 玩家可徒手将树枝 ×2 与石头 ×2 即时制作成石斧 ×1
 - 制作面板明确展示所需/持有数量、缺失材料、产出和失败原因
 - 石斧只证明“收集材料 → 制作成品”链路，不可装备、挥舞、砍树或消耗耐久
@@ -70,13 +70,19 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 对准篝火按 E 打开鼠标菜单；每份木材提供 180 个真实燃烧秒，容量 900 秒，可点燃、熄灭和重新点燃
 - 只有 `burning` 篝火提供热量；`unlit`、`out_of_fuel`、熄灭、移除或燃料耗尽均不提供热量
 - 低模石圈、木柴、火焰和暖色点光源表达状态；规则状态不由视觉对象持有
+- 标题界面完成真实 Runtime 初始化后才允许开始；开始前游戏时间、天气、体热和燃料不推进
+- Tab/C/B 进入同一个生存菜单，通过背包、制造和建造 Tab 查看同一份实时 Inventory
+- E 篝火仍是世界对象 Interaction Menu，不混入玩家全局菜单
+- Esc 优先退出建造放置、篝火菜单或生存菜单；Gameplay 中才打开暂停菜单
+- Pause 释放鼠标并冻结 GameTime、Weather Schedule、Thermal 与 Campfire Fuel；继续后恢复
+- Loading Overlay 只展示真实初始化阶段，不伪造百分比
 - 可重复执行的类型检查、测试和生产构建
 
 当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。Thermal Reserve 是游戏化资源，不是医学核心体温。
 
-Tab Inventory、C Crafting、B Building Menu 与 E Campfire Menu 互斥；菜单态释放 Pointer Lock，选择建筑后进入锁定鼠标的 BuildPlacement。Building 直接执行 `Inventory Materials → World Building Entity`，不制作 Wall Item、Foundation Item 或 Campfire Item。
+Tab Inventory、C Crafting 与 B Building 是统一 Player Survival Menu 的三个子 Tab；E Campfire 是独立 Interaction Menu。它们和 Pause/BuildPlacement 由单一 Shell State 互斥管理。菜单态释放 Pointer Lock，选择建筑后进入锁定鼠标的 BuildPlacement。
 
-Campfire Gameplay + Fuel v0.1 只验证“收集材料 → 放置篝火 → 加柴 → 点火/熄火 → 燃烧耗时 → 动态供热 → Thermal 反馈”。没有灰烬、烹饪、点火工具、燃料种类差异、拆除、维修、伤害或存档；自建结构转化为 Shelter Zone 必须留给独立 Building Enclosure Issue。
+Game Shell + Unified Menu + Pause v0.1 只完成“标题 → 开始会话 → Gameplay → 统一生存菜单/对象交互 → 真正暂停/恢复”。保存、读取、继续游戏、存档槽、自动保存、设置和正式 Asset Loading Pipeline 均未实现；自建结构转化为 Shelter Zone 仍留给独立 Issue。
 
 ## 非目标
 

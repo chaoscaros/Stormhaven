@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1、Building Foundation v0.1，以及 Campfire Gameplay + Fuel v0.1**。玩家可收集石头和木材放置篝火，通过交互菜单加柴、点燃或熄灭，并由燃烧中的篝火动态提供热量；工具使用、存档和自建建筑 Shelter 判定尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的**基础工程、时间/天气、Weather Presentation、Player Thermal、Shelter + Heat Source、Interaction + Item + Inventory、Crafting、Building、Campfire + Fuel，以及 Game Shell + Unified Menu + Pause v0.1**。玩家从正式标题界面开始会话，通过统一生存菜单管理背包、制造与建造，并可用 Esc 真正暂停时间、天气、体热和篝火燃料；存档与读取尚未实现。
 
 ## 当前完成内容
 
@@ -15,7 +15,10 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 第一人称鼠标视角、WASD 移动、Shift 奔跑、Space 跳跃
 - Babylon Collision Coordinator 与米/秒 Camera Speed 换算
 - 用于手动确认控制效果的雪地校准标杆
-- 基础启动界面与 HUD
+- 正式第一版标题界面、真实初始化 Loading Overlay Contract 与 HUD
+- 单一 Game Shell State：Boot、Main Menu、Gameplay、Player Menu、Interaction Menu、Build Placement、Paused
+- Tab/C/B 统一生存菜单及背包/制造/建造 Tab；三个页面共享同一 Inventory
+- Esc 状态优先级与 Pause Menu；暂停时冻结 GameTime、Weather、Thermal、Campfire Fuel 并卸载玩家输入
 - 确定性的 GameClock、暂停和 Time Scale
 - Data Driven WeatherDefinition、WeatherCatalog 和 WeatherManager
 - 基于游戏时间的 WeatherTransition 与 ForecastSystem
@@ -40,7 +43,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - `Tab` 键只读 Inventory 菜单；打开时释放 Pointer Lock，可用鼠标查看和关闭
 - Data Driven Recipe、Runtime Validation、需求预览与最大可制作数量
 - 草稿 Inventory 模拟输入消耗和输出加入，完整成功后原子提交
-- `C` 键 Crafting Debug Panel；鼠标点击配方、制作和关闭，键盘操作保留为补充
+- 生存菜单制造 Tab 支持鼠标选择配方和制作，方向键/Enter 保留为补充
 - 石斧真实配方：树枝 ×2 + 石头 ×2 → 石斧 ×1
 - JSON 驱动的木制地基/墙体/篝火、BuildCatalog 与 Runtime Validation
 - `B` 键鼠标建造菜单、半透明 Ghost、与固定木屋外沿对齐的 2m Grid Snap、Foundation Edge Wall Snap 与 `R` 旋转
@@ -69,7 +72,7 @@ pnpm install
 pnpm dev
 ```
 
-默认打开 `http://localhost:9999`。如果该端口被占用，请以 Vite 终端实际输出的地址为准。点击「进入测试区域」后锁定鼠标。
+默认打开 `http://localhost:9999`。如果该端口被占用，请以 Vite 终端实际输出的地址为准。等待初始化完成后点击「开始游戏」锁定鼠标。
 
 | 输入 | 操作 |
 | --- | --- |
@@ -78,14 +81,14 @@ pnpm dev
 | `Space` | 跳跃 |
 | `Shift` | 奔跑 |
 | `E` | 拾取准星对准的物资；使用准星对准的篝火 |
-| `Tab` | 打开/关闭只读 Inventory 菜单并切换鼠标控制 |
-| `C` | 打开/关闭 Crafting 菜单并切换鼠标控制 |
-| `B` | 打开建造菜单；放置中退出建造模式 |
+| `Tab` | 打开背包 Tab；生存菜单已打开时关闭整个菜单 |
+| `C` | 直接打开或切换到生存菜单的制造 Tab |
+| `B` | 直接打开或切换到建造 Tab；放置中退出建造模式 |
 | 鼠标点击 | 选择配方、制作、操作篝火、关闭菜单 |
 | 建造放置中左键 | 确认放置并消耗材料 |
 | `R` | 建造放置中按配置步长旋转 Ghost |
 | `↑` / `↓` / `Enter` | Crafting 菜单的辅助键盘操作 |
-| `Esc` | 释放鼠标 |
+| `Esc` | 关闭当前菜单/放置；Gameplay 中暂停；暂停时继续 |
 | `F1` / `F2` / `F3` / `F4` | 仅预览晴朗 / 多云 / 降雪 / 暴雪视觉 |
 | `F5` | 退出视觉预览，恢复跟随天气计划 |
 
@@ -114,4 +117,4 @@ Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe J
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 Campfire/Fuel、Building/Crafting，也不要实现 Shelter Enclosure、Demolish、Repair、Roof、Door、Window、Storage、Wetness、工具使用、容器或存档。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 Game Shell、Campfire/Fuel、Building/Crafting，也不要实现 Save/Load/Continue、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Wetness 或工具使用。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
