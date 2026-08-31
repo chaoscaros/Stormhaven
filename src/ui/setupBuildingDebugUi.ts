@@ -3,6 +3,8 @@ import type { BuildDefinition } from "../building/BuildingTypes";
 import type { Inventory } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { GameUiModeController } from "./GameUiModeController";
+import type { HotbarModel } from "./hotbar/HotbarModel";
+import { setupHotbarEditor } from "./hotbar/setupHotbarEditor";
 
 export interface BuildingDebugUi {
   refresh(): void;
@@ -21,6 +23,7 @@ export function setupBuildingDebugUi(
   inventory: Inventory,
   items: ItemCatalog,
   modes: GameUiModeController,
+  hotbar: HotbarModel,
   callbacks: BuildingDebugUiCallbacks,
 ): BuildingDebugUi {
   const panel = getElement("building-panel");
@@ -34,10 +37,21 @@ export function setupBuildingDebugUi(
   const selectButton = getElement<HTMLButtonElement>("building-select-button");
   const placementStatus = getElement("building-placement-status");
   const crosshair = getElement("crosshair");
+  const hotbarEditorRoot = getElement("building-hotbar-editor");
   const definitionList = definitions.getAll();
   let selectedIndex = 0;
 
   const getSelected = (): BuildDefinition | undefined => definitionList[selectedIndex];
+  const hotbarEditor = setupHotbarEditor({
+    root: hotbarEditorRoot,
+    model: hotbar,
+    items,
+    builds: definitions,
+    getEntryToAssign: () => {
+      const definition = getSelected();
+      return definition ? { type: "build", id: definition.id } : undefined;
+    },
+  });
 
   const render = (): void => {
     const definition = getSelected();
@@ -70,6 +84,7 @@ export function setupBuildingDebugUi(
     for (const [index, button] of [...definitionListElement.querySelectorAll("button")].entries()) {
       button.setAttribute("aria-current", index === selectedIndex ? "true" : "false");
     }
+    hotbarEditor.refresh();
   };
 
   const definitionButtons = definitionList.map((definition, index) => {
@@ -132,6 +147,7 @@ export function setupBuildingDebugUi(
       closeButton.removeEventListener("click", close);
       selectButton.removeEventListener("click", select);
       unsubscribeMode();
+      hotbarEditor.dispose();
       definitionButtons.forEach(({ button, handleClick }) =>
         button.removeEventListener("click", handleClick));
     },

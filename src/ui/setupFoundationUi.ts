@@ -15,6 +15,9 @@ import type { InventorySnapshot } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { ItemCategory } from "../items/ItemDefinition";
 import { GameUiModeController } from "./GameUiModeController";
+import type { BuildCatalog } from "../building/BuildCatalog";
+import type { HotbarModel } from "./hotbar/HotbarModel";
+import { setupHotbarEditor } from "./hotbar/setupHotbarEditor";
 
 const WEATHER_LABELS: Readonly<Record<WeatherId, string>> = Object.freeze({
   clear: "晴朗",
@@ -62,6 +65,9 @@ export interface FoundationUi {
 
 interface FoundationUiCallbacks {
   readonly onSimulationPausedChanged: (paused: boolean) => void;
+  readonly hotbar: HotbarModel;
+  readonly itemCatalog: ItemCatalog;
+  readonly buildCatalog: BuildCatalog;
 }
 
 /** 将基础启动界面与 Pointer Lock 入口连接起来。 */
@@ -119,11 +125,21 @@ export function setupFoundationUi(
   const inventoryDetailDescription = getElement("inventory-detail-description");
   const inventoryDetailQuantity = getElement("inventory-detail-quantity");
   const inventoryDetailWeight = getElement("inventory-detail-weight");
+  const inventoryHotbarEditor = getElement("inventory-hotbar-editor");
   const pickupFeedback = getElement("pickup-feedback");
   let feedbackTimeout: number | undefined;
   let suppressEscapeUntil = 0;
   let selectedInventoryItemId: string | undefined;
   const modes = new GameUiModeController(canvas);
+  const hotbarEditor = setupHotbarEditor({
+    root: inventoryHotbarEditor,
+    model: callbacks.hotbar,
+    items: callbacks.itemCatalog,
+    builds: callbacks.buildCatalog,
+    getEntryToAssign: () => selectedInventoryItemId
+      ? { type: "item", id: selectedInventoryItemId }
+      : undefined,
+  });
 
   const requestControl = (): void => {
     if (modes.mode === "main_menu") modes.startGame();
@@ -321,6 +337,7 @@ export function setupFoundationUi(
         inventoryItems.replaceChildren(empty);
         selectedInventoryItemId = undefined;
         renderEmptyInventoryDetail();
+        hotbarEditor.refresh();
       } else {
         if (!selectedInventoryItemId || !totals.has(selectedInventoryItemId)) {
           selectedInventoryItemId = totals.keys().next().value;
@@ -353,6 +370,7 @@ export function setupFoundationUi(
               candidate.dataset.selected = candidate === button ? "true" : "false";
             }
             renderInventoryDetail(itemId, quantity, catalog);
+            hotbarEditor.refresh();
           });
           row.append(button);
           fragment.append(row);
@@ -364,6 +382,7 @@ export function setupFoundationUi(
             totals.get(selectedInventoryItemId) ?? 0,
             catalog,
           );
+          hotbarEditor.refresh();
         }
       }
       setTextIfChanged(
@@ -394,6 +413,7 @@ export function setupFoundationUi(
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
       window.removeEventListener("keydown", handleShellKeyDown);
       unsubscribeMode();
+      hotbarEditor.dispose();
       if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);
     },
   };

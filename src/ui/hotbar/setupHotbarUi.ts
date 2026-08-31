@@ -26,19 +26,23 @@ export function setupHotbarUi(
   items: ItemCatalog,
   builds: BuildCatalog,
   modes: GameUiModeController,
+  model: HotbarModel,
   callbacks: HotbarUiCallbacks,
 ): HotbarUi {
   const root = getElement("hotbar");
-  const model = new HotbarModel();
-  const buttonBindings = model.slots.map((slot) => createSlotButton(slot));
+  const buttonBindings = model.slots.map((slot) => createSlotButton(slot.slotIndex));
   const clickHandlers = new Map<HTMLButtonElement, () => void>();
   root.replaceChildren(...buttonBindings.map(({ button }) => button));
 
   const render = (): void => {
-    for (const { slot, button, quantity } of buttonBindings) {
-      const selected = slot.slotIndex === model.selectedIndex;
+    for (const { slotIndex, button, icon, label, quantity } of buttonBindings) {
+      const slot = model.slots[slotIndex] as HotbarSlot;
+      const selected = slotIndex === model.selectedIndex;
       button.dataset.selected = selected ? "true" : "false";
       button.setAttribute("aria-pressed", selected ? "true" : "false");
+      button.setAttribute("aria-label", describeEntry(slot.entry));
+      icon.dataset.icon = iconId(slot.entry);
+      label.textContent = entryDisplayName(slot.entry);
       if (slot.entry.type === "item") {
         const count = inventory.getItemCount(slot.entry.id);
         quantity.textContent = count > 0 ? `${count}` : "0";
@@ -62,9 +66,9 @@ export function setupHotbarUi(
     activateSelection(selection.slot.entry);
   };
 
-  for (const { slot, button } of buttonBindings) {
+  for (const { slotIndex, button } of buttonBindings) {
     const handleClick = (): void => {
-      if (isHotbarGameplayMode(modes.mode)) select(slot.slotIndex);
+      if (isHotbarGameplayMode(modes.mode)) select(slotIndex);
     };
     button.addEventListener("click", handleClick);
     clickHandlers.set(button, handleClick);
@@ -90,6 +94,7 @@ export function setupHotbarUi(
   const unsubscribeMode = modes.subscribe((state) => {
     root.hidden = !isHotbarGameplayMode(state.mode);
   });
+  const unsubscribeModel = model.subscribe(render);
   window.addEventListener("keydown", handleKeyDown);
   canvas.addEventListener("wheel", handleWheel, { passive: false });
   render();
@@ -100,6 +105,7 @@ export function setupHotbarUi(
       window.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("wheel", handleWheel);
       unsubscribeMode();
+      unsubscribeModel();
       for (const { button } of buttonBindings) {
         const handleClick = clickHandlers.get(button);
         if (handleClick) button.removeEventListener("click", handleClick);
@@ -107,17 +113,20 @@ export function setupHotbarUi(
     },
   };
 
-  function createSlotButton(slot: HotbarSlot): {
-    readonly slot: HotbarSlot;
+  function createSlotButton(slotIndex: number): {
+    readonly slotIndex: number;
     readonly button: HTMLButtonElement;
+    readonly icon: HTMLElement;
+    readonly label: HTMLElement;
     readonly quantity: HTMLElement;
   } {
+    const slot = model.slots[slotIndex] as HotbarSlot;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "hotbar__slot";
     button.setAttribute("aria-label", describeEntry(slot.entry));
     const key = document.createElement("kbd");
-    key.textContent = `${slot.slotIndex + 1}`;
+    key.textContent = `${slotIndex + 1}`;
     const icon = document.createElement("span");
     icon.className = "ui-icon";
     icon.dataset.icon = iconId(slot.entry);
@@ -128,7 +137,7 @@ export function setupHotbarUi(
     const quantity = document.createElement("strong");
     quantity.className = "hotbar__quantity";
     button.append(key, icon, label, quantity);
-    return { slot, button, quantity };
+    return { slotIndex, button, icon, label, quantity };
   }
 
   function entryDisplayName(entry: HotbarEntry): string {

@@ -52,4 +52,29 @@ describe("HotbarModel", () => {
     expect(isHotbarGameplayMode("interaction_menu")).toBe(false);
     expect(isHotbarGameplayMode("paused")).toBe(false);
   });
+
+  it("可以覆盖槽位为物品或建筑，并可单独清空", () => {
+    const model = new HotbarModel();
+    expect(model.assign(0, { type: "item", id: "wood" })).toBe(true);
+    expect(model.slots[0]?.entry).toEqual({ type: "item", id: "wood" });
+    expect(model.assign(7, { type: "build", id: "wall_wood" })).toBe(true);
+    expect(model.slots[7]?.entry).toEqual({ type: "build", id: "wall_wood" });
+    expect(model.clear(0)).toBe(true);
+    expect(model.slots[0]?.entry).toEqual({ type: "empty" });
+  });
+
+  it("槽位修改通知订阅者，无变化与越界操作保持安全", () => {
+    const model = new HotbarModel();
+    let notifications = 0;
+    const unsubscribe = model.subscribe(() => { notifications += 1; });
+    expect(notifications).toBe(1);
+    expect(model.assign(0, { type: "build", id: "foundation_wood" })).toBe(true);
+    expect(notifications).toBe(1);
+    expect(model.assign(0, { type: "item", id: "stone" })).toBe(true);
+    expect(notifications).toBe(2);
+    expect(model.clear(99)).toBe(false);
+    expect(model.assign(-1, { type: "item", id: "wood" })).toBe(false);
+    expect(notifications).toBe(2);
+    unsubscribe();
+  });
 });

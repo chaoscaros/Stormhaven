@@ -8,6 +8,7 @@ import { setupBuildingDebugUi } from "./ui/setupBuildingDebugUi";
 import { createFirstBlizzardSurvivalEnvironment } from "./core/simulation/createFirstBlizzardSurvivalEnvironment";
 import { setupCampfireUi } from "./ui/setupCampfireUi";
 import { setupHotbarUi } from "./ui/hotbar/setupHotbarUi";
+import { HotbarModel } from "./ui/hotbar/HotbarModel";
 
 const canvas = document.getElementById("game-canvas");
 if (!(canvas instanceof HTMLCanvasElement)) {
@@ -20,14 +21,19 @@ const simulation = createFirstBlizzardSimulation(
   survivalEnvironment,
   Object.freeze([gameplay.campfireSystem]),
 );
+const hotbar = new HotbarModel();
 const ui = setupFoundationUi(canvas, {
   onSimulationPausedChanged(paused): void {
     simulation.setPaused(paused);
   },
+  hotbar,
+  itemCatalog: gameplay.itemCatalog,
+  buildCatalog: gameplay.buildCatalog,
 });
 ui.showLoading("正在初始化游戏世界……");
 ui.updateDebugHud(simulation.snapshot);
 ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
+let hotbarUi: ReturnType<typeof setupHotbarUi> | undefined;
 const craftingUi = setupCraftingDebugUi(
   gameplay.craftingService,
   gameplay.recipeCatalog,
@@ -36,6 +42,7 @@ const craftingUi = setupCraftingDebugUi(
   {
     onInventoryChanged(): void {
       ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
+      hotbarUi?.refresh();
     },
   },
 );
@@ -49,6 +56,7 @@ const campfireUi = setupCampfireUi(
     onInventoryChanged(): void {
       ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
       craftingUi.refresh();
+      hotbarUi?.refresh();
     },
   },
 );
@@ -58,6 +66,7 @@ const buildingUi = setupBuildingDebugUi(
   gameplay.inventory,
   gameplay.itemCatalog,
   ui.modes,
+  hotbar,
   {
     onSelect(definitionId): void {
       game?.beginBuildingPlacement(definitionId);
@@ -77,6 +86,7 @@ game = new Game(
       craftingUi.refresh();
       buildingUi.refresh();
       campfireUi.refresh();
+      hotbarUi?.refresh();
     },
     onUseTarget(target): void {
       if (target.interactionType === "campfire") campfireUi.open(target.campfireId);
@@ -91,16 +101,18 @@ game = new Game(
       buildingUi.refresh();
       craftingUi.refresh();
       campfireUi.refresh();
+      hotbarUi?.refresh();
     },
   },
   ui.updateDebugHud,
 );
-const hotbarUi = setupHotbarUi(
+hotbarUi = setupHotbarUi(
   canvas,
   gameplay.inventory,
   gameplay.itemCatalog,
   gameplay.buildCatalog,
   ui.modes,
+  hotbar,
   {
     onBuildSelected(definitionId): void {
       game?.beginBuildingPlacement(definitionId);
@@ -126,7 +138,7 @@ const disposeApplication = (): void => {
   disposed = true;
   window.removeEventListener("beforeunload", disposeApplication);
   game?.dispose();
-  hotbarUi.dispose();
+  hotbarUi?.dispose();
   campfireUi.dispose();
   buildingUi.dispose();
   craftingUi.dispose();

@@ -19,6 +19,8 @@ export interface HotbarSelection {
   readonly changed: boolean;
 }
 
+export type HotbarListener = (slots: readonly HotbarSlot[]) => void;
+
 const EMPTY_ENTRY: HotbarEntry = Object.freeze({ type: "empty" });
 
 export const DEFAULT_HOTBAR_SLOTS: readonly HotbarSlot[] = createHotbarSlots([
@@ -27,9 +29,10 @@ export const DEFAULT_HOTBAR_SLOTS: readonly HotbarSlot[] = createHotbarSlots([
   { type: "build", id: "campfire_basic" },
 ]);
 
-/** DOM/Babylon 无关的固定 8 格快捷栏状态。 */
+/** DOM/Babylon 无关、支持当前会话编辑的 8 格快捷栏状态。 */
 export class HotbarModel {
-  readonly #slots: readonly HotbarSlot[];
+  readonly #listeners = new Set<HotbarListener>();
+  #slots: readonly HotbarSlot[];
   #selectedIndex = 0;
 
   constructor(slots: readonly HotbarSlot[] = DEFAULT_HOTBAR_SLOTS) {
@@ -73,12 +76,39 @@ export class HotbarModel {
     return this.select((this.#selectedIndex + direction + HOTBAR_SLOT_COUNT) % HOTBAR_SLOT_COUNT);
   }
 
+  assign(slotIndex: number, entry: Exclude<HotbarEntry, { readonly type: "empty" }>): boolean {
+    if (!isValidSlotIndex(slotIndex) || entry.id.trim().length === 0) return false;
+    this.#replaceEntry(slotIndex, entry);
+    return true;
+  }
+
+  clear(slotIndex: number): boolean {
+    if (!isValidSlotIndex(slotIndex)) return false;
+    this.#replaceEntry(slotIndex, EMPTY_ENTRY);
+    return true;
+  }
+
+  subscribe(listener: HotbarListener): () => void {
+    this.#listeners.add(listener);
+    listener(this.#slots);
+    return () => this.#listeners.delete(listener);
+  }
+
   #selection(changed: boolean): HotbarSelection {
     return Object.freeze({
       selectedIndex: this.#selectedIndex,
       slot: this.selectedSlot,
       changed,
     });
+  }
+
+  #replaceEntry(slotIndex: number, entry: HotbarEntry): void {
+    const current = this.#slots[slotIndex] as HotbarSlot;
+    if (sameEntry(current.entry, entry)) return;
+    this.#slots = Object.freeze(this.#slots.map((slot, index) => index === slotIndex
+      ? Object.freeze({ slotIndex, entry: Object.freeze({ ...entry }) })
+      : slot));
+    for (const listener of this.#listeners) listener(this.#slots);
   }
 }
 
@@ -103,4 +133,13 @@ function validateSlots(slots: readonly HotbarSlot[]): void {
       throw new Error("Hotbar entryId 不能为空。");
     }
   });
+}
+
+function isValidSlotIndex(index: number): boolean {
+  return Number.isInteger(index) && index >= 0 && index < HOTBAR_SLOT_COUNT;
+}
+
+function sameEntry(first: HotbarEntry, second: HotbarEntry): boolean {
+  return first.type === second.type
+    && (first.type === "empty" || second.type === "empty" || first.id === second.id);
 }

@@ -1821,6 +1821,120 @@ h1 span {
 .campfire-panel__hero .campfire-panel__eyebrow { margin: 0; color: #d7b18b; font-size: 9px; line-height: 1.8; }
 .campfire-panel__body { padding: 20px; }
 
+.hotbar-editor-section {
+  margin-top: 24px;
+  padding-top: 17px;
+  border-top: 1px solid rgba(210, 166, 96, 0.3);
+}
+
+.hotbar-editor-section > header {
+  display: flex !important;
+  align-items: end !important;
+  justify-content: space-between !important;
+  padding: 0 0 11px !important;
+  border: 0 !important;
+}
+
+.hotbar-editor-section > header h3 {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: var(--ice) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.hotbar-editor-section > header p {
+  margin: 5px 0 0;
+  color: rgba(158, 179, 182, 0.58);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
+.hotbar-editor-section > header > span {
+  color: var(--signal);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+}
+
+.hotbar-editor {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 7px;
+}
+
+.hotbar-editor__slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 3px;
+}
+
+.hotbar-editor .hotbar-editor__assign {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  align-items: center;
+  padding: 8px;
+  text-align: left;
+}
+
+.hotbar-editor__assign kbd {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  color: var(--signal);
+  border: 1px solid rgba(210, 166, 96, 0.42);
+  font-size: 8px;
+}
+
+.hotbar-editor__assign span {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotbar-editor__assign small {
+  grid-column: 2;
+  color: rgba(158, 179, 182, 0.45);
+  font-size: 6px;
+  letter-spacing: 0.08em;
+}
+
+.hotbar-editor__assign[data-target="true"] {
+  border-color: rgba(116, 216, 170, 0.55) !important;
+  background: rgba(116, 216, 170, 0.08) !important;
+  box-shadow: inset 2px 0 var(--good);
+}
+
+.hotbar-editor .hotbar-editor__clear {
+  display: grid;
+  min-width: 30px;
+  padding: 0;
+  place-items: center;
+  color: rgba(255, 145, 130, 0.78);
+  font-size: 14px;
+}
+
+.hotbar-editor .hotbar-editor__clear:not(:disabled):hover,
+.hotbar-editor .hotbar-editor__clear:not(:disabled):focus-visible {
+  color: #ffd1ca;
+  border-color: var(--danger);
+  background: rgba(255, 101, 90, 0.12);
+}
+
+.hotbar-editor button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1180px) {
+  .hotbar-editor { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+}
+
 @media (max-height: 700px) {
   .player-menu { inset-block: 24px; }
   .player-menu__header { padding-block: 10px; }
