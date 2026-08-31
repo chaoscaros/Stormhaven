@@ -4,11 +4,11 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 HUD + UX Overhaul v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 HUD + UX Overhaul v0.1 + Phosphor Icon Visual Pass
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
+- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；UI 首批占位图标已统一为本地构建的 Phosphor SVG，Domain 只保存稳定游戏语义 ID；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
 - 明确未实现：Save/IndexedDB、Load/Continue、Hotbar 持久化/多套布局、Equipment/Item Use、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
@@ -32,6 +32,7 @@
 - 8 格 Hotbar 纯逻辑模型、1–8/滚轮选择、默认三项 Build Shortcut、拖入/交换/点击覆盖/清空与 Placement 联动
 - 简化 Player Status HUD 与默认折叠、F6 切换的 Debug Telemetry
 - Inventory 真实 24 Slot Grid、数量角标、Hover/Focus Tooltip 与即时详情；Crafting/Building 图标卡片、详情分区与 Campfire 统一视觉主题
+- `src/ui/icons` 统一 GameIcon Registry、尺寸/权重契约与本地 Phosphor SVG 映射；物品 JSON 不保存库路径
 - 基础配置单元测试
 - 中文 README、游戏设计、技术设计和协作规范
 - 后续模块目录占位
@@ -85,7 +86,7 @@
 - CampfireSystem 的原子加柴、点燃、熄灭、重燃、燃料耗尽与动态 HeatSource 生命周期
 - E 篝火鼠标菜单、稳定反馈、石圈/木柴/火焰/点光源状态表现
 - 燃料和 Thermal 共用 Clamp 后真实 Delta；Pause 为零且不受 `timeScale=240` 影响
-- 36 个测试文件、240 个单元与集成测试
+- 37 个测试文件、243 个单元与集成测试
 
 ## 关键架构入口
 
@@ -103,6 +104,8 @@
 | `src/player/PlayerVerticalMotion.ts` | 与 Babylon 解耦的跳跃和重力计算 |
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
 | `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换、Inventory Slot Grid/Tooltip 和基础 DOM 状态 |
+| `src/ui/icons/GameIcon.ts` | 稳定游戏 Icon ID、Weight、Size 与运行时 ID 守卫 |
+| `src/ui/icons/iconRegistry.ts` | UI 唯一 Phosphor SVG 映射、Weight 回退、渲染与静态 DOM Hydration 入口 |
 | `src/ui/GameUiModeController.ts` | 纯 Game Shell State、Player Tab 路由与 Pointer Lock 契约 |
 | `src/ui/hotbar/HotbarModel.ts` | 8 格 Hotbar 纯状态、覆盖/清空/交换、数字键映射、滚轮回绕与 Mode Gate |
 | `src/ui/hotbar/HotbarDragData.ts` | Inventory/Building/Hotbar 共用的内部拖拽 Payload 写入与校验 |
@@ -192,6 +195,14 @@ pnpm dev
 随后浏览器检查发现 Babylon 模块化导入没有自动注册 Physics Scene Component，导致 `No Physics Engine available.`。已在 `src/world/createWorldScene.ts` 中加入显式物理组件注册，页面可进入启动界面。
 
 之后用户要求所有启动、生产编译、重启和浏览器操作都由用户亲自执行。
+
+2026-08-31 Phosphor Icon Visual Pass 完成后，由用户亲自执行并确认：
+
+- `pnpm install`：成功安装 `@phosphor-icons/core 2.1.1` 并更新 `pnpm-lock.yaml`
+- `pnpm typecheck`：通过，无 TypeScript 错误输出
+- `pnpm test`：37 个测试文件、243 个测试全部通过
+- `pnpm build`：构建成功；`index` 主 Chunk 约 1,344.24 kB，保留既有大 Chunk Warning
+- 用户已重新启动开发服务；AI 未操作浏览器，实际图标渲染、权重、颜色和菜单布局仍需用户浏览器验收
 
 2026-08-29 完成 Game Time + Data Driven Weather Core v0.1 后，实际执行并通过：
 
@@ -310,9 +321,9 @@ pnpm dev
 - `git diff --check`：通过
 - CSS 大括号检查：314/314
 
-仍未执行：
+仍未执行或未由 AI 验收：
 
-- 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
+- 用户已完成本轮 `pnpm build` 并重新启动开发服务；AI 没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
 - Pickup 墙体遮挡、Prompt 距离、E 单次拾取、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
 - 统一生存菜单的 Tab/C/B 路由、鼠标切页、实时库存联动、关闭后恢复 Pointer Lock 和 E 屏蔽均需用户手动验收。
 - Building Tab 到 BuildPlacement 的 Pointer Lock、Ghost 跟随、木屋边缘 Grid 对齐、Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
@@ -365,6 +376,14 @@ pnpm dev
 推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — Phosphor Icon Visual Pass
+
+- 新增 `src/ui/icons/GameIcon.ts` 与 `iconRegistry.ts`，用稳定游戏语义 ID 统一映射 `@phosphor-icons/core` 包内 SVG；不使用 CDN 或运行时外部请求。
+- 替换 Player Menu、9 类物品、3 类建筑、HUD 和 Close/Pause/Resume/Warning/Info 的 CSS 字符占位图标。
+- 统一 Gameplay HUD regular/bold、Hotbar bold/fill、Inventory/Crafting/Building duotone/fill、Tooltip regular 权重；尺寸集中为 16/20/24/32/40/48/64px，颜色通过 `currentColor` 和状态 CSS 控制。
+- `data/items/items.json` 只保存 `wood`、`stone_axe` 等稳定 Icon ID，Domain 未引入 Phosphor；未来可在 Registry 中替换为专用物品美术。
+- 用户亲自完成 `pnpm install`、typecheck、test 与 build：37 个测试文件、243 个测试通过，生产构建成功；仅有既有大 Chunk Warning。用户已重启开发服务，AI 未操作浏览器，图标视觉仍由用户验收。
 
 ### 2026-08-31 — 背包 Slot Grid 与悬停 Tooltip
 

@@ -13,6 +13,8 @@ import {
   readHotbarDragData,
   writeHotbarDragData,
 } from "./HotbarDragData";
+import { resolveGameIconId } from "../icons/GameIcon";
+import { renderGameIcon } from "../icons/iconRegistry";
 
 export interface HotbarUi {
   refresh(): void;
@@ -50,7 +52,10 @@ export function setupHotbarUi(
       button.dataset.selected = selected ? "true" : "false";
       button.setAttribute("aria-pressed", selected ? "true" : "false");
       button.setAttribute("aria-label", describeEntry(slot.entry));
-      icon.dataset.icon = iconId(slot.entry);
+      renderGameIcon(icon, resolveGameIconId(iconId(slot.entry)), {
+        weight: selected ? "fill" : "bold",
+        size: 32,
+      });
       label.textContent = entryDisplayName(slot.entry);
       frame.dataset.empty = slot.entry.type === "empty" ? "true" : "false";
       clearButton.disabled = slot.entry.type === "empty";
@@ -247,8 +252,7 @@ export function setupHotbarUi(
     key.textContent = `${slotIndex + 1}`;
     const icon = document.createElement("span");
     icon.className = "ui-icon";
-    icon.dataset.icon = iconId(slot.entry);
-    icon.setAttribute("aria-hidden", "true");
+    renderGameIcon(icon, resolveGameIconId(iconId(slot.entry)), { weight: "bold", size: 32 });
     const label = document.createElement("span");
     label.className = "hotbar__label";
     label.textContent = entryDisplayName(slot.entry);

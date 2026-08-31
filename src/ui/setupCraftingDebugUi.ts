@@ -4,6 +4,8 @@ import type { CraftResult } from "../crafting/CraftingTypes";
 import type { RecipeCatalog } from "../crafting/RecipeCatalog";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { GameUiModeController } from "./GameUiModeController";
+import { resolveGameIconId } from "./icons/GameIcon";
+import { renderGameIcon } from "./icons/iconRegistry";
 
 export interface CraftingDebugUi {
   isOpen(): boolean;
@@ -30,8 +32,7 @@ export function setupCraftingDebugUi(
   const recipePosition = getElement("crafting-recipe-position");
   const recipeName = getElement("crafting-recipe-name");
   const recipeDescription = getElement("crafting-recipe-description");
-  const detailIcon = document.querySelector<HTMLElement>(".crafting-panel__detail .ui-icon--hero");
-  if (!detailIcon) throw new Error("缺少制作详情图标。");
+  const detailIcon = getElement("crafting-detail-icon");
   const requirements = getElement<HTMLUListElement>("crafting-requirements");
   const output = getElement("crafting-output");
   const status = getElement("crafting-status");
@@ -52,7 +53,10 @@ export function setupCraftingDebugUi(
     recipePosition.textContent = `${selectedIndex + 1} / ${recipeList.length}`;
     recipeName.textContent = recipe.displayName;
     recipeDescription.textContent = recipe.description;
-    detailIcon.dataset.icon = recipe.outputs[0]?.itemId ?? "empty";
+    renderGameIcon(detailIcon, resolveGameIconId(recipe.outputs[0]?.itemId ?? "empty"), {
+      weight: "duotone",
+      size: 64,
+    });
     requirements.replaceChildren(...evaluation.requiredInputs.map((input) => {
       const row = document.createElement("li");
       const name = document.createElement("span");
@@ -70,6 +74,12 @@ export function setupCraftingDebugUi(
     status.dataset.available = evaluation.canCraft ? "true" : "false";
     for (const [index, button] of [...recipeListElement.querySelectorAll("button")].entries()) {
       button.setAttribute("aria-current", index === selectedIndex ? "true" : "false");
+      const icon = button.querySelector<HTMLElement>(".game-icon");
+      const itemId = recipeList[index]?.outputs[0]?.itemId;
+      if (icon) renderGameIcon(icon, resolveGameIconId(itemId), {
+        weight: index === selectedIndex ? "fill" : "duotone",
+        size: 40,
+      });
     }
   };
 
@@ -91,8 +101,10 @@ export function setupCraftingDebugUi(
     button.type = "button";
     const icon = document.createElement("span");
     icon.className = "ui-icon";
-    icon.dataset.icon = recipe.outputs[0]?.itemId ?? "empty";
-    icon.setAttribute("aria-hidden", "true");
+    renderGameIcon(icon, resolveGameIconId(recipe.outputs[0]?.itemId ?? "empty"), {
+      weight: index === selectedIndex ? "fill" : "duotone",
+      size: 40,
+    });
     const copy = document.createElement("span");
     copy.className = "menu-list-card__copy";
     const title = document.createElement("strong");

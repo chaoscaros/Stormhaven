@@ -7,7 +7,7 @@
     "stackSize": 20,
     "weight": 0.8,
     "durability": null,
-    "icon": null,
+    "icon": "wood",
     "tags": ["wood", "fuel_candidate"]
   },
   {
@@ -18,7 +18,7 @@
     "stackSize": 20,
     "weight": 1.5,
     "durability": null,
-    "icon": null,
+    "icon": "stone",
     "tags": ["stone", "material"]
   },
   {
@@ -29,7 +29,7 @@
     "stackSize": 30,
     "weight": 0.25,
     "durability": null,
-    "icon": null,
+    "icon": "stick",
     "tags": ["wood", "material"]
   },
   {
@@ -40,7 +40,7 @@
     "stackSize": 20,
     "weight": 0.1,
     "durability": null,
-    "icon": null,
+    "icon": "cloth",
     "tags": ["fabric", "material"]
   },
   {
@@ -51,7 +51,7 @@
     "stackSize": 15,
     "weight": 1.2,
     "durability": null,
-    "icon": null,
+    "icon": "scrap_metal",
     "tags": ["metal", "material"]
   },
   {
@@ -62,7 +62,7 @@
     "stackSize": 5,
     "weight": 1,
     "durability": null,
-    "icon": null,
+    "icon": "water_bottle",
     "tags": ["water", "sealed"]
   },
   {
@@ -73,7 +73,7 @@
     "stackSize": 10,
     "weight": 0.5,
     "durability": null,
-    "icon": null,
+    "icon": "canned_food",
     "tags": ["food", "sealed"]
   },
   {
@@ -84,7 +84,7 @@
     "stackSize": 5,
     "weight": 0.7,
     "durability": null,
-    "icon": null,
+    "icon": "raw_meat",
     "tags": ["food", "raw"]
   },
   {
@@ -95,7 +95,7 @@
     "stackSize": 1,
     "weight": 1.8,
     "durability": 100,
-    "icon": null,
+    "icon": "stone_axe",
     "tags": ["tool", "crafted"]
   }
 ]

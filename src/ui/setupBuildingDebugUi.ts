@@ -4,6 +4,8 @@ import type { Inventory } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { GameUiModeController } from "./GameUiModeController";
 import { writeHotbarDragData } from "./hotbar/HotbarDragData";
+import { resolveGameIconId } from "./icons/GameIcon";
+import { renderGameIcon } from "./icons/iconRegistry";
 
 export interface BuildingDebugUi {
   refresh(): void;
@@ -45,7 +47,10 @@ export function setupBuildingDebugUi(
     const definition = getSelected();
     if (!definition) return;
     name.textContent = definition.displayName;
-    detailIcon.dataset.icon = definition.id;
+    renderGameIcon(detailIcon, resolveGameIconId(definition.id), {
+      weight: "duotone",
+      size: 64,
+    });
     description.textContent = definition.description;
     const costState = definition.cost.map((cost) => {
       const available = inventory.getItemCount(cost.itemId);
@@ -71,6 +76,12 @@ export function setupBuildingDebugUi(
     selectButton.disabled = !canBuild;
     for (const [index, button] of [...definitionListElement.querySelectorAll("button")].entries()) {
       button.setAttribute("aria-current", index === selectedIndex ? "true" : "false");
+      const icon = button.querySelector<HTMLElement>(".game-icon");
+      const iconId = definitionList[index]?.id;
+      if (icon) renderGameIcon(icon, resolveGameIconId(iconId), {
+        weight: index === selectedIndex ? "fill" : "duotone",
+        size: 40,
+      });
     }
   };
 
@@ -82,8 +93,10 @@ export function setupBuildingDebugUi(
     const title = document.createElement("span");
     const icon = document.createElement("span");
     icon.className = "ui-icon";
-    icon.dataset.icon = definition.id;
-    icon.setAttribute("aria-hidden", "true");
+    renderGameIcon(icon, resolveGameIconId(definition.id), {
+      weight: index === selectedIndex ? "fill" : "duotone",
+      size: 40,
+    });
     const copy = document.createElement("span");
     copy.className = "menu-list-card__copy";
     const meta = document.createElement("small");

@@ -9,6 +9,9 @@ import { createFirstBlizzardSurvivalEnvironment } from "./core/simulation/create
 import { setupCampfireUi } from "./ui/setupCampfireUi";
 import { setupHotbarUi } from "./ui/hotbar/setupHotbarUi";
 import { HotbarModel } from "./ui/hotbar/HotbarModel";
+import { hydrateGameIcons } from "./ui/icons/iconRegistry";
+
+hydrateGameIcons();
 
 const canvas = document.getElementById("game-canvas");
 if (!(canvas instanceof HTMLCanvasElement)) {

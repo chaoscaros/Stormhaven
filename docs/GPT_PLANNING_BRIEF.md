@@ -62,6 +62,7 @@ Stormhaven 最重要的体验不是战斗，而是：
 - Babylon.js
 - Babylon.js Havok Physics
 - HTML、CSS、TypeScript 构建 UI
+- `@phosphor-icons/core` 作为 UI/Presentation 层统一图标源；SVG 随 Vite 构建，不使用运行时 CDN
 - IndexedDB 作为第一阶段存档方案
 - JSON Data Driven 配置
 - pnpm
@@ -371,6 +372,7 @@ Recipe 必须 Data Driven，至少包含：
 - 8 格独立底部 Hotbar；1–8/滚轮选择，初始前三格直接进入木地基、木墙与篝火放置；Player Menu 内物品/建筑卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空
 - 简化 Player Status HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
 - Inventory 真实 24 Slot 多列方格、数量角标、Hover/Focus Tooltip 与即时详情；Crafting/Building 图标卡片、详情区与统一寒地工业主题
+- `src/ui/icons` 以稳定 `GameIconId` 映射 Phosphor SVG；Domain 数据只保存游戏语义 ID，菜单/物品/建筑/HUD/系统首批占位图标已统一且可替换
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
 - Requirement/Missing Inputs/Max Count、草稿 Inventory 与原子 Craft Commit
 - 统一生存菜单的 Crafting Tab，可点击配方/制作；方向键/Enter 为辅助输入
@@ -382,7 +384,7 @@ Recipe 必须 Data Driven，至少包含：
 - FuelCatalog、wood 180 秒/件、Campfire 900 秒容量与稳定状态机
 - 篝火原子建造/加柴、点燃/熄灭/耗尽、E 鼠标菜单和动态 HeatSource → Thermal 链路
 - 真实秒且暂停感知的燃料消耗、基础石圈/木柴/火焰/点光源表现
-- 36 个测试文件、240 个单元/集成测试
+- 37 个测试文件、243 个单元/集成测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -529,9 +531,16 @@ src/main.ts
 - `git diff --check`：通过。
 - CSS 大括号检查：314/314。
 
+2026-08-31 完成 Phosphor Icon Visual Pass 后由用户实际执行并通过：
+
+- `pnpm install`：安装 `@phosphor-icons/core 2.1.1` 并更新 lockfile。
+- `pnpm typecheck`：通过，无错误输出。
+- `pnpm test`：37 个测试文件、243 个测试通过。
+- `pnpm build`：成功；主 Chunk 约 1,344.24 kB，存在既有 Chunk Size Warning。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
-- 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
+- 用户已完成本轮 `pnpm build` 并重新启动开发服务；AI 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
 - 标题页冻结、开始游戏、Pointer Lock、统一 Tab/实时库存、Esc 层级、Pause 全链，以及 Inventory 24 格布局/悬停 Tooltip/即时详情、独立 Hotbar 的拖入/交换/覆盖/清空、F6 遥测和原有 Weather/Shelter/Building/Campfire 流程仍需要浏览器手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 

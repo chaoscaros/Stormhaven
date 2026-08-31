@@ -111,7 +111,11 @@ Debug Telemetry    完整开发遥测，默认隐藏，F6 切换
 
 Crosshair 使用同一 DOM Component 的状态属性表达默认、可交互、Placement Valid 与 Placement Invalid。样式包含深色轮廓和阴影，避免在雪地、深色木墙和低光照中失去对比。BuildPlacement 只显示准星、当前结构名/合法性和左键/R/B/Esc 提示，不展开 Player Menu。
 
-Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/Service。Inventory 直接遍历不可变 Snapshot 的全部 24 个 Slot，按多列方格渲染占用格和空格；物品格 `pointerenter/focus` 同步右侧详情并显示固定定位 Tooltip，`pointerleave/blur` 隐藏，无需点击选择。Tooltip 只读取 ItemCatalog 与当前 Stack，不修改 Inventory。Crafting/Building 继续使用图标卡片、列表与详情区。CSS 几何占位图标不是美术资产系统；Campfire 仍是独立 Interaction Menu，但复用相同的颜色、边框、按钮和间距 Token。
+Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/Service。Inventory 直接遍历不可变 Snapshot 的全部 24 个 Slot，按多列方格渲染占用格和空格；物品格 `pointerenter/focus` 同步右侧详情并显示固定定位 Tooltip，`pointerleave/blur` 隐藏，无需点击选择。Tooltip 只读取 ItemCatalog 与当前 Stack，不修改 Inventory。Crafting/Building 继续使用图标卡片、列表与详情区。Campfire 仍是独立 Interaction Menu，但复用相同的颜色、边框、按钮和间距 Token。
+
+`src/ui/icons/GameIcon.ts` 定义稳定的游戏语义 `GameIconId`、Weight 与集中尺寸 Token；`src/ui/icons/iconRegistry.ts` 是唯一 Phosphor 映射和 SVG 注入入口。Registry 通过 `@phosphor-icons/core` 的包内 SVG `?raw` 导入，只把真正使用的资源交给 Vite 构建，不依赖 CDN 或运行时网络。Gameplay HUD 使用 regular/bold，Hotbar 使用 bold/选中 fill，Inventory/Crafting/Building 使用 duotone/选中 fill，Tooltip 使用 regular。SVG 保持 `currentColor`，颜色由父级状态 CSS 控制。
+
+ItemDefinition 的 `icon` 只允许承载可替换的稳定游戏 Icon ID，例如 `wood` 或 `stone_axe`；Item、Inventory、Crafting、Building 等 Domain 模块不得 import Phosphor。未来专用 Stormhaven 物品美术只需替换 Registry 映射，不改变 Gameplay 数据格式。
 
 ## Building Foundation
 
@@ -366,7 +370,7 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 36 个测试文件、240 个测试。Hotbar 覆盖默认配置、数字键、滚轮、边界、空槽、Item/Build 类型、运行时覆盖/清空/交换、Drag Payload 校验、订阅通知和 Shell Mode 输入门控；共享 Inventory 集成覆盖 Craft/Build 后状态更新。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段由 AI 执行类型检查、测试和 diff 检查，生产构建与浏览器验收由用户执行。
+当前共 37 个测试文件、243 个测试。Hotbar 覆盖默认配置、数字键、滚轮、边界、空槽、Item/Build 类型、运行时覆盖/清空/交换、Drag Payload 校验、订阅通知和 Shell Mode 输入门控；共享 Inventory 集成覆盖 Craft/Build 后状态更新；GameIcon 测试覆盖首批语义 ID、Item JSON 边界和未知 ID 回退。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本轮 typecheck、test 与 build 由用户执行，AI 只执行 diff 检查，浏览器视觉仍由用户验收。
 
 ## Weather Presentation 已知边界
 

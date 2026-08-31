@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链，并完成 **HUD + UX Overhaul v0.1**。正常游玩界面现在使用高对比状态准星、8 格物品/建造快捷栏、简化状态摘要与可切换调试遥测；统一生存菜单以图标卡片和详情区展示背包、制造与建造。存档与读取尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链，并完成 **HUD + UX Overhaul v0.1** 与首轮 **Phosphor Icon Visual Pass**。正常游玩界面现在使用高对比状态准星、8 格物品/建造快捷栏、简化状态摘要与可切换调试遥测；统一生存菜单以图标卡片和详情区展示背包、制造与建造。存档与读取尚未实现。
 
 ## 当前完成内容
 
@@ -23,6 +23,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 8 格独立 Hotbar：初始前三格直达木地基、木墙和篝火；打开 Player Menu 时仍固定在屏幕底部，支持物品/建筑拖入、槽位交换、点击覆盖和独立清空
 - 简化玩家状态 HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
 - Inventory 使用真实 24 Slot 多列方格、数量角标、悬停 Tooltip 与即时详情；Crafting/Building 保持图标卡片和详情区
+- UI 通过 `src/ui/icons` 的稳定游戏语义 ID 统一请求随包构建的 Phosphor SVG；Domain 数据不保存图标库路径，SVG 颜色由 `currentColor` 和状态 CSS 控制
 - 确定性的 GameClock、暂停和 Time Scale
 - Data Driven WeatherDefinition、WeatherCatalog 和 WeatherManager
 - 基于游戏时间的 WeatherTransition 与 ForecastSystem
@@ -123,7 +124,7 @@ pnpm build
 
 `src/core/Game.ts` 只负责 Babylon Engine、Scene、Simulation 与表现控制器的生命周期编排。`GameSimulation` 协调纯逻辑 `GameClock`、`ForecastSystem`、`WeatherManager`、`ShelterSystem`、`HeatSourceSystem` 与 `ThermalModel`；相机位置只以普通 `{x,y,z}` 数据进入模拟，不把 Babylon 类型泄漏到领域层。场景、玩家控制、界面分别放在 `world`、`player`、`ui` 模块中。
 
-Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe JSON → `RecipeCatalog` → `CraftingService` → Inventory Draft → Final Snapshot Commit。Building 运行于 Building JSON → `BuildCatalog` → Placement Validation → Inventory Draft → `WorldBuildingRegistry` → Gameplay Binding/Babylon Presentation。篝火 Binding 将已提交建筑注册到 `CampfireSystem`，燃烧状态再动态启停 `HeatSourceSystem`。UI 不直接增删物品，领域系统不依赖 Babylon 或 DOM。
+Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe JSON → `RecipeCatalog` → `CraftingService` → Inventory Draft → Final Snapshot Commit。Building 运行于 Building JSON → `BuildCatalog` → Placement Validation → Inventory Draft → `WorldBuildingRegistry` → Gameplay Binding/Babylon Presentation。篝火 Binding 将已提交建筑注册到 `CampfireSystem`，燃烧状态再动态启停 `HeatSourceSystem`。UI 图标运行链为稳定 `GameIconId` → `iconRegistry` → 构建期 Phosphor SVG；UI 不直接增删物品，领域系统不依赖 Babylon、DOM 或图标库。
 
 ## 当前阶段限制
 

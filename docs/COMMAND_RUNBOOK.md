@@ -40,6 +40,7 @@ Expected result:
 - pnpm resolves to the version declared by `packageManager`.
 - `pnpm install` creates or updates `pnpm-lock.yaml`.
 - Dependencies are installed into pnpm's managed `node_modules` layout.
+- `@phosphor-icons/core` is installed locally and its selected SVG files are bundled by Vite; the game does not fetch icons from a CDN at runtime.
 
 If Corepack is unavailable, use the environment's approved pnpm installation method. A direct fallback is:
 
@@ -203,6 +204,9 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 75. 按 B 打开建造页，将木制地基、木制墙体或篝火卡片拖到任意槽；也可选择建筑后点击槽位覆盖。关闭菜单后按对应数字键应进入该建筑的放置模式。
 76. 在 Player Menu 内拖拽、点击绑定、交换或清空时，不应进入 BuildPlacement、锁定鼠标或产生 Gameplay 行为；菜单继续允许鼠标交互。
 77. 刷新页面后快捷栏恢复初始前三格建筑、其余为空，这是当前未实现快捷栏持久化的预期行为。
+78. 检查 Player Menu 页签、9 类物品、3 类建筑、HUD 温度/庇护/天气/负重，以及关闭/暂停/继续/警告/信息均显示统一 Phosphor 图标，不再出现 CSS 字符几何占位。
+79. 检查菜单卡片默认是 duotone、选中项切换为 fill；Hotbar 默认 bold、当前槽 fill；Tooltip 为 regular。Hover/Selected/Disabled/Warning 颜色由 UI 状态改变，同一图标不加载白/橙/绿多份资源。
+80. 在浏览器 Network 面板中过滤 `phosphoricons.com` 和常见 CDN 域名，应没有图标运行时请求；断网刷新已构建页面时图标仍应由本地资源显示。
 
 ## CI or reproducible installation
 

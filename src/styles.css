@@ -306,6 +306,9 @@ h1 span {
 }
 
 .player-menu__header > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 6px 10px;
   font-size: 8px;
 }
@@ -326,6 +329,11 @@ h1 span {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.15em;
+}
+
+.player-menu__tabs button > span:not(.game-icon) {
+  margin-right: auto;
+  margin-left: 10px;
 }
 
 .player-menu__tabs button[aria-selected="true"] {
@@ -407,6 +415,11 @@ h1 span {
   letter-spacing: 0.18em;
 }
 
+.pause-menu__icon {
+  margin-bottom: 12px;
+  color: var(--signal);
+}
+
 .pause-menu h2 {
   margin: 0;
   color: var(--signal);
@@ -433,6 +446,10 @@ h1 span {
   font-size: 10px;
   letter-spacing: 0.1em;
   text-align: left;
+}
+
+.pause-menu button .game-icon {
+  margin-right: 9px;
 }
 
 .pause-menu button:first-of-type {
@@ -1436,9 +1453,12 @@ h1 span {
 .player-status__weather,
 .player-status__thermal {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  gap: 7px;
 }
+
+.player-status__weather strong,
+.player-status__thermal i { margin-left: auto; }
 
 .player-status__weather span,
 .player-status__thermal span {
@@ -1676,35 +1696,51 @@ h1 span {
   background:
     linear-gradient(145deg, rgba(216, 229, 230, 0.08), transparent 62%),
     rgba(216, 229, 230, 0.03);
-  font-size: 16px;
-  font-weight: 800;
+}
+
+.game-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: inherit;
   line-height: 1;
 }
 
-.ui-icon::before { content: "·"; }
-.ui-icon[data-icon="empty"] { opacity: 0.2; }
-.ui-icon[data-icon="empty"]::before { content: ""; }
-.ui-icon[data-icon="foundation_wood"]::before { content: "▰"; color: #c99058; transform: scaleX(1.25); }
-.ui-icon[data-icon="wall_wood"]::before { content: "▥"; color: #c99058; }
-.ui-icon[data-icon="campfire_basic"]::before { content: "♨"; color: #ff8b3d; text-shadow: 0 0 9px rgba(255, 100, 34, 0.45); }
-.ui-icon[data-icon="wood"]::before { content: "╱"; color: #c99058; text-shadow: 5px 0 #8d5c35; }
-.ui-icon[data-icon="stone"]::before { content: "◆"; color: #9aa8a8; }
-.ui-icon[data-icon="stick"]::before { content: "╳"; color: #b98755; }
-.ui-icon[data-icon="cloth"]::before { content: "▧"; color: #d5d1bf; }
-.ui-icon[data-icon="scrap_metal"]::before { content: "⚙"; color: #aebabb; }
-.ui-icon[data-icon="water_bottle"]::before { content: "◒"; color: #78c8dd; }
-.ui-icon[data-icon="canned_food"]::before { content: "▣"; color: #d3b975; }
-.ui-icon[data-icon="raw_meat"]::before { content: "◖"; color: #c86f68; }
-.ui-icon[data-icon="stone_axe"]::before { content: "⚒"; color: #d0d9d8; }
+.game-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.game-icon[data-game-icon-size="16"] { width: 16px; height: 16px; }
+.game-icon[data-game-icon-size="20"] { width: 20px; height: 20px; }
+.game-icon[data-game-icon-size="24"] { width: 24px; height: 24px; }
+.game-icon[data-game-icon-size="32"] { width: 32px; height: 32px; }
+.game-icon[data-game-icon-size="40"] { width: 40px; height: 40px; }
+.game-icon[data-game-icon-size="48"] { width: 48px; height: 48px; }
+.game-icon[data-game-icon-size="64"] { width: 64px; height: 64px; }
+
+.game-icon[data-game-icon="empty"] { opacity: 0.2; }
+.game-icon[data-game-icon="foundation_wood"],
+.game-icon[data-game-icon="wall_wood"],
+.game-icon[data-game-icon="wood"],
+.game-icon[data-game-icon="stick"] { color: #c99058; }
+.game-icon[data-game-icon="campfire"],
+.game-icon[data-game-icon="campfire_basic"] { color: #ff8b3d; filter: drop-shadow(0 0 6px rgba(255, 100, 34, 0.3)); }
+.game-icon[data-game-icon="stone"] { color: #9aa8a8; }
+.game-icon[data-game-icon="cloth"] { color: #d5d1bf; }
+.game-icon[data-game-icon="scrap_metal"] { color: #aebabb; }
+.game-icon[data-game-icon="water_bottle"] { color: #78c8dd; }
+.game-icon[data-game-icon="canned_food"] { color: #d3b975; }
+.game-icon[data-game-icon="raw_meat"] { color: #c86f68; }
+.game-icon[data-game-icon="stone_axe"] { color: #d0d9d8; }
+.game-icon[data-game-icon="warning"] { color: var(--danger); }
 
 .ui-icon--hero {
-  width: 78px;
-  height: 78px;
   border-color: rgba(210, 166, 96, 0.35);
   background:
     linear-gradient(145deg, rgba(210, 166, 96, 0.14), transparent 60%),
     rgba(216, 229, 230, 0.035);
-  font-size: 34px;
 }
 
 .crosshair {
@@ -1926,11 +1962,8 @@ h1 span {
 }
 
 .inventory-panel__slot > button .ui-icon {
-  width: 46px;
-  height: 46px;
   border: 0;
   background: transparent;
-  font-size: 24px;
 }
 
 .inventory-panel__slot .inventory-panel__item-count {
@@ -1982,7 +2015,8 @@ h1 span {
 .inventory-tooltip {
   position: fixed;
   display: grid;
-  gap: 7px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 7px 9px;
   width: 210px;
   padding: 12px 13px;
   color: var(--ice);
@@ -1993,6 +2027,9 @@ h1 span {
   pointer-events: none;
   z-index: 30;
 }
+
+.inventory-tooltip > span:not(.game-icon),
+.inventory-tooltip > small { grid-column: 1 / -1; }
 
 .inventory-tooltip[hidden] { display: none; }
 
@@ -2079,6 +2116,6 @@ h1 span {
   .player-menu { top: 24px; bottom: 112px; }
   .player-menu__header { padding-block: 10px; }
   .player-menu__tabs button { min-height: 46px; padding-block: 10px; }
-  .ui-icon--hero { width: 62px; height: 62px; font-size: 27px; }
+  .ui-icon--hero.game-icon { width: 64px; height: 64px; }
   .menu-detail__hero { grid-template-columns: 62px 1fr; }
 }

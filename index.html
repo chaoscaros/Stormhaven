@@ -56,11 +56,14 @@
         </div>
         <aside class="player-status" aria-label="玩家状态摘要">
           <div class="player-status__weather">
+            <span class="game-icon" data-game-icon="weather" data-game-icon-weight="bold" data-game-icon-size="20"></span>
             <span id="status-weather">晴朗</span>
             <strong id="status-time">14:00</strong>
           </div>
           <div class="player-status__thermal">
+            <span class="game-icon" data-game-icon="shelter" data-game-icon-weight="bold" data-game-icon-size="20"></span>
             <span id="status-shelter">室外</span>
+            <span class="game-icon" data-game-icon="temperature" data-game-icon-weight="bold" data-game-icon-size="20"></span>
             <strong id="status-temperature">-5.4℃</strong>
             <i id="status-trend" data-trend="stable">稳定</i>
           </div>
@@ -136,12 +139,12 @@
               <span>SURVIVAL OPERATIONS</span>
               <strong>生存菜单</strong>
             </div>
-            <button id="player-menu-close-button" type="button">返回游戏</button>
+            <button id="player-menu-close-button" type="button"><span class="game-icon" data-game-icon="close" data-game-icon-weight="bold" data-game-icon-size="16"></span>返回游戏</button>
           </header>
           <nav class="player-menu__tabs" role="tablist" aria-label="生存菜单页面">
-            <button id="player-tab-inventory" role="tab" aria-controls="inventory-panel" aria-selected="true" type="button">背包 <kbd>TAB</kbd></button>
-            <button id="player-tab-crafting" role="tab" aria-controls="crafting-panel" aria-selected="false" type="button">制造 <kbd>C</kbd></button>
-            <button id="player-tab-building" role="tab" aria-controls="building-panel" aria-selected="false" type="button">建造 <kbd>B</kbd></button>
+            <button id="player-tab-inventory" role="tab" aria-controls="inventory-panel" aria-selected="true" type="button"><span class="game-icon" data-game-icon="inventory" data-game-icon-weight="fill" data-game-icon-size="24"></span><span>背包</span><kbd>TAB</kbd></button>
+            <button id="player-tab-crafting" role="tab" aria-controls="crafting-panel" aria-selected="false" type="button"><span class="game-icon" data-game-icon="crafting" data-game-icon-weight="duotone" data-game-icon-size="24"></span><span>制造</span><kbd>C</kbd></button>
+            <button id="player-tab-building" role="tab" aria-controls="building-panel" aria-selected="false" type="button"><span class="game-icon" data-game-icon="building" data-game-icon-weight="duotone" data-game-icon-size="24"></span><span>建造</span><kbd>B</kbd></button>
           </nav>
           <div class="player-menu__content">
         <aside id="building-panel" class="building-panel" role="tabpanel" aria-labelledby="player-tab-building" hidden>
@@ -157,7 +160,7 @@
             <section class="building-panel__detail">
               <p class="building-panel__eyebrow">基础结构件 / 当前会话</p>
               <div class="menu-detail__hero">
-                <span id="building-definition-icon" class="ui-icon ui-icon--hero" data-icon="foundation_wood" aria-hidden="true"></span>
+                <span id="building-definition-icon" class="ui-icon ui-icon--hero" data-game-icon="foundation_wood" data-game-icon-weight="duotone" data-game-icon-size="64"></span>
                 <div><h2 id="building-definition-name">木制地基</h2><p id="building-definition-description" class="building-panel__description"></p></div>
               </div>
               <h3>所需材料</h3>
@@ -179,7 +182,7 @@
             <section class="crafting-panel__detail">
               <p class="crafting-panel__eyebrow">即时手工制作</p>
               <div class="menu-detail__hero">
-                <span class="ui-icon ui-icon--hero" data-icon="stone_axe" aria-hidden="true"></span>
+                <span id="crafting-detail-icon" class="ui-icon ui-icon--hero" data-game-icon="stone_axe" data-game-icon-weight="duotone" data-game-icon-size="64"></span>
                 <div><h2 id="crafting-recipe-name">石斧</h2><p id="crafting-recipe-description" class="crafting-panel__description"></p></div>
               </div>
               <section>
@@ -207,12 +210,13 @@
               <li class="inventory-panel__empty">暂无物资</li>
             </ul>
             <div id="inventory-tooltip" class="inventory-tooltip" role="tooltip" hidden>
+              <span id="inventory-tooltip-icon" class="game-icon" data-game-icon="info" data-game-icon-weight="regular" data-game-icon-size="24"></span>
               <strong id="inventory-tooltip-name">物资</strong>
               <span id="inventory-tooltip-meta">类别 · 数量</span>
               <small id="inventory-tooltip-hint">拖到屏幕底部快捷栏</small>
             </div>
             <section class="inventory-panel__detail" aria-live="polite">
-              <span id="inventory-detail-icon" class="ui-icon ui-icon--hero" data-icon="empty" aria-hidden="true"></span>
+              <span id="inventory-detail-icon" class="ui-icon ui-icon--hero" data-game-icon="empty" data-game-icon-weight="duotone" data-game-icon-size="64"></span>
               <p id="inventory-detail-category">物资详情</p>
               <h2 id="inventory-detail-name">选择一件物资</h2>
               <p id="inventory-detail-description">拾取物资后，可在这里查看用途、重量与类别。</p>
@@ -224,7 +228,7 @@
             </section>
           </div>
           <footer>
-            <span>重量 <strong id="inventory-weight">0.0 / 30.0 kg</strong></span>
+            <span><span class="game-icon" data-game-icon="weight" data-game-icon-weight="regular" data-game-icon-size="16"></span>重量 <strong id="inventory-weight">0.0 / 30.0 kg</strong></span>
             <span>槽位 <strong id="inventory-slots">0 / 24</strong></span>
           </footer>
         </aside>
@@ -234,10 +238,10 @@
         <aside id="campfire-panel" class="campfire-panel" aria-label="篝火控制菜单" hidden>
           <header>
             <div><span>THERMAL CONTROL</span><strong>篝火</strong></div>
-            <button id="campfire-close-button" type="button" aria-label="关闭篝火菜单">关闭</button>
+            <button id="campfire-close-button" type="button" aria-label="关闭篝火菜单"><span class="game-icon" data-game-icon="close" data-game-icon-weight="bold" data-game-icon-size="16"></span>关闭</button>
           </header>
           <div class="campfire-panel__body">
-            <div class="campfire-panel__hero"><span class="ui-icon ui-icon--hero" data-icon="campfire_basic" aria-hidden="true"></span><p class="campfire-panel__eyebrow">玩家热源<br />添加燃料后点燃</p></div>
+            <div class="campfire-panel__hero"><span class="ui-icon ui-icon--hero" data-game-icon="campfire_basic" data-game-icon-weight="duotone" data-game-icon-size="64"></span><p class="campfire-panel__eyebrow">玩家热源<br />添加燃料后点燃</p></div>
             <div class="campfire-panel__status-block">
               <span>状态</span>
               <strong id="campfire-status" data-status="unlit">未点燃</strong>
@@ -260,9 +264,10 @@
         </aside>
         <aside id="pause-menu" class="pause-menu" aria-labelledby="pause-title" hidden>
           <p>SESSION CONTROL / DAY 01</p>
+          <span class="game-icon pause-menu__icon" data-game-icon="pause" data-game-icon-weight="bold" data-game-icon-size="48"></span>
           <h2 id="pause-title">已暂停</h2>
           <strong>STORMHAVEN</strong>
-          <button id="resume-button" type="button">继续游戏 <kbd>ESC</kbd></button>
+          <button id="resume-button" type="button"><span class="game-icon" data-game-icon="resume" data-game-icon-weight="bold" data-game-icon-size="20"></span>继续游戏 <kbd>ESC</kbd></button>
           <button type="button" disabled>保存游戏 <small>存档功能将在下一阶段开放</small></button>
           <button type="button" disabled>设置 <small>尚未开放</small></button>
           <button type="button" disabled>返回标题 <small>等待会话重置能力</small></button>
@@ -276,6 +281,7 @@
       </div>
 
       <div id="error-screen" class="error-screen" role="alert" hidden>
+        <span class="game-icon" data-game-icon="warning" data-game-icon-weight="fill" data-game-icon-size="48"></span>
         <strong>启动失败</strong>
         <p id="error-message">Stormhaven 无法完成初始化。</p>
       </div>

@@ -80,6 +80,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - Hotbar 初始前三格为木制地基、木制墙体和篝火；Player Menu 打开时仍作为独立底部 HUD 显示，不嵌入背包/建造弹窗；物品/建筑卡片可拖入任意槽，槽位可交换、点击覆盖并单格清空；1–8 与滚轮只在 Gameplay/BuildPlacement 选择
 - Debug Telemetry 保留完整开发数据但默认隐藏，以 F6 切换；F1–F5 天气预览契约不变
 - Player Menu 的背包使用 Slot Grid + Hover Tooltip + 详情区，制造与建造使用图标卡片 + 详情区，三者仍共享同一实时 Inventory
+- 首轮 UI 图标统一使用随项目构建的 Phosphor SVG：HUD、快捷栏、菜单、物品、建筑和系统操作保持一致权重与状态色；具体物品图标仍是可由 Stormhaven 专用美术替换的占位层
 - 可重复执行的类型检查、测试和生产构建
 
 当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。Thermal Reserve 是游戏化资源，不是医学核心体温。
