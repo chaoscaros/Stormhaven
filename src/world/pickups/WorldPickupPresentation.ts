@@ -32,7 +32,6 @@ export class WorldPickupPresentation {
       mesh.metadata = Object.freeze({ interactionTargetId: placement.pickup.id });
       mesh.isPickable = true;
       mesh.checkCollisions = false;
-      mesh.renderingGroupId = 1;
       this.#meshes.set(placement.pickup.id, mesh);
       catalog.get(placement.pickup.itemId);
     }

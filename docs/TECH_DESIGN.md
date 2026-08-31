@@ -84,7 +84,7 @@ data/building/buildings.json
 
 `BuildDefinition` 使用稳定英文 snake_case ID，包含 category、cost、三轴 size、snapType、rotationStep、collision 和 tags。当前只有 `foundation_wood`（wood ×4、2m × 0.2m × 2m）与 `wall_wood`（wood ×3、2m × 2.4m × 0.18m），不创建可放入 Inventory 的墙/地基 Item。
 
-`PlacementValidator` 是纯逻辑：Foundation 只接受 Ground，并在 2m Grid 上吸附；Wall 必须使用 Foundation 注册的 North/East/South/West `SnapPoint`。最终位置还需满足 5m 距离、Snap 未占用，以及与固定场景和现有 World Building 的 AABB 不重叠。接触边界不算重叠，因此相邻 Foundation 和立于 Foundation 顶边的 Wall 合法。Rotation 统一规范到 `0..359`，只按 Definition Step 递增。
+`PlacementValidator` 是纯逻辑：Foundation 只接受 Ground，并在 2m Grid 上吸附。Grid 原点集中为 `(x=0, z=1)`，与固定测试木屋的外沿 `x=-5/5、z=4/14` 对齐，因此木屋相邻地基可落在 `x=-6/6` 或 `z=3/15` 并以边界接触，不会重叠或留出 1m 间隙。Wall 必须使用 Foundation 注册的 North/East/South/West `SnapPoint`。最终位置还需满足 5m 距离、Snap 未占用，以及与固定场景和现有 World Building 的 AABB 不重叠。接触边界不算重叠，因此相邻 Foundation 和立于 Foundation 顶边的 Wall 合法。Rotation 统一规范到 `0..359`，只按 Definition Step 递增。
 
 `BuildService` 每次确认放置都会重新运行资源与 Placement 校验，不相信菜单缓存。事务为 `Plan → Clone Inventory → Consume Cost on Draft → Prepare Disabled Presentation Candidate → Commit Inventory + Registry → Activate Mesh`。Prepare 或 Activate 失败会释放候选并恢复 Inventory/Registry；失败不吞材料。成功后保持同一 Ghost，允许连续建造，直到资源不足或玩家按 B/Esc 退出。
 
@@ -106,7 +106,7 @@ SnowParticleController ───────read─────────┘
 
 ## Interaction、Item 与 Inventory Foundation
 
-运行链固定为：`Camera → Babylon Raycast → Interaction Target ID → InteractionService → Inventory + WorldPickupRegistry → UI/Babylon Presentation`。Raycast 最大距离集中为 `2.75m`，每帧通过 Predicate 仅测试可交互 Mesh；Mesh metadata 只保存 `interactionTargetId`，不保存 ItemDefinition、Inventory 或 Service。
+运行链固定为：`Camera → Babylon Raycast → Interaction Target ID → InteractionService → Inventory + WorldPickupRegistry → UI/Babylon Presentation`。Raycast 最大距离集中为 `2.75m`，每帧通过 Predicate 仅测试可交互 Mesh；Mesh metadata 只保存 `interactionTargetId`，不保存 ItemDefinition、Inventory 或 Service。Pickup Mesh 使用场景默认 Rendering Group 和 Depth Buffer，因此会被实体墙体遮挡，不得为了强调可交互物而改成隔墙覆盖渲染。
 
 `data/items/items.json` 定义稳定 `id`、展示字段、`category`、`stackSize`、单件 `weight`、可空 `durability`/`icon` 和 `tags`。`ItemCatalog` 在启动时完成结构、重复 ID 和数值边界校验。`ItemStack` 与 Inventory Snapshot 不可变；Inventory 固定 24 Slot / 30kg，重量每次由 `Σ weight × quantity` 推导，不维护可漂移缓存。
 
@@ -304,7 +304,7 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 29 个测试文件、188 个测试。Building 新增覆盖 Definition/引用/数值校验、正负 Grid 边界、Rotation、Ground Foundation、距离/重叠、Foundation Edge Wall、Snap 占用、连续资源消费、资源/Placement/Presentation 三类失败原子性、Obstacle add/remove/update/重复 ID，以及 Building → Dynamic Obstacle → Snow Segment 集成。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
+当前共 29 个测试文件、189 个测试。Building 新增覆盖 Definition/引用/数值校验、正负 Grid 边界、场景对齐 Grid 原点、Rotation、Ground Foundation、距离/重叠、Foundation Edge Wall、Snap 占用、连续资源消费、资源/Placement/Presentation 三类失败原子性、Obstacle add/remove/update/重复 ID，以及 Building → Dynamic Obstacle → Snow Segment 集成。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
 
 ## Weather Presentation 已知边界
 

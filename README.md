@@ -35,7 +35,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 庇护状态、挡风比例、原始/有效风力和热源加成 Debug HUD
 - 局部降水粒子与固定/动态碰撞障碍的路径检测：屋顶、墙体、地面、标杆和玩家建筑会拦截雪花，开放入口仍允许风雪进入
 - 屏幕中央 2.75m Interaction Raycast、`E` 单次拾取与可见 Prompt
-- JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup
+- JSON 驱动的 8 类 Item Definition 与 6 个场景 World Pickup；资源受场景墙体正常遮挡，不使用隔墙覆盖渲染
 - 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
 - `Tab` 键只读 Inventory 菜单；打开时释放 Pointer Lock，可用鼠标查看和关闭
 - Data Driven Recipe、Runtime Validation、需求预览与最大可制作数量
@@ -43,7 +43,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - `C` 键 Crafting Debug Panel；鼠标点击配方、制作和关闭，键盘操作保留为补充
 - 石斧真实配方：树枝 ×2 + 石头 ×2 → 石斧 ×1
 - JSON 驱动的木制地基/墙体、BuildCatalog 与 Runtime Validation
-- `B` 键鼠标建造菜单、半透明 Ghost、2m Grid Snap、Foundation Edge Wall Snap 与 `R` 旋转
+- `B` 键鼠标建造菜单、半透明 Ghost、与固定木屋外沿对齐的 2m Grid Snap、Foundation Edge Wall Snap 与 `R` 旋转
 - 5m 放置距离、静态/动态 AABB 重叠校验和 Inventory 草稿原子资源事务
 - 当前会话内 WorldBuildingRegistry、动态 Camera Collision 与增量降水障碍注册
 - GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup Transaction、Camera Speed 和配置的 Vitest 单元测试

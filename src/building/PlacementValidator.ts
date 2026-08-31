@@ -46,9 +46,17 @@ export class PlacementValidator {
       if (candidate.surface !== "ground") return { reason: "invalid_surface" };
       return Object.freeze({
         position: Object.freeze({
-          x: snapCoordinateToGrid(candidate.position.x, BUILDING_CONFIG.gridSizeMeters),
+          x: snapCoordinateToGrid(
+            candidate.position.x,
+            BUILDING_CONFIG.gridSizeMeters,
+            BUILDING_CONFIG.foundationGridOriginMeters.x,
+          ),
           y: definition.size.y / 2,
-          z: snapCoordinateToGrid(candidate.position.z, BUILDING_CONFIG.gridSizeMeters),
+          z: snapCoordinateToGrid(
+            candidate.position.z,
+            BUILDING_CONFIG.gridSizeMeters,
+            BUILDING_CONFIG.foundationGridOriginMeters.z,
+          ),
         }),
         rotationDegrees: normalizeRotationDegrees(candidate.rotationDegrees),
         surface: "ground" as const,

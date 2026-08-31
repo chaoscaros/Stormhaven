@@ -18,7 +18,7 @@ describe("PlacementValidator", () => {
     expect(result).toMatchObject({
       valid: true,
       reason: "ok",
-      placement: { position: { x: 2, y: 0.1, z: -2 } },
+      placement: { position: { x: 2, y: 0.1, z: -1 } },
     });
   });
 

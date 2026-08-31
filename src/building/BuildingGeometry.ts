@@ -6,11 +6,11 @@ import type {
   WorldBuilding,
 } from "./BuildingTypes";
 
-export function snapCoordinateToGrid(value: number, gridSize: number): number {
-  if (!Number.isFinite(value) || !Number.isFinite(gridSize) || gridSize <= 0) {
-    throw new Error("Grid Snap 需要有限坐标和正数 Grid Size。");
+export function snapCoordinateToGrid(value: number, gridSize: number, origin = 0): number {
+  if (!Number.isFinite(value) || !Number.isFinite(gridSize) || !Number.isFinite(origin) || gridSize <= 0) {
+    throw new Error("Grid Snap 需要有限坐标、有限原点和正数 Grid Size。");
   }
-  const snapped = Math.round(value / gridSize) * gridSize;
+  const snapped = origin + Math.round((value - origin) / gridSize) * gridSize;
   return Object.is(snapped, -0) ? 0 : snapped;
 }
 

@@ -8,7 +8,7 @@
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：在 Pickup → Inventory 与 Crafting 基础上，已完成 Building Definition/Catalog、B 键菜单、Ghost、Grid/Foundation Edge Snap、Placement Validation、原子资源事务、会话内 World Registry、动态 Camera Collision 和动态降水障碍
+- 功能状态：在 Pickup → Inventory 与 Crafting 基础上，已完成 Building Definition/Catalog、B 键菜单、Ghost、与固定木屋对齐的 Grid/Foundation Edge Snap、Placement Validation、原子资源事务、会话内 World Registry、动态 Camera Collision 和动态降水障碍；Pickup 受实体墙体正常遮挡
 - 明确未实现：Campfire/Fuel、Shelter Enclosure、Roof/Door/Window、Building Upgrade/Damage、Demolish/Repair、Storage/Container、Tool Gameplay、Save/IndexedDB
 
 ## 已完成内容
@@ -66,13 +66,13 @@
 - JSON 驱动的 `foundation_wood` / `wall_wood` BuildDefinition 与完整 Runtime Validation
 - 单一 Gameplay/Inventory/Crafting/Building/BuildPlacement Mode；Tab/C/B 菜单互斥
 - B 键鼠标 Building Menu、Camera Forward Ground Ray 与单一半透明 Ghost
-- 2m Foundation Grid、90° Rotation、Foundation 四边 Wall Snap 与 5m Build Distance
+- 与固定木屋外沿对齐的 2m Foundation Grid、90° Rotation、Foundation 四边 Wall Snap 与 5m Build Distance
 - 固定场景/World Building AABB Overlap、稳定失败 Reason 与实时资源重校验
 - Inventory Draft 消耗、Presentation Candidate、Inventory/Registry Commit 与失败回滚
 - 当前会话 WorldBuildingRegistry、SnapPoint 占用和连续建造
 - 正式 Mesh 动态 Camera Collision；Ghost 无碰撞、不可 Pick、不会注册 World Entity
 - PrecipitationObstacleRegistry 静态初始化及动态 add/remove/update；Snow 读取共享 Snapshot
-- 29 个测试文件、188 个单元与集成测试
+- 29 个测试文件、189 个单元与集成测试
 
 ## 关键架构入口
 
@@ -244,12 +244,18 @@ pnpm dev
 - `pnpm test`：29 个测试文件、188 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 修复墙体遮挡与木屋地基对齐后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：29 个测试文件、189 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
-- Pickup 可见性、Prompt 距离、E 单次拾取、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
+- Pickup 墙体遮挡、Prompt 距离、E 单次拾取、Partial Add Mesh 保留和现有输入/天气回归均需用户手动验收。
 - Tab 背包与 C 制作菜单打开后释放鼠标、鼠标点击关闭/选择配方/制作、关闭后恢复第一人称控制、菜单互斥和 E 屏蔽均需用户手动验收。
-- B Building Menu 的鼠标操作、Tab/C/B 互斥、Pointer Lock 切换、Ghost 跟随、Grid/Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
+- B Building Menu 的鼠标操作、Tab/C/B 互斥、Pointer Lock 切换、Ghost 跟随、木屋边缘 Grid 对齐、Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
 - 正式 Foundation/Wall 的实际 Camera Collision、站立/跳跃，以及暴雪粒子被动态建筑 AABB 阻挡均需用户手动验收。
 - 固定测试木屋入口新增门框后的辨识度、开放通行和无误碰撞仍需用户手动验收。
 - Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
@@ -291,6 +297,14 @@ pnpm dev
 推荐下一独立 Issue：**Campfire Gameplay + Fuel v0.1**，让玩家放置真正 Campfire、加入燃料并向现有 HeatSourceSystem 注册动态热源；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、Save、工具玩法或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — 墙体遮挡与木屋地基布局修复
+
+- 移除 World Pickup 的覆盖 Rendering Group，使木材、石头、罐头和水瓶等资源重新参与场景深度测试，实体木墙可正常遮挡墙后资源。
+- 将 2m Foundation Grid 原点集中配置为 `(x=0, z=1)`，与固定测试木屋外沿对齐；木屋四周相邻地基可边界贴合，不再因原点错位产生约 1m 间隙或插入墙体后被判占用。
+- `snapCoordinateToGrid` 新增可选原点参数并补充场景对齐回归测试；最终为 29 个测试文件、189 个测试。
+- `pnpm exec tsc -b --pretty false`、`pnpm test` 与 `git diff --check` 已通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；墙体实际遮挡与木屋四周贴边效果等待用户刷新后手动验收。
 
 ### 2026-08-31 — 测试木屋开放入口辨识修复
 
