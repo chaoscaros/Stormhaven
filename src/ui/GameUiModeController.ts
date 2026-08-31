@@ -3,6 +3,7 @@ export type GameUiMode =
   | "inventory_menu"
   | "crafting_menu"
   | "building_menu"
+  | "campfire_menu"
   | "build_placement";
 
 type ModeListener = (mode: GameUiMode) => void;

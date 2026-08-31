@@ -326,7 +326,7 @@ Recipe 必须 Data Driven，至少包含：
 
 ## 9. 当前仓库真实状态
 
-基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1 和 Building Foundation v0.1 已经建立，目前包含：
+基础工程、Game Time + Data Driven Weather Core v0.1、Weather Presentation Layer v0.1、Player Thermal Model v0.1、Shelter + Heat Source、Interaction + Item + Inventory、Crafting Foundation v0.1、Building Foundation v0.1 和 Campfire Gameplay + Fuel v0.1 已经建立，目前包含：
 
 - Vite + TypeScript 严格模式
 - Babylon.js 9 与 Havok Physics 依赖
@@ -356,7 +356,7 @@ Recipe 必须 Data Driven，至少包含：
 - Data Driven Shelter Profile、Inclusive AABB 检测、挡风与小幅温度加成
 - 通用 Heat Source Profile、smoothstep 距离衰减、多源叠加与全局上限
 - Weather + Shelter + Heat Source → Thermal Environment 的纯领域组合
-- 固定测试木屋、入口、碰撞和常开测试炉 Primitive 表现
+- 固定测试木屋、入口和碰撞；原常开测试炉已移除
 - 庇护、挡风、原始→有效风力和热源加成 Debug HUD
 - 局部降水粒子与静态碰撞 Mesh AABB 的线段碰撞及回收
 - 9 个 JSON ItemDefinition 与 Runtime Validation/Catalog
@@ -367,19 +367,22 @@ Recipe 必须 Data Driven，至少包含：
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
 - Requirement/Missing Inputs/Max Count、草稿 Inventory 与原子 Craft Commit
 - C 键鼠标式 Crafting Debug UI，可点击配方/制作/关闭；方向键/Enter 为辅助输入
-- BuildDefinition/Catalog、木制地基/墙体 JSON 与 Runtime Validation
+- BuildDefinition/Catalog、木制地基/墙体/篝火 JSON 与 Runtime Validation
 - B 键鼠标 Building Menu、Gameplay/Menu/BuildPlacement 单一输入状态
 - Camera Forward Ground Ray、单一 Ghost、2m Grid、Foundation Edge Wall Snap、R 旋转与 5m 距离限制
 - AABB 静态/动态重叠校验、Inventory Draft 原子资源消费与 Presentation 失败回滚
 - 当前会话 WorldBuildingRegistry、动态 Babylon Camera Collision 和动态降水障碍 add/remove/update
-- 29 个测试文件、188 个单元/集成测试
+- FuelCatalog、wood 180 秒/件、Campfire 900 秒容量与稳定状态机
+- 篝火原子建造/加柴、点燃/熄灭/耗尽、E 鼠标菜单和动态 HeatSource → Thermal 链路
+- 真实秒且暂停感知的燃料消耗、基础石圈/木柴/火焰/点光源表现
+- 32 个测试文件、220 个单元/集成测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
 明确尚未实现：
 
 - Weather Audio 和进一步 Weather Visual Effects；当前降水/建筑碰撞使用 AABB 而非精确复杂 Mesh
-- Wetness、Campfire Gameplay、Fuel、Clothing、Health Damage
+- Wetness、Clothing、Health Damage，以及更复杂的 Campfire 燃料/点火/烹饪玩法
 - Item Use/Consumption、Equipment、Durability Gameplay、Drop
 - Container/Storage UI、Loot Table、Harvesting
 - Timed Crafting、Craft Queue、Workbench/Station System
@@ -480,10 +483,16 @@ src/main.ts
 - `pnpm exec tsc -b --pretty false`：通过。
 - `git diff --check`：通过。
 
+2026-08-31 完成 Campfire Gameplay + Fuel v0.1 后实际执行并通过：
+
+- `pnpm test`：32 个测试文件、220 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+- `git diff --check`：通过。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
 - 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
-- Weather Presentation、Shelter/Heat/Thermal、Pickup、Tab/C/B 菜单、Building Ghost/Snap/Collision/降水阻挡与 14:00 → 18:00 的实时流程仍需要手动验收。
+- Weather Presentation、Shelter/Heat/Thermal、Pickup、Tab/C/B/E 篝火菜单、Building/Campfire Ghost/交互/动态热量/降水阻挡与 14:00 → 18:00 的实时流程仍需要手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 
 仓库已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。

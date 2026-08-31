@@ -25,6 +25,7 @@ import {
   collectStaticBuildingBounds,
 } from "../building/presentation/BuildingPresentation";
 import { BuildingPlacementController } from "../building/presentation/BuildingPlacementController";
+import { CampfireBuildingBinding } from "../survival/campfire/CampfireBuildingBinding";
 
 /** 管理 Babylon 运行时生命周期，并将功能初始化委托给各自模块。 */
 export class Game {
@@ -68,15 +69,6 @@ export class Game {
       this.gameplay.pickupPlacements,
       this.gameplay.itemCatalog,
     );
-    this.#interaction = new InteractionRaycastController(
-      world.scene,
-      camera,
-      this.canvas,
-      this.gameplay.interactionService,
-      () => this.gameplay.inventory.snapshot,
-      this.#worldPickups,
-      this.interactionCallbacks,
-    );
     this.#weatherPresentation = createWeatherPresentation(
       world.scene,
       camera,
@@ -97,6 +89,16 @@ export class Game {
       world.scene,
       this.gameplay.buildCatalog,
       world.precipitationObstacles,
+      new CampfireBuildingBinding(this.gameplay.campfireSystem),
+    );
+    this.#interaction = new InteractionRaycastController(
+      world.scene,
+      camera,
+      this.canvas,
+      this.gameplay.interactionService,
+      () => this.gameplay.inventory.snapshot,
+      Object.freeze([this.#worldPickups, this.#buildingPresentation]),
+      this.interactionCallbacks,
     );
     this.#buildingPlacement = new BuildingPlacementController(
       world.scene,
@@ -128,6 +130,7 @@ export class Game {
       }
       this.#interaction?.update();
       this.#buildingPlacement?.update();
+      this.#buildingPresentation?.update();
       this.#scene?.render();
     });
 
@@ -146,6 +149,7 @@ export class Game {
     this.#interaction = undefined;
     this.#worldPickups?.dispose();
     this.#worldPickups = undefined;
+    this.gameplay.campfireSystem.dispose();
     this.#scene?.dispose();
     this.#engine.dispose();
   }

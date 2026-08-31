@@ -187,17 +187,18 @@ export class BuildingPlacementController {
     this.#ghost.renderingGroupId = 1;
   }
 
-  #createRayCandidate(category: "foundation" | "wall"): BuildPlacement {
+  #createRayCandidate(category: "foundation" | "wall" | "utility"): BuildPlacement {
     const ray = this.camera.getForwardRay(BUILDING_CONFIG.maximumBuildDistanceMeters + 0.5);
     const pick = this.scene.pickWithRay(ray, (mesh) =>
-      mesh.name === "snow-ground" || typeof mesh.metadata?.buildingEntityId === "string");
+      mesh.metadata?.buildingGroundSurface === true
+      || typeof mesh.metadata?.buildingEntityId === "string");
     const fallbackPosition = ray.origin.add(ray.direction.scale(BUILDING_CONFIG.maximumBuildDistanceMeters));
     const point = pick?.pickedPoint ?? fallbackPosition;
-    if (category === "foundation") {
+    if (category === "foundation" || category === "utility") {
       return Object.freeze({
         position: toPlainVector(point),
         rotationDegrees: this.#rotationDegrees,
-        surface: pick?.pickedMesh?.name === "snow-ground" ? "ground" : "none",
+        surface: pick?.pickedMesh?.metadata?.buildingGroundSurface === true ? "ground" : "none",
       });
     }
     const nearest = findNearestWallSnapPoint(
@@ -257,6 +258,7 @@ function formatFailure(reason: BuildFailureReason | string): string {
     case "snap_required": return "墙体需要连接到地基边缘";
     case "snap_occupied": return "该地基边缘已经被占用";
     case "out_of_range": return "超出 5 米建造距离";
+    case "blocked_by_player": return "不能放在玩家当前位置";
     case "invalid_surface": return "需要对准可用地面";
     case "presentation_failed": return "建筑表现创建失败，材料未消耗";
     default: return "当前位置不可建造";

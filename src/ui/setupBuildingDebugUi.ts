@@ -77,7 +77,11 @@ export function setupBuildingDebugUi(
     const title = document.createElement("span");
     const meta = document.createElement("small");
     title.textContent = definition.displayName;
-    meta.textContent = definition.category === "foundation" ? "GROUND / GRID" : "EDGE / SNAP";
+    meta.textContent = definition.category === "foundation"
+      ? "GROUND / GRID"
+      : definition.category === "wall"
+        ? "EDGE / SNAP"
+        : "SURVIVAL / GROUND";
     button.append(title, meta);
     const handleClick = (): void => {
       selectedIndex = index;

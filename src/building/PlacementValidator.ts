@@ -32,6 +32,16 @@ export class PlacementValidator {
     if (distance(context.playerPosition, resolved.position) > BUILDING_CONFIG.maximumBuildDistanceMeters) {
       return Object.freeze({ valid: false, reason: "out_of_range", bounds, placement: resolved });
     }
+    if (
+      definition.category === "utility"
+      && boundsOverlap(
+        bounds,
+        createPlayerBounds(context.playerPosition),
+        BUILDING_CONFIG.overlapEpsilonMeters,
+      )
+    ) {
+      return Object.freeze({ valid: false, reason: "blocked_by_player", bounds, placement: resolved });
+    }
     const blocked = [...this.staticBounds, ...this.registry.getBounds()].some((existing) =>
       boundsOverlap(bounds, existing, BUILDING_CONFIG.overlapEpsilonMeters));
     if (blocked) return Object.freeze({ valid: false, reason: "blocked", bounds, placement: resolved });
@@ -62,6 +72,18 @@ export class PlacementValidator {
         surface: "ground" as const,
       });
     }
+    if (definition.category === "utility") {
+      if (candidate.surface !== "ground") return { reason: "invalid_surface" };
+      return Object.freeze({
+        position: Object.freeze({
+          x: candidate.position.x,
+          y: candidate.position.y + definition.size.y / 2,
+          z: candidate.position.z,
+        }),
+        rotationDegrees: normalizeRotationDegrees(candidate.rotationDegrees),
+        surface: "ground" as const,
+      });
+    }
     if (!candidate.snapPointId) return { reason: "snap_required" };
     let snapPoint: SnapPoint;
     try {
@@ -86,4 +108,20 @@ export class PlacementValidator {
 
 function distance(first: BuildingVector3, second: BuildingVector3): number {
   return Math.hypot(first.x - second.x, first.y - second.y, first.z - second.z);
+}
+
+function createPlayerBounds(position: BuildingVector3): BuildingBounds {
+  const radius = BUILDING_CONFIG.playerPlacementRadiusMeters;
+  return Object.freeze({
+    min: Object.freeze({
+      x: position.x - radius,
+      y: position.y - BUILDING_CONFIG.playerPlacementHeightMeters,
+      z: position.z - radius,
+    }),
+    max: Object.freeze({
+      x: position.x + radius,
+      y: position.y,
+      z: position.z + radius,
+    }),
+  });
 }

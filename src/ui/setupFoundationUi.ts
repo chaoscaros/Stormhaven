@@ -73,6 +73,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
   const inventoryCloseButton = getElement<HTMLButtonElement>("inventory-close-button");
   const craftingPanel = getElement("crafting-panel");
   const buildingPanel = getElement("building-panel");
+  const campfirePanel = getElement("campfire-panel");
   const inventoryItems = getElement<HTMLUListElement>("inventory-items");
   const inventoryWeight = getElement("inventory-weight");
   const inventorySlots = getElement("inventory-slots");
@@ -101,6 +102,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
         inventoryPanel.hidden = true;
         craftingPanel.hidden = true;
         buildingPanel.hidden = true;
+        campfirePanel.hidden = true;
       }
     }
   };
@@ -119,6 +121,7 @@ export function setupFoundationUi(canvas: HTMLCanvasElement): FoundationUi {
     inventoryPanel.hidden = mode !== "inventory_menu";
     craftingPanel.hidden = mode !== "crafting_menu";
     buildingPanel.hidden = mode !== "building_menu";
+    campfirePanel.hidden = mode !== "campfire_menu";
     if (modes.isMenuOpen()) hud.dataset.menuOpen = "true";
     else delete hud.dataset.menuOpen;
     hud.dataset.mode = mode;

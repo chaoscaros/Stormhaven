@@ -13,7 +13,7 @@ const DOOR_FRAME_WIDTH = 0.16;
 const DOOR_FRAME_DEPTH = 0.42;
 const DOOR_THRESHOLD_HEIGHT = 0.055;
 
-/** 创建与 Scenario Volume 共用坐标的固定测试木屋与测试炉表现。 */
+/** 创建与 Scenario Volume 共用坐标的固定测试木屋表现。 */
 export function createFirstBlizzardCabin(
   scene: Scene,
   scenario: SurvivalEnvironmentScenario,
@@ -39,21 +39,6 @@ export function createFirstBlizzardCabin(
 
   createCabinShell(scene, cabin.bounds, wallMaterial, floorMaterial, doorFrameMaterial);
 
-  const heaterMaterial = new StandardMaterial("debug-heater-material", scene);
-  heaterMaterial.diffuseColor = new Color3(0.22, 0.07, 0.025);
-  heaterMaterial.emissiveColor = new Color3(0.95, 0.24, 0.04);
-  heaterMaterial.specularColor = new Color3(0.15, 0.08, 0.03);
-
-  for (const source of scenario.heatSources) {
-    const heater = MeshBuilder.CreateBox(
-      `heat-source-visual-${source.id}`,
-      { width: 0.9, height: 1.4, depth: 0.8 },
-      scene,
-    );
-    heater.position.set(source.position.x, source.position.y, source.position.z);
-    heater.material = heaterMaterial;
-    heater.checkCollisions = true;
-  }
 }
 
 function createCabinShell(
@@ -80,10 +65,12 @@ function createCabinShell(
     y: number,
     z: number,
     material: StandardMaterial,
+    buildingGroundSurface = false,
   ): void => {
     const mesh = MeshBuilder.CreateBox(name, dimensions, scene);
     mesh.position.set(x, y, z);
     mesh.material = material;
+    if (buildingGroundSurface) mesh.metadata = { buildingGroundSurface: true };
     mesh.checkCollisions = true;
     mesh.receiveShadows = true;
   };
@@ -95,6 +82,7 @@ function createCabinShell(
     bounds.min.y + FLOOR_THICKNESS / 2,
     centerZ,
     floorMaterial,
+    true,
   );
   createPart(
     "test-cabin-roof",

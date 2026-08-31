@@ -6,14 +6,19 @@ import { WeatherCatalog } from "../../weather/WeatherCatalog";
 import { parseWeatherSchedule } from "../../weather/WeatherSchedule";
 import thermalConfigData from "../../../data/survival/thermal.json";
 import { parseThermalConfig } from "../../survival/thermal/ThermalConfig";
-import { createFirstBlizzardSurvivalEnvironment } from "./createFirstBlizzardSurvivalEnvironment";
+import {
+  createFirstBlizzardSurvivalEnvironment,
+} from "./createFirstBlizzardSurvivalEnvironment";
+import type { SimulationUpdatable } from "./GameSimulation";
 
 /** 从 JSON 配置创建确定性的「第一场暴雪」模拟。 */
-export function createFirstBlizzardSimulation(): GameSimulation {
+export function createFirstBlizzardSimulation(
+  environment = createFirstBlizzardSurvivalEnvironment(),
+  runtimeSystems: readonly SimulationUpdatable[] = Object.freeze([]),
+): GameSimulation {
   const catalog = WeatherCatalog.fromUnknown(weatherDefinitionsData);
   const schedule = parseWeatherSchedule(firstBlizzardScheduleData);
   const thermalConfig = parseThermalConfig(thermalConfigData);
-  const environment = createFirstBlizzardSurvivalEnvironment();
   return new GameSimulation(
     {
       initialTime: {
@@ -31,6 +36,7 @@ export function createFirstBlizzardSimulation(): GameSimulation {
       shelterSystem: environment.shelterSystem,
       heatSourceSystem: environment.heatSourceSystem,
       initialPlayerPosition: PLAYER_CONFIG.spawnPosition,
+      runtimeSystems,
     },
   );
 }

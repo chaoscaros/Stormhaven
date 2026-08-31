@@ -299,6 +299,7 @@ h1 span {
 .inventory-panel,
 .crafting-panel,
 .building-panel,
+.campfire-panel,
 .building-placement-status,
 .interaction-prompt,
 .pickup-feedback {
@@ -849,6 +850,186 @@ h1 span {
   color: var(--ice);
   font-size: 9px;
   font-weight: 500;
+}
+
+.campfire-panel {
+  position: absolute;
+  top: 96px;
+  left: 30px;
+  width: 336px;
+  color: rgba(238, 239, 232, 0.8);
+  border-top: 2px solid #e07738;
+  background:
+    linear-gradient(132deg, rgba(224, 119, 56, 0.16), transparent 42%),
+    repeating-linear-gradient(90deg, transparent 0 55px, rgba(238, 239, 232, 0.025) 56px),
+    rgba(13, 16, 15, 0.94);
+  box-shadow: 14px 24px 48px rgba(5, 6, 5, 0.52);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+
+.campfire-panel > header,
+.campfire-panel > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  color: rgba(184, 190, 178, 0.65);
+  font-size: 7px;
+  letter-spacing: 0.14em;
+}
+
+.campfire-panel > header {
+  border-bottom: 1px solid rgba(238, 239, 232, 0.12);
+}
+
+.campfire-panel > header div {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.campfire-panel > header strong,
+.campfire-panel > footer strong {
+  color: #ef9a59;
+}
+
+.campfire-panel > footer {
+  border-top: 1px solid rgba(224, 119, 56, 0.3);
+}
+
+.campfire-panel button {
+  padding: 9px 10px;
+  color: #edf0e8;
+  border: 1px solid rgba(238, 239, 232, 0.2);
+  border-radius: 0;
+  background: rgba(238, 239, 232, 0.045);
+  cursor: pointer;
+  font: inherit;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+.campfire-panel button:hover,
+.campfire-panel button:focus-visible {
+  color: #ffb36f;
+  border-color: #e07738;
+  outline: none;
+  background: rgba(224, 119, 56, 0.12);
+}
+
+.campfire-panel button:disabled {
+  color: rgba(238, 239, 232, 0.32);
+  border-color: rgba(238, 239, 232, 0.08);
+  background: rgba(238, 239, 232, 0.025);
+  cursor: not-allowed;
+}
+
+.campfire-panel > header button {
+  padding: 5px 8px;
+  font-size: 7px;
+}
+
+.campfire-panel__body {
+  padding: 16px 14px 15px;
+}
+
+.campfire-panel__eyebrow {
+  margin: 0 0 14px;
+  color: rgba(184, 190, 178, 0.52);
+  font-size: 7px;
+  letter-spacing: 0.17em;
+}
+
+.campfire-panel__status-block,
+.campfire-panel__inventory-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(238, 239, 232, 0.08);
+  color: rgba(184, 190, 178, 0.62);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+.campfire-panel__status-block strong,
+.campfire-panel__inventory-row strong {
+  color: #edf0e8;
+  font-size: 10px;
+}
+
+#campfire-status[data-status="burning"] {
+  color: #ff9a45;
+  text-shadow: 0 0 12px rgba(255, 106, 34, 0.48);
+}
+
+#campfire-status[data-status="out_of_fuel"] {
+  color: #d98773;
+}
+
+.campfire-panel__fuel-readout {
+  margin: 13px 0 4px;
+  padding: 13px 14px 12px;
+  border-left: 2px solid #e07738;
+  background: rgba(224, 119, 56, 0.07);
+}
+
+.campfire-panel__fuel-readout > span {
+  color: rgba(184, 190, 178, 0.56);
+  font-size: 7px;
+  letter-spacing: 0.14em;
+}
+
+.campfire-panel__fuel-readout div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 5px;
+}
+
+.campfire-panel__fuel-readout strong {
+  color: #ffad68;
+  font-size: 31px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.campfire-panel__fuel-readout small {
+  color: rgba(184, 190, 178, 0.55);
+  font-size: 8px;
+}
+
+.campfire-panel__feedback {
+  margin: 12px 0 0;
+  padding: 8px 9px;
+  color: #efb19e;
+  border-left: 2px solid #b74e38;
+  background: rgba(183, 78, 56, 0.09);
+  font-size: 8px;
+  letter-spacing: 0.07em;
+}
+
+.campfire-panel__feedback[data-tone="success"] {
+  color: #f2c394;
+  border-color: #e07738;
+  background: rgba(224, 119, 56, 0.08);
+}
+
+.campfire-panel__actions {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.campfire-panel__actions button[data-action="ignite"]:not(:disabled) {
+  color: #17130f;
+  border-color: #e07738;
+  background: #e07738;
+  font-weight: 700;
 }
 
 #debug-thermal-status[data-status="comfortable"],

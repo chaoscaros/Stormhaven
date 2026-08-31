@@ -91,6 +91,28 @@ describe("Pickup Transaction", () => {
     const target = runtime.service.getTarget("pickup");
     expect(target && formatInteractionPrompt(target)).toBe("[E] 拾取 木材 ×3");
   });
+
+  it("Campfire Target 使用“使用”提示且不会误走 Pickup Transaction", () => {
+    const inventory = new Inventory(catalog, { maxSlots: 24, maxWeightKilograms: 100 });
+    const registry = new WorldPickupRegistry([]);
+    const provider = {
+      getInteractionTarget: (targetId: string) => targetId === "campfire-target"
+        ? ({
+            id: targetId,
+            interactionType: "campfire" as const,
+            displayName: "篝火",
+            campfireId: "campfire_1",
+          })
+        : undefined,
+    };
+    const service = new InteractionService(catalog, inventory, registry, [provider]);
+    const target = service.getTarget("campfire-target");
+    expect(target && formatInteractionPrompt(target)).toBe("[E] 使用 篝火");
+    expect(service.interact("campfire-target")).toMatchObject({
+      success: false,
+      reason: "invalid_target",
+    });
+  });
 });
 
 function createRuntime(itemId: string, quantity: number, existingInventory?: Inventory) {

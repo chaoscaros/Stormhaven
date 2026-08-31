@@ -169,6 +169,7 @@ function createGround(scene: Scene): void {
   groundMaterial.specularColor = new Color3(0.1, 0.12, 0.12);
   groundMaterial.roughness = 0.92;
   ground.material = groundMaterial;
+  ground.metadata = { buildingGroundSurface: true };
   ground.checkCollisions = true;
   ground.receiveShadows = true;
 

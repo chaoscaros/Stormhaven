@@ -8,6 +8,11 @@ import { PlacementValidator } from "../src/building/PlacementValidator";
 import { WorldBuildingRegistry } from "../src/building/WorldBuildingRegistry";
 import { Inventory } from "../src/inventory/Inventory";
 import { ItemCatalog } from "../src/items/ItemCatalog";
+import fuelDefinitionsData from "../data/survival/fuels.json";
+import { FuelCatalog } from "../src/survival/campfire/FuelCatalog";
+import { CampfireSystem } from "../src/survival/campfire/CampfireSystem";
+import { CampfireBuildingBinding } from "../src/survival/campfire/CampfireBuildingBinding";
+import { HeatSourceSystem } from "../src/survival/heat/HeatSourceSystem";
 
 const items = ItemCatalog.fromUnknown(itemDefinitionsData);
 const definitions = BuildCatalog.fromUnknown(buildingDefinitionsData, items);
@@ -96,6 +101,56 @@ describe("Atomic Building Transaction", () => {
     expect(runtime.inventory.getItemCount("wood")).toBe(0);
     expect(runtime.registry.getSnapPoint(snap.id).occupied).toBe(true);
   });
+
+  it("Campfire Build 原子创建 World Entity、Gameplay State 与禁用 HeatSource", () => {
+    const runtime = createCampfireRuntime();
+    runtime.inventory.addItem("stone", 4);
+    runtime.inventory.addItem("wood", 2);
+    const result = runtime.service.place({
+      definitionId: "campfire_basic",
+      playerPosition: { x: 0, y: 1.8, z: -3 },
+      placement: { position: { x: 0, y: 0, z: 0 }, rotationDegrees: 0, surface: "ground" },
+    }, bindingPresentation(runtime.binding, definitions));
+
+    expect(result).toMatchObject({ success: true, buildingEntityId: "building_000001" });
+    expect(runtime.registry.getAll()).toHaveLength(1);
+    expect(runtime.inventory.getItemCount("stone")).toBe(0);
+    expect(runtime.inventory.getItemCount("wood")).toBe(0);
+    const campfire = runtime.campfires.getByWorldBuildingId("building_000001");
+    expect(campfire).toMatchObject({ status: "unlit", fuelSecondsRemaining: 0 });
+    const targetId = runtime.campfires.getInteractionTargetId("building_000001");
+    expect(targetId && runtime.campfires.getInteractionTarget(targetId)).toMatchObject({
+      interactionType: "campfire",
+    });
+    expect(runtime.heat.getContribution({ x: 0, y: 0.25, z: 0 }).temperatureBonusCelsius).toBe(0);
+  });
+
+  it("Campfire Gameplay 激活后失败会与 Building/Inventory 一并回滚", () => {
+    const runtime = createCampfireRuntime();
+    runtime.inventory.addItem("stone", 4);
+    runtime.inventory.addItem("wood", 2);
+    const before = runtime.inventory.snapshot;
+    const result = runtime.service.place({
+      definitionId: "campfire_basic",
+      playerPosition: { x: 0, y: 1.8, z: -3 },
+      placement: { position: { x: 0, y: 0, z: 0 }, rotationDegrees: 0, surface: "ground" },
+    }, {
+      prepare(entity) {
+        const gameplay = runtime.binding.prepare(entity, definitions.get(entity.definitionId));
+        return {
+          activate(): void {
+            gameplay.activate();
+            throw new Error("simulated visual failure");
+          },
+          dispose: gameplay.dispose,
+        };
+      },
+    });
+    expect(result).toMatchObject({ success: false, reason: "presentation_failed" });
+    expect(runtime.inventory.snapshot).toEqual(before);
+    expect(runtime.registry.getAll()).toHaveLength(0);
+    expect(runtime.campfires.getAll()).toHaveLength(0);
+  });
 });
 
 function createRuntime() {
@@ -106,6 +161,47 @@ function createRuntime() {
     inventory,
     registry,
     service: new BuildService(definitions, inventory, registry, validator),
+  };
+}
+
+function createCampfireRuntime() {
+  const inventory = new Inventory(items, { maxSlots: 24, maxWeightKilograms: 100 });
+  const registry = new WorldBuildingRegistry();
+  const heat = new HeatSourceSystem({
+    maxCombinedHeatBonusCelsius: 32,
+    profiles: [{
+      id: "campfire_basic",
+      displayName: "篝火",
+      radiusMeters: 5,
+      maxTemperatureBonusCelsius: 32,
+    }],
+  }, []);
+  const campfires = new CampfireSystem(
+    { fuelCapacitySeconds: 900, heatSourceProfileId: "campfire_basic" },
+    FuelCatalog.fromUnknown(fuelDefinitionsData, items),
+    inventory,
+    heat,
+  );
+  const binding = new CampfireBuildingBinding(campfires);
+  return {
+    inventory,
+    registry,
+    heat,
+    campfires,
+    binding,
+    service: new BuildService(definitions, inventory, registry, new PlacementValidator(registry)),
+  };
+}
+
+function bindingPresentation(
+  binding: CampfireBuildingBinding,
+  catalog: BuildCatalog,
+): BuildingPresentationFactory {
+  return {
+    prepare(entity) {
+      const gameplay = binding.prepare(entity, catalog.get(entity.definitionId));
+      return { activate: gameplay.activate, dispose: gameplay.dispose };
+    },
   };
 }
 

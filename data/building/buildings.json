@@ -22,5 +22,20 @@
     "rotationStep": 90,
     "collision": true,
     "tags": ["wood", "structural", "foundation_supported"]
+  },
+  {
+    "id": "campfire_basic",
+    "displayName": "篝火",
+    "description": "可添加木材、点燃并在暴雪中提供热量的基础生存设施。",
+    "category": "utility",
+    "cost": [
+      { "itemId": "stone", "quantity": 4 },
+      { "itemId": "wood", "quantity": 2 }
+    ],
+    "size": { "x": 1.1, "y": 0.5, "z": 1.1 },
+    "snapType": "ground",
+    "rotationStep": 90,
+    "collision": false,
+    "tags": ["campfire", "survival", "ground_supported"]
   }
 ]

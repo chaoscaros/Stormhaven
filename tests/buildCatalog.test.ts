@@ -7,9 +7,9 @@ import { ItemCatalog } from "../src/items/ItemCatalog";
 const items = ItemCatalog.fromUnknown(itemDefinitionsData);
 
 describe("BuildCatalog", () => {
-  it("加载 Foundation 与 Wall 的合法定义", () => {
+  it("加载 Foundation、Wall 与 Campfire Utility 的合法定义", () => {
     const catalog = BuildCatalog.fromUnknown(buildingDefinitionsData, items);
-    expect(catalog.getAll()).toHaveLength(2);
+    expect(catalog.getAll()).toHaveLength(3);
     expect(catalog.get("foundation_wood")).toMatchObject({
       category: "foundation",
       snapType: "grid",
@@ -18,6 +18,15 @@ describe("BuildCatalog", () => {
     expect(catalog.get("wall_wood")).toMatchObject({
       category: "wall",
       snapType: "foundation_edge",
+    });
+    expect(catalog.get("campfire_basic")).toMatchObject({
+      category: "utility",
+      snapType: "ground",
+      collision: false,
+      cost: [
+        { itemId: "stone", quantity: 4 },
+        { itemId: "wood", quantity: 2 },
+      ],
     });
   });
 

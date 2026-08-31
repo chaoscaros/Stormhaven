@@ -35,7 +35,7 @@
             <span><kbd>鼠标</kbd> 视角</span>
             <span><kbd>空格</kbd> 跳跃</span>
             <span><kbd>SHIFT</kbd> 奔跑</span>
-            <span><kbd>E</kbd> 拾取</span>
+            <span><kbd>E</kbd> 交互</span>
             <span><kbd>TAB</kbd> 背包</span>
             <span><kbd>C</kbd> 制作</span>
             <span><kbd>B</kbd> 建造</span>
@@ -171,6 +171,33 @@
             <span>重量 <strong id="inventory-weight">0.0 / 30.0 kg</strong></span>
             <span>槽位 <strong id="inventory-slots">0 / 24</strong></span>
           </footer>
+        </aside>
+        <aside id="campfire-panel" class="campfire-panel" aria-label="篝火控制菜单" hidden>
+          <header>
+            <div><span>THERMAL CONTROL</span><strong>篝火</strong></div>
+            <button id="campfire-close-button" type="button" aria-label="关闭篝火菜单">关闭</button>
+          </header>
+          <div class="campfire-panel__body">
+            <p class="campfire-panel__eyebrow">PLAYER HEAT SOURCE / SESSION RUNTIME</p>
+            <div class="campfire-panel__status-block">
+              <span>状态</span>
+              <strong id="campfire-status" data-status="unlit">未点燃</strong>
+            </div>
+            <div class="campfire-panel__fuel-readout">
+              <span>剩余燃烧时间</span>
+              <div><strong id="campfire-fuel-remaining">0</strong><small>/ <span id="campfire-fuel-capacity">900 秒</span></small></div>
+            </div>
+            <div class="campfire-panel__inventory-row">
+              <span>背包燃料</span><strong id="campfire-inventory-fuel">木材 ×0</strong>
+            </div>
+            <p id="campfire-feedback" class="campfire-panel__feedback" role="status" hidden></p>
+            <div class="campfire-panel__actions">
+              <button id="campfire-add-fuel-button" type="button">添加 1 木材</button>
+              <button id="campfire-ignite-button" data-action="ignite" type="button">点燃</button>
+              <button id="campfire-extinguish-button" type="button">熄灭</button>
+            </div>
+          </div>
+          <footer><span>E 打开控制</span><strong>燃料耗尽后自动熄灭</strong></footer>
         </aside>
         <div id="pickup-feedback" class="pickup-feedback" role="status" hidden></div>
         <div id="crosshair" class="crosshair" aria-hidden="true"></div>

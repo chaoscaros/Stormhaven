@@ -14,13 +14,13 @@
   {
     "id": "pickup_stone_001",
     "itemId": "stone",
-    "quantity": 4,
+    "quantity": 6,
     "position": { "x": -3.2, "y": 0.3, "z": 0.5 }
   },
   {
     "id": "pickup_wood_002",
     "itemId": "wood",
-    "quantity": 5,
+    "quantity": 8,
     "position": { "x": 2.8, "y": 0.12, "z": 2.4 }
   },
   {

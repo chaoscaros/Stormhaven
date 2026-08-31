@@ -1,7 +1,7 @@
 import type { Camera } from "@babylonjs/core/Cameras/camera";
 import type { Scene } from "@babylonjs/core/scene";
 import type { InventorySnapshot } from "../inventory/Inventory";
-import type { WorldPickupPresentation } from "../world/pickups/WorldPickupPresentation";
+import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { INTERACTION_CONFIG } from "./InteractionConfig";
 import type { InteractionResult } from "./InteractionResult";
 import type { InteractionService } from "./InteractionService";
@@ -14,6 +14,13 @@ export interface InteractionCallbacks {
     result: InteractionResult,
     inventory: InventorySnapshot,
   ) => void;
+  readonly onUseTarget?: (target: InteractionTarget) => void;
+}
+
+export interface InteractionMeshSource {
+  isInteractionMesh(mesh: AbstractMesh): boolean;
+  getTargetId(mesh: AbstractMesh | null | undefined): string | undefined;
+  applyInteractionResult?(result: InteractionResult): void;
 }
 
 /** Camera Forward Ray → Interaction Target ID；只负责 Babylon Picking 与输入生命周期。 */
@@ -26,7 +33,7 @@ export class InteractionRaycastController {
     private readonly canvas: HTMLCanvasElement,
     private readonly service: InteractionService,
     private readonly inventorySnapshot: () => InventorySnapshot,
-    private readonly presentation: WorldPickupPresentation,
+    private readonly presentations: readonly InteractionMeshSource[],
     private readonly callbacks: InteractionCallbacks,
   ) {
     window.addEventListener("keydown", this.#handleKeyDown);
@@ -34,13 +41,10 @@ export class InteractionRaycastController {
 
   update(): void {
     const ray = this.camera.getForwardRay(INTERACTION_CONFIG.maxDistanceMeters);
-    const pick = this.scene.pickWithRay(
-      ray,
-      (mesh) => this.presentation.isInteractionMesh(mesh),
-      false,
-    );
+    // 先命中场景最近的可拾取 Mesh，实体墙体才能正确阻挡其后的交互目标。
+    const pick = this.scene.pickWithRay(ray, undefined, false);
     const targetId = pick?.hit
-      ? this.presentation.getTargetId(pick.pickedMesh)
+      ? this.#getTargetId(pick.pickedMesh)
       : undefined;
     const nextTarget = targetId ? this.service.getTarget(targetId) : undefined;
     if (!sameTarget(this.#currentTarget, nextTarget)) {
@@ -64,19 +68,35 @@ export class InteractionRaycastController {
       || !this.#currentTarget
     ) return;
     event.preventDefault();
+    if (this.#currentTarget.interactionType !== "pickup") {
+      this.callbacks.onUseTarget?.(this.#currentTarget);
+      return;
+    }
     const result = this.service.interact(this.#currentTarget.id);
-    this.presentation.applyInteractionResult(result);
+    for (const presentation of this.presentations) presentation.applyInteractionResult?.(result);
     this.callbacks.onInteraction(result, this.inventorySnapshot());
     this.#currentTarget = result.remainingQuantity > 0
       ? this.service.getTarget(result.targetId)
       : undefined;
     this.callbacks.onTargetChanged(this.#currentTarget);
   };
+
+  #getTargetId(mesh: AbstractMesh | null | undefined): string | undefined {
+    for (const presentation of this.presentations) {
+      const id = presentation.getTargetId(mesh);
+      if (id) return id;
+    }
+    return undefined;
+  }
 }
 
 function sameTarget(
   current: InteractionTarget | undefined,
   next: InteractionTarget | undefined,
 ): boolean {
-  return current?.id === next?.id && current?.quantity === next?.quantity;
+  if (current?.id !== next?.id || current?.interactionType !== next?.interactionType) return false;
+  if (current?.interactionType === "pickup" && next?.interactionType === "pickup") {
+    return current.quantity === next.quantity;
+  }
+  return true;
 }

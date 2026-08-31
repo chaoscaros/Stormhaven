@@ -49,6 +49,18 @@ describe("HeatSourceSystem", () => {
     expect(result.contributingSourceIds).toEqual(["one", "two"]);
   });
 
+  it("支持 Runtime add / enable / position / remove", () => {
+    const system = createSystem([]);
+    system.add(source("dynamic", 0, false));
+    expect(system.getContribution({ x: 0, y: 0, z: 0 }).temperatureBonusCelsius).toBe(0);
+    system.setEnabled("dynamic", true);
+    expect(system.getContribution({ x: 0, y: 0, z: 0 }).temperatureBonusCelsius).toBe(10);
+    system.updatePosition("dynamic", { x: 20, y: 0, z: 0 });
+    expect(system.getContribution({ x: 0, y: 0, z: 0 }).temperatureBonusCelsius).toBe(0);
+    expect(system.remove("dynamic")).toBe(true);
+    expect(system.has("dynamic")).toBe(false);
+  });
+
   it("拒绝非正半径与重复 Profile ID", () => {
     expect(() => HeatSourceSystem.parseConfig({
       maxCombinedHeatBonusCelsius: 10,

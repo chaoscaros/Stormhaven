@@ -16,8 +16,8 @@ export interface BuildCost {
   readonly quantity: number;
 }
 
-export type BuildCategory = "foundation" | "wall";
-export type BuildSnapType = "grid" | "foundation_edge";
+export type BuildCategory = "foundation" | "wall" | "utility";
+export type BuildSnapType = "grid" | "foundation_edge" | "ground";
 
 export interface BuildDefinition {
   readonly id: string;
@@ -66,6 +66,7 @@ export type PlacementFailureReason =
   | "snap_required"
   | "snap_occupied"
   | "out_of_range"
+  | "blocked_by_player"
   | "invalid_surface";
 
 export interface PlacementValidationResult {
@@ -92,6 +93,7 @@ export type BuildFailureReason =
   | "snap_required"
   | "snap_occupied"
   | "out_of_range"
+  | "blocked_by_player"
   | "invalid_surface"
   | "presentation_failed";
 

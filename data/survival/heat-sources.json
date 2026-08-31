@@ -2,8 +2,8 @@
   "maxCombinedHeatBonusCelsius": 32,
   "profiles": [
     {
-      "id": "debug_cabin_heater",
-      "displayName": "测试炉",
+      "id": "campfire_basic",
+      "displayName": "篝火",
       "radiusMeters": 5,
       "maxTemperatureBonusCelsius": 32
     }

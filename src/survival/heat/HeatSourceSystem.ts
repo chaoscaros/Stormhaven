@@ -33,16 +33,13 @@ const NO_HEAT: HeatContributionSnapshot = Object.freeze({
 /** 计算纯坐标处的通用热源贡献，不依赖渲染与交互。 */
 export class HeatSourceSystem {
   readonly #maxCombinedHeatBonusCelsius: number;
-  readonly #sources: readonly RegisteredHeatSource[];
+  readonly #profiles: ReadonlyMap<string, HeatSourceProfile>;
+  readonly #sources = new Map<string, RegisteredHeatSource>();
 
   constructor(config: HeatSourceConfig, placements: readonly HeatSourcePlacement[]) {
     this.#maxCombinedHeatBonusCelsius = config.maxCombinedHeatBonusCelsius;
-    const profiles = new Map(config.profiles.map((profile) => [profile.id, profile]));
-    this.#sources = Object.freeze(placements.map((placement) => {
-      const profile = profiles.get(placement.profileId);
-      if (!profile) throw new Error(`不存在 HeatSource Profile ID：${placement.profileId}`);
-      return Object.freeze({ placement, profile });
-    }));
+    this.#profiles = new Map(config.profiles.map((profile) => [profile.id, profile]));
+    for (const placement of placements) this.add(placement);
   }
 
   static parseConfig(value: unknown): HeatSourceConfig {
@@ -82,7 +79,7 @@ export class HeatSourceSystem {
     let dominantBonus = 0;
     const sourceIds: string[] = [];
 
-    for (const source of this.#sources) {
+    for (const source of this.#sources.values()) {
       if (!source.placement.enabled) continue;
       const distance = distanceBetween(position, source.placement.position);
       if (distance >= source.profile.radiusMeters) continue;
@@ -111,6 +108,55 @@ export class HeatSourceSystem {
         : {}),
     });
   }
+
+  has(id: string): boolean {
+    return this.#sources.has(id);
+  }
+
+  add(placement: HeatSourcePlacement): void {
+    if (this.#sources.has(placement.id)) throw new Error(`HeatSource ID 重复：${placement.id}`);
+    const profile = this.#profiles.get(placement.profileId);
+    if (!profile) throw new Error(`不存在 HeatSource Profile ID：${placement.profileId}`);
+    const frozenPlacement = freezePlacement(placement);
+    this.#sources.set(placement.id, Object.freeze({ placement: frozenPlacement, profile }));
+  }
+
+  remove(id: string): boolean {
+    return this.#sources.delete(id);
+  }
+
+  setEnabled(id: string, enabled: boolean): void {
+    const source = this.#getSource(id);
+    this.#replacePlacement(source, { ...source.placement, enabled });
+  }
+
+  updatePosition(id: string, position: SpatialPoint): void {
+    const source = this.#getSource(id);
+    this.#replacePlacement(source, { ...source.placement, position });
+  }
+
+  #getSource(id: string): RegisteredHeatSource {
+    const source = this.#sources.get(id);
+    if (!source) throw new Error(`不存在 HeatSource ID：${id}`);
+    return source;
+  }
+
+  #replacePlacement(source: RegisteredHeatSource, placement: HeatSourcePlacement): void {
+    this.#sources.set(placement.id, Object.freeze({
+      profile: source.profile,
+      placement: freezePlacement(placement),
+    }));
+  }
+}
+
+function freezePlacement(placement: HeatSourcePlacement): HeatSourcePlacement {
+  if (![placement.position.x, placement.position.y, placement.position.z].every(Number.isFinite)) {
+    throw new Error(`HeatSource ${placement.id} position 必须是有限坐标。`);
+  }
+  return Object.freeze({
+    ...placement,
+    position: Object.freeze({ ...placement.position }),
+  });
 }
 
 function parseProfile(value: unknown, index: number): HeatSourceProfile {

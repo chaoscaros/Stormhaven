@@ -62,6 +62,7 @@ src/main.ts
 | `src/crafting` | Recipe Runtime Validation、Catalog、Requirement、Plan 与原子制作事务 |
 | `src/building` | BuildDefinition/Catalog、Grid/Wall Snap、Placement Validation、原子事务与 WorldBuildingRegistry |
 | `src/building/presentation` | Babylon Ghost、Placement Ray/Input、正式 Mesh、Camera Collision 与降水障碍接线 |
+| `src/survival/campfire` | Fuel/Campfire 纯领域状态、事务、燃烧和 Building Gameplay Binding |
 | `src/save` | 未来的版本化 IndexedDB 持久化 |
 | `data` | 按领域划分的未来 JSON 定义 |
 | `public/assets` | 未来的模型、贴图与音频 |
@@ -79,18 +80,18 @@ data/building/buildings.json
   → PlacementValidator
   → BuildService / Inventory Draft
   → WorldBuildingRegistry
-  → BuildingPresentation
+  → BuildingGameplayBinding + BuildingPresentation
 ```
 
-`BuildDefinition` 使用稳定英文 snake_case ID，包含 category、cost、三轴 size、snapType、rotationStep、collision 和 tags。当前只有 `foundation_wood`（wood ×4、2m × 0.2m × 2m）与 `wall_wood`（wood ×3、2m × 2.4m × 0.18m），不创建可放入 Inventory 的墙/地基 Item。
+`BuildDefinition` 使用稳定英文 snake_case ID，包含 category、cost、三轴 size、snapType、rotationStep、collision 和 tags。当前有 `foundation_wood`、`wall_wood` 与 `campfire_basic`（stone ×4 + wood ×2、1.1m × 0.5m × 1.1m）；均不创建可放入 Inventory 的建筑 Item。
 
-`PlacementValidator` 是纯逻辑：Foundation 只接受 Ground，并在 2m Grid 上吸附。Grid 原点集中为 `(x=0, z=1)`，与固定测试木屋的外沿 `x=-5/5、z=4/14` 对齐，因此木屋相邻地基可落在 `x=-6/6` 或 `z=3/15` 并以边界接触，不会重叠或留出 1m 间隙。Wall 必须使用 Foundation 注册的 North/East/South/West `SnapPoint`。最终位置还需满足 5m 距离、Snap 未占用，以及与固定场景和现有 World Building 的 AABB 不重叠。接触边界不算重叠，因此相邻 Foundation 和立于 Foundation 顶边的 Wall 合法。Rotation 统一规范到 `0..359`，只按 Definition Step 递增。
+`PlacementValidator` 是纯逻辑：Foundation 只接受 Ground，并在 2m Grid 上吸附。Grid 原点集中为 `(x=0, z=1)`，与固定测试木屋外沿对齐。Wall 必须使用 Foundation 注册的四向 `SnapPoint`。Utility 篝火直接保留命中地面的 x/z 与表面高度，可放在雪地或固定木屋地板上，但必须满足 5m 距离，且不得与玩家身体、固定场景或现有 World Building 的 AABB 重叠。Rotation 统一规范到 `0..359`。
 
 `BuildService` 每次确认放置都会重新运行资源与 Placement 校验，不相信菜单缓存。事务为 `Plan → Clone Inventory → Consume Cost on Draft → Prepare Disabled Presentation Candidate → Commit Inventory + Registry → Activate Mesh`。Prepare 或 Activate 失败会释放候选并恢复 Inventory/Registry；失败不吞材料。成功后保持同一 Ghost，允许连续建造，直到资源不足或玩家按 B/Esc 退出。
 
-`WorldBuildingRegistry` 只保存纯 `WorldBuilding`、Bounds 与 SnapPoint，不持有 Mesh。状态仅存在当前运行会话，刷新即消失。Ghost 不进入 Registry、不参与碰撞、不参与 Picking；正式 Mesh 才启用 Babylon Camera Collision。玩家建筑没有 Interaction Target，也不会自动注册为 Shelter。
+`WorldBuildingRegistry` 只保存纯 `WorldBuilding`、Bounds 与 SnapPoint，不持有 Mesh。Ghost 不进入 Registry、不参与碰撞、不参与 Picking。正式篝火由 `CampfireBuildingBinding` 创建独立 Gameplay State 和 Interaction Target；其他玩家建筑仍没有 Interaction Target。所有状态仅存在当前运行会话，且不会自动注册为 Shelter。
 
-输入统一为单一 `GameUiMode`：`gameplay / inventory_menu / crafting_menu / building_menu / build_placement`。Tab/C/B 菜单互斥并释放 Pointer Lock；Building Menu 点击结构件后恢复 Pointer Lock 并进入 BuildPlacement。放置中左键确认、R 旋转、B/Esc 退出，世界 E Interaction 被屏蔽。
+输入统一为单一 `GameUiMode`：`gameplay / inventory_menu / crafting_menu / building_menu / build_placement / campfire_menu`。Tab/C/B/E 篝火菜单互斥并释放 Pointer Lock；Building Menu 点击结构件后恢复 Pointer Lock 并进入 BuildPlacement。放置中左键确认、R 旋转、B/Esc 退出，世界 E Interaction 被屏蔽。
 
 动态降水依赖保持窄接口：
 
@@ -104,9 +105,27 @@ SnowParticleController ───────read─────────┘
 
 自建几何转化为动态 Shelter/房间属于未来 Building Enclosure Issue。当前 Thermal Shelter 仍只有固定测试木屋；Building 不导入 ShelterSystem，Weather 也不导入 BuildingSystem。
 
+## Campfire Gameplay + Fuel
+
+核心数据流保持单向并将规则与表现分开：
+
+```text
+Building → CampfireBuildingBinding → CampfireSystem → FuelCatalog
+                                            └──────→ HeatSourceSystem → Thermal
+
+Interaction → Campfire Menu → CampfireSystem → Inventory / Campfire State
+Campfire State → BuildingPresentation（石圈/木柴/火焰/点光源）
+```
+
+`data/survival/fuels.json` 用稳定 Item ID 定义燃烧秒数；当前仅 wood，每份 180 秒。`data/survival/campfire.json` 定义 900 秒容量和 `campfire_basic` Heat Source Profile。`CampfireSystem` 拥有 `unlit / burning / out_of_fuel` 状态，并通过 Inventory Draft 完整规划加柴事务；未知物品、无木材、已满或容量不足以容纳完整一份燃料时不消耗 Inventory。
+
+放置提交后 Binding 才注册 Campfire State 和默认禁用的 HeatSource；点燃仅在燃料大于零时成功，熄灭保留剩余燃料。燃烧到零时精确 Clamp 为零、切换 `out_of_fuel` 并禁用热源。移除或回滚建筑会同步移除 Interaction Target 和 HeatSource，不留下热量。Presentation 只订阅状态并在点燃状态变化时开关火焰和灯光，不执行燃料规则，也不创建每篝火独立 Render Loop。
+
+燃料消耗使用 `GameSimulation` 与 Thermal 共用的暂停感知、最大 0.25 秒真实增量，不乘 `GameClock.timeScale=240`；因此一份木材表示 180 个真实游玩秒。暂停时传入零，30/60/120 FPS 下累计结果一致。
+
 ## Interaction、Item 与 Inventory Foundation
 
-运行链固定为：`Camera → Babylon Raycast → Interaction Target ID → InteractionService → Inventory + WorldPickupRegistry → UI/Babylon Presentation`。Raycast 最大距离集中为 `2.75m`，每帧通过 Predicate 仅测试可交互 Mesh；Mesh metadata 只保存 `interactionTargetId`，不保存 ItemDefinition、Inventory 或 Service。Pickup Mesh 使用场景默认 Rendering Group 和 Depth Buffer，因此会被实体墙体遮挡，不得为了强调可交互物而改成隔墙覆盖渲染。
+运行链固定为：`Camera → Babylon Raycast → Interaction Target ID → InteractionService/Target Provider → Inventory 或 Campfire UI`。Raycast 最大距离集中为 `2.75m`，先拾取场景最近的可拾取 Mesh，再判断它是否属于交互源，因此实体墙体会阻挡其后的资源和篝火。Mesh metadata/lookup 只保存 Target ID，不保存 ItemDefinition、Inventory 或 Service；不得为交互物启用隔墙覆盖渲染。
 
 `data/items/items.json` 定义稳定 `id`、展示字段、`category`、`stackSize`、单件 `weight`、可空 `durability`/`icon` 和 `tags`。`ItemCatalog` 在启动时完成结构、重复 ID 和数值边界校验。`ItemStack` 与 Inventory Snapshot 不可变；Inventory 固定 24 Slot / 30kg，重量每次由 `Σ weight × quantity` 推导，不维护可漂移缓存。
 
@@ -184,7 +203,7 @@ Weather Domain
 
 `ShelterSystem` 使用 Inclusive AABB Volume 查询普通 `{x,y,z}` 坐标，Profile 提供 `0..1` 挡风比例和非负温度加成。`HeatSourceSystem` 使用球形半径和 smoothstep 距离衰减；启用热源贡献可相加，但由配置的全局温度上限 Clamp。热源不要求位于 Shelter 内，因此领域语义可支持室外热源。相机每帧只把普通坐标传入 `GameSimulation`，上述领域层不导入 Babylon。
 
-固定测试木屋和测试炉的空间注册位于 `data/world/first-blizzard-environment.json`。`src/world/createFirstBlizzardCabin.ts` 读取相同 Placement 创建 Primitive 表现与碰撞，但 Mesh 不参与 Shelter/Heat 判定，避免渲染与规则双重事实来源。测试炉当前始终启用，没有 Interaction、Fuel、Item 或 Campfire 状态机。
+固定测试木屋的空间注册位于 `data/world/first-blizzard-environment.json`。`src/world/createFirstBlizzardCabin.ts` 读取相同 Placement 创建 Primitive 表现与碰撞，但 Mesh 不参与 Shelter 判定。原常开测试炉和固定 HeatSource 已移除，正常运行时只有点燃的玩家篝火能动态提供热量。
 
 `data/survival/thermal.json` 集中保存以下占位平衡参数：
 
@@ -304,16 +323,16 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 29 个测试文件、189 个测试。Building 新增覆盖 Definition/引用/数值校验、正负 Grid 边界、场景对齐 Grid 原点、Rotation、Ground Foundation、距离/重叠、Foundation Edge Wall、Snap 占用、连续资源消费、资源/Placement/Presentation 三类失败原子性、Obstacle add/remove/update/重复 ID，以及 Building → Dynamic Obstacle → Snow Segment 集成。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
+当前共 32 个测试文件、220 个测试。Campfire 新增覆盖 Fuel 配置、初始状态、加柴原子性、容量边界、点燃/熄灭/重燃、耗尽 Clamp、30/60/120 FPS 一致性、动态 HeatSource 生命周期、远近热量、交互映射、Building 回滚、固定墙体/玩家重叠和无固定热源 Thermal 集成。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段只由 AI 执行前两项，生产构建和浏览器验收由用户执行。
 
 ## Weather Presentation 已知边界
 
 - 降水阻挡已支持固定场景与动态建筑的增量 AABB 注册；复杂旋转/凹形 Mesh 仍不是精确三角形碰撞。
-- Building 只有 Foundation/Wall、平面 Ground 与一级 Foundation Edge Snap；没有二楼、斜坡、Support Graph、Roof、Door、Window、拆除、维修、升级、伤害或存档。
+- Building 只有 Foundation/Wall/Campfire、Ground 与一级 Foundation Edge Snap；没有二楼、斜坡、Support Graph、Roof、Door、Window、拆除、维修、升级、伤害或存档。
 - 已有游戏化体感温度、风寒、Shelter、Heat Source 和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
 - 没有音频、屏幕结霜、镜头抖动、积雪、脚印、闪电伤害或树木破坏。
 - 没有 GPU/移动端 Profile；容量和 Emit Rate 是桌面 Vertical Slice 的保守初值，需以用户浏览器实际表现校准。
-- Thermal 尚未接入 Wetness、Campfire/Fuel Gameplay、Clothing、Health、Hypothermia Debuff 或存档。
+- Thermal 已接入 Campfire/Fuel 动态热源，但尚未接入 Wetness、Clothing、Health、Hypothermia Debuff 或存档。
 
 ## 跨机器开发约定
 

@@ -2,7 +2,7 @@ import type { Inventory } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { WorldPickupRegistry } from "../world/pickups/WorldPickupRegistry";
 import type { InteractionResult } from "./InteractionResult";
-import type { InteractionTarget } from "./InteractionTarget";
+import type { InteractionTarget, InteractionTargetProvider } from "./InteractionTarget";
 
 /** Interaction Target ID → Pickup Transaction 的纯应用服务。 */
 export class InteractionService {
@@ -10,17 +10,24 @@ export class InteractionService {
     private readonly catalog: ItemCatalog,
     private readonly inventory: Inventory,
     private readonly pickups: WorldPickupRegistry,
+    private readonly targetProviders: readonly InteractionTargetProvider[] = Object.freeze([]),
   ) {}
 
   getTarget(targetId: string): InteractionTarget | undefined {
     const pickup = this.pickups.get(targetId);
-    if (!pickup || pickup.consumed || !this.catalog.has(pickup.itemId)) return undefined;
-    return Object.freeze({
-      id: pickup.id,
-      interactionType: "pickup",
-      displayName: this.catalog.get(pickup.itemId).displayName,
-      quantity: pickup.quantity,
-    });
+    if (pickup && !pickup.consumed && this.catalog.has(pickup.itemId)) {
+      return Object.freeze({
+        id: pickup.id,
+        interactionType: "pickup",
+        displayName: this.catalog.get(pickup.itemId).displayName,
+        quantity: pickup.quantity,
+      });
+    }
+    for (const provider of this.targetProviders) {
+      const target = provider.getInteractionTarget(targetId);
+      if (target) return target;
+    }
+    return undefined;
   }
 
   interact(targetId: string): InteractionResult {

@@ -87,6 +87,48 @@ describe("PlacementValidator", () => {
     });
     expect(result).toMatchObject({ valid: false, reason: "snap_occupied" });
   });
+
+  it("Campfire Utility 可直接放置在 Ground 且保留地面高度", () => {
+    const result = createRuntime().validator.validate(definitions.get("campfire_basic"), {
+      playerPosition: { x: 0, y: 1.8, z: -3 },
+      candidate: groundCandidate(0.7, 0.8, 0.12),
+    });
+    expect(result).toMatchObject({
+      valid: true,
+      placement: { position: { x: 0.7, y: 0.37, z: 0.8 }, surface: "ground" },
+    });
+  });
+
+  it("Campfire 不能与现有建筑重叠", () => {
+    const runtime = createRuntime();
+    registerFoundation(runtime.registry);
+    const result = runtime.validator.validate(definitions.get("campfire_basic"), {
+      playerPosition: { x: 0, y: 1.8, z: 3 },
+      candidate: groundCandidate(0, 0),
+    });
+    expect(result).toMatchObject({ valid: false, reason: "blocked" });
+  });
+
+  it("Campfire 不能穿过固定场景墙体放置", () => {
+    const registry = new WorldBuildingRegistry();
+    const validator = new PlacementValidator(registry, [{
+      min: { x: -1, y: 0, z: -0.2 },
+      max: { x: 1, y: 3, z: 0.2 },
+    }]);
+    const result = validator.validate(definitions.get("campfire_basic"), {
+      playerPosition: { x: 0, y: 1.8, z: -3 },
+      candidate: groundCandidate(0, 0),
+    });
+    expect(result).toMatchObject({ valid: false, reason: "blocked" });
+  });
+
+  it("Campfire 不能放在玩家身体所在位置", () => {
+    const result = createRuntime().validator.validate(definitions.get("campfire_basic"), {
+      playerPosition: { x: 0, y: 1.8, z: 0 },
+      candidate: groundCandidate(0, 0),
+    });
+    expect(result).toMatchObject({ valid: false, reason: "blocked_by_player" });
+  });
 });
 
 function createRuntime() {
@@ -103,6 +145,6 @@ function registerFoundation(registry: WorldBuildingRegistry): void {
   }, definitions.get("foundation_wood"));
 }
 
-function groundCandidate(x: number, z: number) {
-  return { position: { x, y: 0, z }, rotationDegrees: 0, surface: "ground" as const };
+function groundCandidate(x: number, z: number, y = 0) {
+  return { position: { x, y, z }, rotationDegrees: 0, surface: "ground" as const };
 }

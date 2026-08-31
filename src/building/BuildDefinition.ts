@@ -7,8 +7,8 @@ import type {
   BuildingVector3,
 } from "./BuildingTypes";
 
-const BUILD_CATEGORIES = new Set<BuildCategory>(["foundation", "wall"]);
-const BUILD_SNAP_TYPES = new Set<BuildSnapType>(["grid", "foundation_edge"]);
+const BUILD_CATEGORIES = new Set<BuildCategory>(["foundation", "wall", "utility"]);
+const BUILD_SNAP_TYPES = new Set<BuildSnapType>(["grid", "foundation_edge", "ground"]);
 const STABLE_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 
 export function parseBuildDefinition(
@@ -37,6 +37,9 @@ export function parseBuildDefinition(
   }
   if (category === "wall" && snapType !== "foundation_edge") {
     throw new Error(`${id} 的 Wall 必须使用 foundation_edge Snap。`);
+  }
+  if (category === "utility" && snapType !== "ground") {
+    throw new Error(`${id} 的 Utility 必须使用 ground Snap。`);
   }
   return Object.freeze({
     id,

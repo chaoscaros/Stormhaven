@@ -9,12 +9,5 @@
       }
     }
   ],
-  "heatSources": [
-    {
-      "id": "debug_cabin_heater_01",
-      "profileId": "debug_cabin_heater",
-      "position": { "x": 0, "y": 0.82, "z": 11.5 },
-      "enabled": true
-    }
-  ]
+  "heatSources": []
 }

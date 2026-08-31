@@ -24,9 +24,9 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 当前阶段
 
-当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1**、**Shelter + Heat Source v0.1**、**Interaction + Item + Inventory Foundation v0.1**、**Crafting Foundation v0.1** 和 **Building Foundation v0.1**。Tab/C/B 菜单共用单一 UI Mode；玩家可用收集的木材放置木制地基，并将木墙吸附到地基边缘。建造事务、动态相机碰撞和动态降水障碍已经接入，但自建结构不提供 Shelter 效果。
+当前已完成**基础工程**、**Game Time + Data Driven Weather Core v0.1**、**Weather Presentation Layer v0.1**、**Player Thermal Model v0.1**、**Shelter + Heat Source v0.1**、**Interaction + Item + Inventory Foundation v0.1**、**Crafting Foundation v0.1**、**Building Foundation v0.1** 和 **Campfire Gameplay + Fuel v0.1**。玩家可用石头和木材放置篝火，通过 E 打开鼠标菜单，添加木材、点燃/熄灭，并由燃烧状态动态注册 HeatSource；固定木屋不再包含常开测试炉。
 
-本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 Building 或 Crafting，也不得实现 Campfire Gameplay、Heat Source Placement、Fuel、Shelter Enclosure、Door/Window Gameplay、Building Upgrade/Damage、Demolish/Refund、Repair、Storage/Container、Save/IndexedDB、Item Use/Equipment、Tree Chopping、Mining 或其他范围禁止项。石斧仍只是 Inventory 成品，自建结构也不会自动成为 Shelter。
+本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 Campfire、Fuel、Building 或 Crafting，也不得实现 Shelter Enclosure、Door/Window/Roof Gameplay、Building Upgrade/Damage、Demolish/Refund、Repair、Storage/Container、Save/IndexedDB、Item Use/Equipment、Tree Chopping、Mining、Wetness 或其他范围禁止项。石斧仍只是 Inventory 成品，自建结构也不会自动成为 Shelter。
 
 ## 包管理和命令
 

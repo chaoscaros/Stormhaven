@@ -31,6 +31,11 @@ export interface GameSimulationEnvironmentConfig {
   readonly shelterSystem: ShelterSystem;
   readonly heatSourceSystem: HeatSourceSystem;
   readonly initialPlayerPosition: SpatialPoint;
+  readonly runtimeSystems?: readonly SimulationUpdatable[];
+}
+
+export interface SimulationUpdatable {
+  update(deltaSeconds: number): void;
 }
 
 export interface SimulationWeatherSnapshot {
@@ -90,6 +95,7 @@ export class GameSimulation {
   readonly #thermal: ThermalModel;
   readonly #shelterSystem: ShelterSystem;
   readonly #heatSourceSystem: HeatSourceSystem;
+  readonly #runtimeSystems: readonly SimulationUpdatable[];
   readonly #thermalEnvironmentBuilder = new ThermalEnvironmentBuilder();
   readonly #maxDeltaSeconds: number;
   #playerPosition: SpatialPoint;
@@ -119,6 +125,7 @@ export class GameSimulation {
     this.#thermal = new ThermalModel(thermalConfig);
     this.#shelterSystem = environment?.shelterSystem ?? ShelterSystem.empty();
     this.#heatSourceSystem = environment?.heatSourceSystem ?? HeatSourceSystem.empty();
+    this.#runtimeSystems = Object.freeze([...(environment?.runtimeSystems ?? [])]);
     this.#playerPosition = freezePoint(
       environment?.initialPlayerPosition ?? { x: 0, y: 0, z: 0 },
     );
@@ -180,6 +187,8 @@ export class GameSimulation {
     this.#playerPosition = freezePoint(playerPosition);
     const forecastBefore = this.#forecast.getNextForecast(this.#clock.snapshot);
     const timeAdvance = this.#clock.update(clampedDeltaSeconds);
+    const runtimeDeltaSeconds = this.#clock.paused ? 0 : clampedDeltaSeconds;
+    for (const system of this.#runtimeSystems) system.update(runtimeDeltaSeconds);
     const events: GameSimulationEvent[] = [];
 
     if (timeAdvance.advancedGameMinutes > 0) {
@@ -226,7 +235,7 @@ export class GameSimulation {
     this.#thermal.update(createThermalInputs(
       gameplayWeather,
       this.#thermalEnvironment,
-      this.#clock.paused ? 0 : clampedDeltaSeconds,
+      runtimeDeltaSeconds,
     ));
 
     const snapshot = this.snapshot;

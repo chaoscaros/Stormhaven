@@ -4,12 +4,12 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Building Foundation v0.1
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Campfire Gameplay + Fuel v0.1
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：在 Pickup → Inventory 与 Crafting 基础上，已完成 Building Definition/Catalog、B 键菜单、Ghost、与固定木屋对齐的 Grid/Foundation Edge Snap、Placement Validation、原子资源事务、会话内 World Registry、动态 Camera Collision 和动态降水障碍；Pickup 受实体墙体正常遮挡
-- 明确未实现：Campfire/Fuel、Shelter Enclosure、Roof/Door/Window、Building Upgrade/Damage、Demolish/Repair、Storage/Container、Tool Gameplay、Save/IndexedDB
+- 功能状态：在 Building Foundation 上已完成 Data Driven Fuel/Campfire、篝火建造与原子回滚、E 鼠标菜单、加柴/点燃/熄灭/真实秒燃烧、动态 HeatSource、Thermal 集成和基础火焰表现；固定常开测试炉已移除
+- 明确未实现：Shelter Enclosure、Roof/Door/Window、Building Upgrade/Damage、Demolish/Repair、Cooking/Ash、Storage/Container、Tool Gameplay、Wetness、Save/IndexedDB
 
 ## 已完成内容
 
@@ -50,9 +50,9 @@
 - Data Driven Heat Source Profile、smoothstep 距离衰减、多源叠加与全局上限
 - Weather + Shelter + Heat Source → ThermalEnvironmentBuilder → ThermalModel 组合链路
 - 相机每帧只向 Simulation 传递普通 `{x,y,z}` 坐标，不泄漏 Babylon 类型
-- 共用 Scenario Placement 的固定 Primitive 测试木屋、入口、碰撞与常开测试炉
+- 共用 Scenario Placement 的固定 Primitive 测试木屋、入口与碰撞；不再包含常开测试炉
 - HUD 展示庇护、挡风、原始→有效风力及热源加成
-- 暴雪中室外失温、庇护减缓、炉旁回暖及 FPS 一致性 Integration Test
+- 暴雪中室外失温、无火庇护减缓、玩家篝火旁回暖及 FPS 一致性 Integration Test
 - 局部降水粒子路径与静态碰撞 Mesh AABB 的 Slab 检测，碰撞后回收粒子
 - JSON 驱动的 9 个 ItemDefinition 和 6 个 First Blizzard Pickup Placement
 - 纯 `ItemCatalog`、`ItemStack`、Slot/Stack/Weight Inventory 与 Partial Add
@@ -63,8 +63,8 @@
 - Craft Requirement、Missing Inputs、Max Craftable Count 与稳定 Failure Reason
 - Clone Draft → Consume → Add Output → Validate Final Snapshot → Atomic Commit
 - Tab 背包与 C 键制作菜单进入统一菜单态：释放 Pointer Lock、显示鼠标、支持点击关闭/选择配方/制作；打开时屏蔽 E Interaction
-- JSON 驱动的 `foundation_wood` / `wall_wood` BuildDefinition 与完整 Runtime Validation
-- 单一 Gameplay/Inventory/Crafting/Building/BuildPlacement Mode；Tab/C/B 菜单互斥
+- JSON 驱动的 `foundation_wood` / `wall_wood` / `campfire_basic` BuildDefinition 与完整 Runtime Validation
+- 单一 Gameplay/Inventory/Crafting/Building/BuildPlacement/Campfire Mode；Tab/C/B/E 篝火菜单互斥
 - B 键鼠标 Building Menu、Camera Forward Ground Ray 与单一半透明 Ghost
 - 与固定木屋外沿对齐的 2m Foundation Grid、90° Rotation、Foundation 四边 Wall Snap 与 5m Build Distance
 - 固定场景/World Building AABB Overlap、稳定失败 Reason 与实时资源重校验
@@ -72,7 +72,12 @@
 - 当前会话 WorldBuildingRegistry、SnapPoint 占用和连续建造
 - 正式 Mesh 动态 Camera Collision；Ghost 无碰撞、不可 Pick、不会注册 World Entity
 - PrecipitationObstacleRegistry 静态初始化及动态 add/remove/update；Snow 读取共享 Snapshot
-- 29 个测试文件、189 个单元与集成测试
+- Data Driven wood Fuel（180 秒/件）与 Campfire Config（900 秒容量、稳定 Heat Profile ID）
+- Campfire Building Binding：成功建造同步创建 State、Interaction Target 和默认禁用的 HeatSource，失败完整回滚
+- CampfireSystem 的原子加柴、点燃、熄灭、重燃、燃料耗尽与动态 HeatSource 生命周期
+- E 篝火鼠标菜单、稳定反馈、石圈/木柴/火焰/点光源状态表现
+- 燃料和 Thermal 共用 Clamp 后真实 Delta；Pause 为零且不受 `timeScale=240` 影响
+- 32 个测试文件、220 个单元与集成测试
 
 ## 关键架构入口
 
@@ -104,8 +109,15 @@
 | `src/building/WorldBuildingRegistry.ts` | 会话内 World Entity、Bounds、SnapPoint 与占用状态 |
 | `src/building/presentation/BuildingPlacementController.ts` | Camera Ray、单 Ghost、左键/R/B/Esc 的 Babylon 适配 |
 | `src/building/presentation/BuildingPresentation.ts` | 正式 Mesh、Camera Collision 与动态降水障碍注册 |
+| `src/building/BuildingGameplayBinding.ts` | 建筑提交后 Gameplay 生命周期与回滚边界 |
 | `src/ui/setupBuildingDebugUi.ts` | B 键鼠标 Building Menu、材料状态和放置反馈 |
-| `data/building/buildings.json` | 木制地基与木制墙体定义 |
+| `data/building/buildings.json` | 木制地基、木制墙体与篝火定义 |
+| `src/survival/campfire/CampfireSystem.ts` | 状态、原子加柴、燃烧、交互目标和动态热源 |
+| `src/survival/campfire/CampfireBuildingBinding.ts` | World Building 与 Campfire Gameplay 生命周期接线 |
+| `src/survival/campfire/FuelCatalog.ts` | Fuel JSON 校验与稳定 Item ID 查询 |
+| `src/ui/setupCampfireUi.ts` | E 篝火菜单、Pointer Lock 和鼠标操作 |
+| `data/survival/fuels.json` | Fuel Item 与每份燃烧秒数 |
+| `data/survival/campfire.json` | 燃料容量与 Heat Source Profile 配置 |
 | `data/crafting/recipes.json` | 即时手工石斧配方 |
 | `src/interaction/InteractionService.ts` | Inventory Add 与 Pickup Remaining 的纯事务服务 |
 | `src/interaction/InteractionRaycastController.ts` | Babylon Ray Picking、E 输入与监听器生命周期 |
@@ -133,14 +145,14 @@
 | `src/survival/shelter/ShelterSystem.ts` | Inclusive AABB 庇护检测与效果查询 |
 | `src/survival/heat/HeatSourceSystem.ts` | 热源距离衰减、叠加和上限 |
 | `src/survival/thermal/ThermalEnvironment.ts` | Weather、Shelter 与 Heat Source 组合 |
-| `src/world/createFirstBlizzardCabin.ts` | 固定测试木屋与测试炉 Primitive 表现 |
+| `src/world/createFirstBlizzardCabin.ts` | 固定测试木屋 Primitive 表现与可建造地板支持面 |
 | `data/weather/weather.json` | 四种天气的 Data Driven 定义 |
 | `data/weather/weather-visuals.json` | 四种天气的独立视觉 Profile |
 | `data/weather/first-blizzard-schedule.json` | 17:30 → 18:00 暴雪计划 |
 | `data/survival/thermal.json` | Thermal 平衡、风寒、Rate 和 Status 阈值 |
 | `data/survival/shelters.json` | Shelter Profile 配置 |
 | `data/survival/heat-sources.json` | Heat Source Profile 与全局上限配置 |
-| `data/world/first-blizzard-environment.json` | 第一场暴雪木屋 Volume 与测试炉 Placement |
+| `data/world/first-blizzard-environment.json` | 第一场暴雪固定木屋 Volume；固定 HeatSource 为空 |
 | `tests/` | 配置、GameTime、Forecast、Weather、视觉/玩法映射、Thermal、Camera 和垂直运动测试 |
 | `docs/COMMAND_RUNBOOK.md` | 安装、启动、检查、构建和故障处理的标准命令 |
 | `docs/GPT_PLANNING_BRIEF.md` | 交给 GPT 制定开发路线图的完整项目现状 Brief |
@@ -250,6 +262,12 @@ pnpm dev
 - `pnpm test`：29 个测试文件、189 个测试通过
 - `git diff --check`：通过
 
+2026-08-31 完成 Campfire Gameplay + Fuel v0.1 后，实际执行并通过：
+
+- `pnpm exec tsc -b --pretty false`：通过，无输出错误
+- `pnpm test`：32 个测试文件、220 个测试通过
+- `git diff --check`：通过
+
 仍未执行：
 
 - 本阶段没有执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或任何浏览器操作。
@@ -258,7 +276,8 @@ pnpm dev
 - B Building Menu 的鼠标操作、Tab/C/B 互斥、Pointer Lock 切换、Ghost 跟随、木屋边缘 Grid 对齐、Wall Snap、R 旋转、连续建造与失败反馈均需用户手动验收。
 - 正式 Foundation/Wall 的实际 Camera Collision、站立/跳跃，以及暴雪粒子被动态建筑 AABB 阻挡均需用户手动验收。
 - 固定测试木屋入口新增门框后的辨识度、开放通行和无误碰撞仍需用户手动验收。
-- Shelter/Heat HUD、木屋入口与碰撞、室内跳跃、测试炉距离加成，以及暴雪中室外/屋内/炉旁差异仍需用户手动验收。
+- Shelter/Heat HUD、木屋入口与碰撞、室内跳跃，以及暴雪中室外/无火屋内/玩家篝火旁差异仍需用户手动验收。
+- 篝火 Ground/Floor Ghost、玩家/墙体/建筑阻挡、E 可见性与墙体遮挡、菜单 Pointer Lock、加柴/点燃/熄灭/耗尽、火焰/点光源和动态热量仍需用户手动验收。
 - Thermal HUD、14:00 基本稳定、17:30 渐冷和 18:00 Blizzard 明显流失仍需用户手动验收。
 - 天空、雾、灯光、雪粒子、F1–F5 预览和 14:00 → 18:00 实时视觉流程仍需用户手动验收。
 - 基础 Scene、WASD、奔跑、跳跃和指针锁定仍需用户完成最终验收记录。
@@ -277,26 +296,41 @@ pnpm dev
 - 第一版使用 AABB 而非精确三角形碰撞；对于旋转或复杂凹形 Mesh 会比视觉轮廓更保守。
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
-- 固定木屋不是 Building System，常开测试炉不是 Campfire Gameplay；没有放置、点火、熄灭或燃料。
+- 固定木屋不是 Building System；原常开测试炉已移除，正常运行时热量只来自点燃的玩家篝火。
 - Inventory 当前只在内存中存在，刷新即丢失；面板只读，不支持拖放、丢弃、装备、使用、容器或持久化。
 - Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
 - 当前输入契约为 Gameplay Pointer Lock、Menu Mouse Cursor 与 BuildPlacement Pointer Lock 三种模式，统一由 GameUiModeController 管理。
-- Building 当前只有木制地基和墙体、平面 Ground、2m Grid 与一级 Foundation Edge Snap；没有 Roof、Door、Window、二楼或 Support Graph。
+- Building 当前只有木制地基、墙体和篝火、Ground、2m Foundation Grid 与一级 Foundation Edge Snap；没有 Roof、Door、Window、二楼或 Support Graph。
 - 玩家建筑只进入 WorldBuildingRegistry、Camera Collision 和降水障碍，不进入 ShelterSystem；自建房间没有挡风/温度加成。
 - WorldBuildingRegistry 只存在内存，刷新页面后玩家建筑消失；没有 Save、Demolish、Repair、Upgrade 或 Building Damage。
 - Stone Axe durability 仅是 Definition 最大值；ItemStack 没有实例耐久，石斧不能装备、使用、砍树或挖矿。
-- Raycast 每帧仅测试 interaction-enabled Mesh；当前没有通用 NPC/门/热源交互，也没有复杂 Interaction Framework。
+- Raycast 先拾取场景最近 Mesh 再解析 Target，墙体可阻挡 Pickup/Campfire；当前没有通用 NPC/门交互或复杂 Interaction Framework。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
-- Thermal 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；未来系统增多时可评估 Fixed Simulation Tick。
+- Thermal 与 Campfire Fuel 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；Pause 时均为零，未来系统增多时可评估 Fixed Simulation Tick。
+- Campfire 当前只有 wood 单一 Fuel、即时点火和基础 Primitive 表现；没有点火物、烹饪、灰烬、烟雾伤害、音效或存档。
 
 ## 推荐下一步
 
 本 Issue 已达到停止条件。不要在当前任务继续开发。
 
-推荐下一独立 Issue：**Campfire Gameplay + Fuel v0.1**，让玩家放置真正 Campfire、加入燃料并向现有 HeatSourceSystem 注册动态热源；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、Save、工具玩法或建筑扩展。
+推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — Campfire Gameplay + Fuel v0.1
+
+- 新增 Data Driven Fuel/Campfire 配置、Runtime Validation 和纯 Campfire State；wood 每份 180 秒，容量 900 秒。
+- Building 增加可落在雪地或木屋地板的 Utility 篝火；玩家身体、固定墙体和现有建筑 AABB 会阻止放置，失败不扣材料。
+- 通过 BuildingGameplayBinding 将 World Building、Campfire State、Interaction Target、动态 HeatSource 和 Presentation 纳入同一提交/回滚生命周期。
+- 新增原子加柴、点燃、熄灭、重燃和耗尽逻辑；燃料使用 Clamp 后真实 Delta，不受 240 倍游戏时钟影响，暂停不消耗。
+- E Interaction 扩展到篝火，最近场景 Mesh 会遮挡墙后目标；新增释放 Pointer Lock 的鼠标篝火菜单。
+- 新增低模石圈、交叉木柴、火焰与点光源；移除固定测试炉和固定 HeatSource，Thermal 只消费点燃玩家篝火的动态热量。
+- 场景资源调整到足够验收地基/墙体、篝火建造与三份燃料，不引入采集玩法。
+- 新增 Fuel、Campfire、Simulation Runtime 与 Thermal 集成覆盖；最终 32 个测试文件、220 个测试通过。
+- `pnpm exec tsc -b --pretty false`、`pnpm test` 与 `git diff --check` 已通过。
+- 未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器操作；完整手动流程见 `docs/COMMAND_RUNBOOK.md`。
+- 严格停止；未进入 Shelter Enclosure、Storage、Save、Wetness、Tool Gameplay 或其他建筑扩展。
 
 ### 2026-08-31 — 墙体遮挡与木屋地基布局修复
 

@@ -5,6 +5,8 @@ import { setupFoundationUi } from "./ui/setupFoundationUi";
 import { createFirstBlizzardGameplayFoundation } from "./core/gameplay/createFirstBlizzardGameplayFoundation";
 import { setupCraftingDebugUi } from "./ui/setupCraftingDebugUi";
 import { setupBuildingDebugUi } from "./ui/setupBuildingDebugUi";
+import { createFirstBlizzardSurvivalEnvironment } from "./core/simulation/createFirstBlizzardSurvivalEnvironment";
+import { setupCampfireUi } from "./ui/setupCampfireUi";
 
 const canvas = document.getElementById("game-canvas");
 if (!(canvas instanceof HTMLCanvasElement)) {
@@ -12,8 +14,12 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 }
 
 const ui = setupFoundationUi(canvas);
-const simulation = createFirstBlizzardSimulation();
-const gameplay = createFirstBlizzardGameplayFoundation();
+const survivalEnvironment = createFirstBlizzardSurvivalEnvironment();
+const gameplay = createFirstBlizzardGameplayFoundation(survivalEnvironment.heatSourceSystem);
+const simulation = createFirstBlizzardSimulation(
+  survivalEnvironment,
+  Object.freeze([gameplay.campfireSystem]),
+);
 ui.updateDebugHud(simulation.snapshot);
 ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
 const craftingUi = setupCraftingDebugUi(
@@ -25,6 +31,19 @@ const craftingUi = setupCraftingDebugUi(
   {
     onInventoryChanged(): void {
       ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
+    },
+  },
+);
+const campfireUi = setupCampfireUi(
+  gameplay.campfireSystem,
+  gameplay.fuelCatalog,
+  gameplay.inventory,
+  gameplay.itemCatalog,
+  ui.modes,
+  {
+    onInventoryChanged(): void {
+      ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
+      craftingUi.refresh();
     },
   },
 );
@@ -53,6 +72,10 @@ game = new Game(
       ui.showInteractionResult(result, gameplay.itemCatalog);
       craftingUi.refresh();
       buildingUi.refresh();
+      campfireUi.refresh();
+    },
+    onUseTarget(target): void {
+      if (target.interactionType === "campfire") campfireUi.open(target.campfireId);
     },
   },
   ui.modes,
@@ -63,6 +86,7 @@ game = new Game(
       ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
       buildingUi.refresh();
       craftingUi.refresh();
+      campfireUi.refresh();
     },
   },
   ui.updateDebugHud,
@@ -82,6 +106,7 @@ const disposeApplication = (): void => {
   disposed = true;
   window.removeEventListener("beforeunload", disposeApplication);
   game?.dispose();
+  campfireUi.dispose();
   buildingUi.dispose();
   craftingUi.dispose();
   ui.dispose();

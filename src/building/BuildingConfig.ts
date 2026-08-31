@@ -4,6 +4,8 @@ export const BUILDING_CONFIG = Object.freeze({
   maximumBuildDistanceMeters: 5,
   wallSnapSearchRadiusMeters: 1.25,
   overlapEpsilonMeters: 0.001,
+  playerPlacementRadiusMeters: 0.4,
+  playerPlacementHeightMeters: 1.8,
 });
 
 export const BUILDING_INPUT_CONFIG = Object.freeze({
