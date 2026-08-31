@@ -26,9 +26,6 @@ const ui = setupFoundationUi(canvas, {
   onSimulationPausedChanged(paused): void {
     simulation.setPaused(paused);
   },
-  hotbar,
-  itemCatalog: gameplay.itemCatalog,
-  buildCatalog: gameplay.buildCatalog,
 });
 ui.showLoading("正在初始化游戏世界……");
 ui.updateDebugHud(simulation.snapshot);
@@ -66,7 +63,6 @@ const buildingUi = setupBuildingDebugUi(
   gameplay.inventory,
   gameplay.itemCatalog,
   ui.modes,
-  hotbar,
   {
     onSelect(definitionId): void {
       game?.beginBuildingPlacement(definitionId);
@@ -119,6 +115,17 @@ hotbarUi = setupHotbarUi(
     },
     onNonBuildSelected(): void {
       game?.cancelBuildingPlacement();
+    },
+    getMenuEntryToAssign() {
+      if (ui.modes.state.playerMenuTab === "inventory") {
+        const itemId = ui.getSelectedInventoryItemId();
+        return itemId ? { type: "item" as const, id: itemId } : undefined;
+      }
+      if (ui.modes.state.playerMenuTab === "building") {
+        const definitionId = buildingUi.getSelectedDefinitionId();
+        return definitionId ? { type: "build" as const, id: definitionId } : undefined;
+      }
+      return undefined;
     },
   },
 );

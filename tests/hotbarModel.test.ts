@@ -4,6 +4,7 @@ import {
   HotbarModel,
   isHotbarGameplayMode,
 } from "../src/ui/hotbar/HotbarModel";
+import { readHotbarDragData } from "../src/ui/hotbar/HotbarDragData";
 
 describe("HotbarModel", () => {
   it("默认 8 格并绑定三个建造快捷入口", () => {
@@ -63,6 +64,18 @@ describe("HotbarModel", () => {
     expect(model.slots[0]?.entry).toEqual({ type: "empty" });
   });
 
+  it("拖动快捷栏槽位时交换内容，空槽也可参与交换", () => {
+    const model = new HotbarModel();
+    expect(model.swap(0, 1)).toBe(true);
+    expect(model.slots[0]?.entry).toEqual({ type: "build", id: "wall_wood" });
+    expect(model.slots[1]?.entry).toEqual({ type: "build", id: "foundation_wood" });
+    expect(model.swap(1, 7)).toBe(true);
+    expect(model.slots[1]?.entry).toEqual({ type: "empty" });
+    expect(model.slots[7]?.entry).toEqual({ type: "build", id: "foundation_wood" });
+    expect(model.swap(7, 7)).toBe(false);
+    expect(model.swap(-1, 0)).toBe(false);
+  });
+
   it("槽位修改通知订阅者，无变化与越界操作保持安全", () => {
     const model = new HotbarModel();
     let notifications = 0;
@@ -76,5 +89,19 @@ describe("HotbarModel", () => {
     expect(model.assign(-1, { type: "item", id: "wood" })).toBe(false);
     expect(notifications).toBe(2);
     unsubscribe();
+  });
+
+  it("只接受已知且完整的快捷栏拖拽数据", () => {
+    const transfer = (serialized: string): DataTransfer => ({
+      getData: () => serialized,
+    }) as unknown as DataTransfer;
+    expect(readHotbarDragData(transfer('{"source":"catalog","entry":{"type":"item","id":"wood"}}')))
+      .toEqual({ source: "catalog", entry: { type: "item", id: "wood" } });
+    expect(readHotbarDragData(transfer('{"source":"hotbar","slotIndex":7}')))
+      .toEqual({ source: "hotbar", slotIndex: 7 });
+    expect(readHotbarDragData(transfer('{"source":"hotbar","slotIndex":8}'))).toBeUndefined();
+    expect(readHotbarDragData(transfer('{"source":"catalog","entry":{"type":"empty"}}')))
+      .toBeUndefined();
+    expect(readHotbarDragData(transfer("not-json"))).toBeUndefined();
   });
 });

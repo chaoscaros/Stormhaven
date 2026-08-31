@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链，并完成 **HUD + UX Overhaul v0.1**。正常游玩界面现在使用高对比状态准星、8 格建造快捷栏、简化状态摘要与可切换调试遥测；统一生存菜单以图标卡片和详情区展示背包、制造与建造。存档与读取尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链，并完成 **HUD + UX Overhaul v0.1**。正常游玩界面现在使用高对比状态准星、8 格物品/建造快捷栏、简化状态摘要与可切换调试遥测；统一生存菜单以图标卡片和详情区展示背包、制造与建造。存档与读取尚未实现。
 
 ## 当前完成内容
 
@@ -20,7 +20,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - Tab/C/B 统一生存菜单及背包/制造/建造 Tab；三个页面共享同一 Inventory
 - Esc 状态优先级与 Pause Menu；暂停时冻结 GameTime、Weather、Thermal、Campfire Fuel 并卸载玩家输入
 - 高对比 Crosshair：默认、可交互、建造合法与建造非法四种状态
-- 8 格 Hotbar：初始前三格直达木地基、木墙和篝火；背包/建造详情可覆盖任意槽位或单独清空
+- 8 格独立 Hotbar：初始前三格直达木地基、木墙和篝火；打开 Player Menu 时仍固定在屏幕底部，支持物品/建筑拖入、槽位交换、点击覆盖和独立清空
 - 简化玩家状态 HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
 - Inventory/Crafting/Building 图标卡片、详情区及统一寒地工业主题
 - 确定性的 GameClock、暂停和 Time Scale
@@ -99,7 +99,7 @@ pnpm dev
 | 鼠标滚轮 | 循环选择 Hotbar 槽位 |
 | `F6` | 显示或隐藏完整 Debug Telemetry |
 
-在背包中选择物品，或在建造页选择结构件后，可在详情区点击 1–8 覆盖对应 Hotbar 槽位；每格旁的 `×` 用于清空。绑定仅存在当前会话，刷新页面后恢复默认布局。
+打开背包或建造页后，Hotbar 不嵌入弹窗，而是继续作为屏幕底部独立 HUD 显示。可将物品卡片或建筑卡片拖入任意槽位，槽位之间拖动会交换内容；选择卡片后点击槽位也可快速覆盖。每格 `×` 或右侧“拖到这里清空”区域用于清空。配置仅存在当前会话，刷新页面后恢复默认布局。
 
 ## 质量检查
 
@@ -126,4 +126,4 @@ Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe J
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 HUD/Hotbar、Game Shell、Campfire/Fuel 或 Building/Crafting，也不要实现 Save/Load/Continue、快捷栏拖拽、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Wetness 或工具使用。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 HUD/Hotbar、Game Shell、Campfire/Fuel 或 Building/Crafting，也不要实现 Save/Load/Continue、快捷栏持久化/多套布局、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Wetness 或工具使用。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。

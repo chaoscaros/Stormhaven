@@ -88,6 +88,27 @@ export class HotbarModel {
     return true;
   }
 
+  swap(firstSlotIndex: number, secondSlotIndex: number): boolean {
+    if (
+      !isValidSlotIndex(firstSlotIndex)
+      || !isValidSlotIndex(secondSlotIndex)
+      || firstSlotIndex === secondSlotIndex
+    ) return false;
+    const first = this.#slots[firstSlotIndex] as HotbarSlot;
+    const second = this.#slots[secondSlotIndex] as HotbarSlot;
+    this.#slots = Object.freeze(this.#slots.map((slot, index) => {
+      if (index === firstSlotIndex) {
+        return Object.freeze({ slotIndex: index, entry: Object.freeze({ ...second.entry }) });
+      }
+      if (index === secondSlotIndex) {
+        return Object.freeze({ slotIndex: index, entry: Object.freeze({ ...first.entry }) });
+      }
+      return slot;
+    }));
+    this.#notify();
+    return true;
+  }
+
   subscribe(listener: HotbarListener): () => void {
     this.#listeners.add(listener);
     listener(this.#slots);
@@ -108,6 +129,10 @@ export class HotbarModel {
     this.#slots = Object.freeze(this.#slots.map((slot, index) => index === slotIndex
       ? Object.freeze({ slotIndex, entry: Object.freeze({ ...entry }) })
       : slot));
+    this.#notify();
+  }
+
+  #notify(): void {
     for (const listener of this.#listeners) listener(this.#slots);
   }
 }

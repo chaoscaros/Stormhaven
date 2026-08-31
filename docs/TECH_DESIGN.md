@@ -103,11 +103,11 @@ Interaction Menu   Campfire 等世界对象菜单
 Debug Telemetry    完整开发遥测，默认隐藏，F6 切换
 ```
 
-`src/ui/hotbar/HotbarModel.ts` 是 DOM/Babylon 无关的 8 格运行时模型。`HotbarSlot` 使用从 0 开始的 `slotIndex`，`entry` 为 `empty | item | build` 判别联合；第一版默认 1–3 分别绑定 `foundation_wood`、`wall_wood`、`campfire_basic`，其余为空。`assign/clear` 以不可变 Slot Snapshot 替换单格并通知订阅者；不管理 Inventory、装备、建筑事务或持久化。
+`src/ui/hotbar/HotbarModel.ts` 是 DOM/Babylon 无关的 8 格运行时模型。`HotbarSlot` 使用从 0 开始的 `slotIndex`，`entry` 为 `empty | item | build` 判别联合；第一版默认 1–3 分别绑定 `foundation_wood`、`wall_wood`、`campfire_basic`，其余为空。`assign/clear/swap` 生成不可变 Slot Snapshot 并通知订阅者；不管理 Inventory、装备、建筑事务或持久化。
 
-`setupHotbarEditor` 被 Inventory 与 Building Detail 共用：选择物品/建筑后点击 1–8 覆盖目标槽，每格独立 `×` 清空。编辑发生在 Player Menu，不激活 Gameplay 行为；Hotbar Gameplay renderer 订阅同一 Model，因此菜单关闭后立即显示新配置。当前没有拖拽、交换、多套布局或存档。
+`setupHotbarUi` 同时负责 Gameplay renderer 与 Player Menu 编辑适配，但 DOM 始终只有一套位于屏幕底部的 Hotbar。Inventory/Building 卡片通过 `HotbarDragData` 写入受校验的内部 Drag Payload；拖到槽位时覆盖，Hotbar 槽位间拖动时交换，每格 `×` 和独立丢弃区负责清空。选择卡片后点击槽位仍可快速绑定。编辑只在 Player Menu 开放，不激活 Gameplay 行为；当前没有多套布局或存档。
 
-`setupHotbarUi` 只在 `gameplay` / `build_placement` 接收数字键与 Canvas 滚轮。Build Entry 通过 `Game.beginBuildingPlacement` 复用既有 Placement Controller；切到空槽或 Item Entry 时只退出当前建造放置，不产生工具使用。Player Menu、Interaction Menu 与 Pause 中不会发生 Hotbar Gameplay Side Effect。F1–F5 保留天气预览，因此 Debug Telemetry 使用 F6，避免输入冲突。
+`setupHotbarUi` 只在 `gameplay` / `build_placement` 接收数字键与 Canvas 滚轮；Player Menu 只开放拖拽/点击编辑。Build Entry 通过 `Game.beginBuildingPlacement` 复用既有 Placement Controller；切到空槽或 Item Entry 时只退出当前建造放置，不产生工具使用。Player Menu、Interaction Menu 与 Pause 中不会发生 Hotbar Gameplay Side Effect。F1–F5 保留天气预览，因此 Debug Telemetry 使用 F6，避免输入冲突。
 
 Crosshair 使用同一 DOM Component 的状态属性表达默认、可交互、Placement Valid 与 Placement Invalid。样式包含深色轮廓和阴影，避免在雪地、深色木墙和低光照中失去对比。BuildPlacement 只显示准星、当前结构名/合法性和左键/R/B/Esc 提示，不展开 Player Menu。
 
@@ -366,7 +366,7 @@ Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来�
 
 不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
 
-当前共 36 个测试文件、238 个测试。Hotbar 覆盖默认配置、数字键、滚轮、边界、空槽、Item/Build 类型、运行时覆盖/清空、订阅通知和 Shell Mode 输入门控；共享 Inventory 集成覆盖 Craft/Build 后状态更新。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段由 AI 执行类型检查、测试和 diff 检查，生产构建与浏览器验收由用户执行。
+当前共 36 个测试文件、240 个测试。Hotbar 覆盖默认配置、数字键、滚轮、边界、空槽、Item/Build 类型、运行时覆盖/清空/交换、Drag Payload 校验、订阅通知和 Shell Mode 输入门控；共享 Inventory 集成覆盖 Craft/Build 后状态更新。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本阶段由 AI 执行类型检查、测试和 diff 检查，生产构建与浏览器验收由用户执行。
 
 ## Weather Presentation 已知边界
 

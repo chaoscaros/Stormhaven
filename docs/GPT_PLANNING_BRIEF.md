@@ -368,7 +368,7 @@ Recipe 必须 Data Driven，至少包含：
 - E Campfire 独立 Interaction Menu、Esc 层级、Pause Menu 与 Pointer Lock 同步
 - Pause 冻结 GameTime/Weather/Thermal/Campfire Fuel，并卸载玩家移动输入
 - 高对比状态 Crosshair、可读 Interaction Prompt 与 BuildPlacement 合法/非法状态色
-- 8 格 Hotbar；1–8/滚轮选择，初始前三格直接进入木地基、木墙与篝火放置，Inventory/Building 详情可点击覆盖任意槽或逐格清空
+- 8 格独立底部 Hotbar；1–8/滚轮选择，初始前三格直接进入木地基、木墙与篝火放置；Player Menu 内物品/建筑卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空
 - 简化 Player Status HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
 - Inventory/Crafting/Building 图标卡片、详情区与统一寒地工业主题
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
@@ -382,7 +382,7 @@ Recipe 必须 Data Driven，至少包含：
 - FuelCatalog、wood 180 秒/件、Campfire 900 秒容量与稳定状态机
 - 篝火原子建造/加柴、点燃/熄灭/耗尽、E 鼠标菜单和动态 HeatSource → Thermal 链路
 - 真实秒且暂停感知的燃料消耗、基础石圈/木柴/火焰/点光源表现
-- 36 个测试文件、238 个单元/集成测试
+- 36 个测试文件、240 个单元/集成测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -397,7 +397,7 @@ Recipe 必须 Data Driven，至少包含：
 - Building 扩展：Roof、Door、Window、二楼/Support Graph、Upgrade、Damage、Repair、Demolish
 - 自建建筑 Shelter Enclosure/Room Detection
 - IndexedDB Save
-- Hotbar 拖拽/交换、多套快捷栏、快捷栏持久化与 Item Use；当前仅支持菜单内点击覆盖与逐格清空
+- Hotbar 多套快捷栏、快捷栏持久化与 Item Use；当前会话已支持拖入、交换、点击覆盖与逐格清空
 - Load/Continue、Save Slot、Autosave、Settings 与完整 Loading Pipeline
 - 完整地图内容
 - 音效和最终美术
@@ -516,17 +516,23 @@ src/main.ts
 - `pnpm exec tsc -b --pretty false`：通过。
 - `git diff --check`：通过。
 
+2026-08-31 完成独立快捷栏拖拽交互后实际执行并通过：
+
+- `pnpm test`：36 个测试文件、240 个测试通过。
+- `pnpm exec tsc -b --pretty false`：通过。
+- `git diff --check`：通过。
+
 由于项目所有者要求启动、生产编译、重启和浏览器操作由用户亲自执行，因此：
 
 - 本阶段未执行 `pnpm dev`、`pnpm build`、`pnpm preview` 或浏览器验收。
-- 标题页冻结、开始游戏、Pointer Lock、统一 Tab/实时库存、Esc 层级、Pause 全链，以及新 HUD/Hotbar 绑定与清空/F6 遥测和原有 Weather/Shelter/Building/Campfire 流程仍需要浏览器手动验收。
+- 标题页冻结、开始游戏、Pointer Lock、统一 Tab/实时库存、Esc 层级、Pause 全链，以及独立 Hotbar 的拖入/交换/覆盖/清空、F6 遥测和原有 Weather/Shelter/Building/Campfire 流程仍需要浏览器手动验收。
 - 已修复 Collision Coordinator 缺失和 Camera Speed 错误换算；第一人称移动、奔跑和跳跃仍需要最终手动验收。
 
 仓库已有真实 `pnpm-lock.yaml`，没有 `package-lock.json`。
 
 规划时不得把这些未验证内容视为已验收完成。
 
-当前推荐下一独立 Issue 是 **Save Foundation v0.1**：版本化 IndexedDB Snapshot、Schema Version 与 Inventory/World Building/Campfire/Player Position/Game Time/Weather/Thermal 的序列化边界。该建议只是后续规划入口，本次 HUD Issue 未实现任何存档代码，也不得将 Shelter Enclosure、Storage、Equipment 或 Hotbar 拖拽绑定混入其中。
+当前推荐下一独立 Issue 是 **Save Foundation v0.1**：版本化 IndexedDB Snapshot、Schema Version 与 Inventory/World Building/Campfire/Player Position/Game Time/Weather/Thermal 的序列化边界。该建议只是后续规划入口，本次 HUD Issue 未实现任何存档代码，也不得将 Shelter Enclosure、Storage、Equipment 或 Hotbar 多套布局混入其中。
 
 ## 12. 协作与交付约束
 
