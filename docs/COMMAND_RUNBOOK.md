@@ -2,27 +2,35 @@
 
 > Primary audience: AI agents and maintainers. This is the canonical reference for setup, startup, validation, build, and preview commands.
 
-## Blender Foundation Pilot — real execution, user acceptance pending
+## Blender Wall Remodeling — real execution, user acceptance pending
 
-已实测 Blender 4.5.13 LTS，并完成木制地基源、官方导出和同源缩略图；
-其余四个 P0 未制作。普通游戏启动/构建不需要 Blender。
+已实测 Blender 4.5.13 LTS，并完成木制地基及玩家木墙源、官方导出和同源缩略图；
+其余三个 P0 未制作，固定木屋本轮未改。普通游戏启动/构建不需要 Blender。
 完整初始化、人工建模、验证、导出、渲染、WebP 转换、推广命令见
 [ART_PIPELINE.md](ART_PIPELINE.md#commands--user-operated-from-repository-root)。
 
 用户问“没装 Blender 能运行项目吗”：
 
 > 可以。游戏运行和 pnpm build 使用仓库中已提交的 GLB/WebP，不需要 Blender。
-> 只有修改 3D 源模型和重新渲染缩略图才需要 Blender。本仓库已有地基的真实
+> 只有修改 3D 源模型和重新渲染缩略图才需要 Blender。本仓库已有地基/木墙的真实
 > `.blend`，无需为了玩游戏重新导出；其他电脑也直接使用已提交的资源。
 
 允许的独立无 Blender 检查：`python3 -m unittest discover -s tests/blender -v`
-（Python 3.9+，标准库，不是普通 pnpm/CI 前置依赖）。本轮实际通过 15 例。
-`pnpm exec tsc -b --pretty false`、`pnpm test`（45 文件/319 例）、
+（Python 3.9+，标准库，不是普通 pnpm/CI 前置依赖）。本轮实际通过 20 例。
+`pnpm exec tsc -b --pretty false`、`pnpm test`（46 文件/327 例）、
 `git diff --check` 也通过；build/dev/preview/浏览器仍由用户操作。
 旧缩略图脚本是 legacy fallback，正式 Blender 来源登记后会拒绝全量覆盖。
 
 本次准确执行命令、Blender GUI/浏览器验收步骤和工具版本见
-[BLENDER_FOUNDATION_PILOT.md](BLENDER_FOUNDATION_PILOT.md)。当用户问“怎么验证地基”：
+[BLENDER_WALL_REMODELING.md](BLENDER_WALL_REMODELING.md)。当用户问“怎么验证木墙”：
+
+> 请先运行 `pnpm build`；需要启动服务再自行运行 `pnpm dev`，默认端口 9999。
+> 在四块空地基上分别检查北/东/南/西边缘放墙、碰撞和雪阻挡，保存→刷新→继续核对
+> 位置及库存。Blender 打开 `art/blender/buildings/wall_wood.blend` 检查两面板条、
+> 立柱/横梁、木纹和倒角。原有相邻墙角 AABB 限制仍在，不要把四向分别通过理解为
+> 同一地基可同时围合四面。固定木屋本轮未重做；自动测试不等于视觉验收。
+
+地基历史报告：[BLENDER_FOUNDATION_PILOT.md](BLENDER_FOUNDATION_PILOT.md)。当用户问“怎么验证地基”：
 
 > 请先运行 `pnpm build`；需要开发服务时由你运行 `pnpm dev`，手动打开
 > `http://localhost:9999`。检查建造菜单/Hotbar 缩略图、R 旋转放置、相邻模块与

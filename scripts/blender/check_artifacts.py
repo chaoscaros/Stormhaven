@@ -5,7 +5,7 @@ acceptance remain separate gates. Reports are provenance, not security signature
 """
 import json
 import struct
-from common.contracts import ROOT, arguments, stage, digest, validate_stats
+from common.contracts import ROOT, arguments, stage, digest, validate_stats, effective_preset_digest
 
 
 def check_glb(data, budget):
@@ -56,7 +56,11 @@ def main():
             if suffix == '.glb':
                 check_glb(target.read_bytes(), entry['glbBytes'])
             else:
-                if report['presetSha256'] != preset_hash:
+                effective_hash = effective_preset_digest(
+                    json.loads((ROOT / 'art/blender/thumbnail-preset.json').read_text()), entry['id'])
+                expected_hash = effective_hash if 'effectivePresetSha256' in report else preset_hash
+                recorded_hash = report.get('effectivePresetSha256', report['presetSha256'])
+                if recorded_hash != expected_hash:
                     raise ValueError('Thumbnail preset changed; rerender')
                 from PIL import Image
                 with Image.open(target) as image:

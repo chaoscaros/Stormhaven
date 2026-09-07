@@ -8,11 +8,22 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts/blender'))
-from common.contracts import assets, inside, validate_stats
+from common.contracts import assets, inside, validate_stats, effective_preset_digest
 from check_artifacts import check_glb
 
 
 class ArtContracts(unittest.TestCase):
+    def test_only_effective_rig_changes_invalidate_asset(self):
+        preset = {'coverage': .78, 'overrides': {'foundation_wood': {'contactShadow': True}}}
+        original = effective_preset_digest(preset, 'foundation_wood')
+        preset['overrides']['wall_wood'] = {'contactShadow': True}
+        self.assertEqual(effective_preset_digest(preset, 'foundation_wood'), original)
+        preset['overrides']['foundation_wood']['contactShadow'] = False
+        self.assertNotEqual(effective_preset_digest(preset, 'foundation_wood'), original)
+        wall = effective_preset_digest(preset, 'wall_wood')
+        preset['coverage'] = .8
+        self.assertNotEqual(effective_preset_digest(preset, 'wall_wood'), wall)
+
     def setUp(self):
         self.contract = assets()['foundation_wood']
         self.stats = {'bounds': [[-1, -1, 0], [1, 1, .2]], 'triangles': 600, 'materials': 2, 'errors': []}

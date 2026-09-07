@@ -36,7 +36,7 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 包管理和命令
 
-最新 **Blender Foundation Pilot v0.1**：Blender 4.5.13 LTS 已真实制作地基源、官方导出 GLB、渲染同源 WebP 并替换现有地基文件；其余四个 P0 源未制作。美术任务另读 `docs/ART_PIPELINE.md`、`docs/BLENDER_FOUNDATION_PILOT.md`。45 文件/319 测试、15 Python 测试通过不等价于美术验收；build、GUI、浏览器待用户操作。Blender/Pillow 只用于离线 authoring，不进入 pnpm/CI。Pilot 到此停止，只有用户视觉验收通过并明确授权下一 Issue 后才可制作木墙等其它资产，不扩展玩法。
+最新 **Blender Wall Remodeling v0.1**：真实 Blender 4.5.13 LTS 已完成地基及玩家木墙源/官方 GLB/同源 WebP；其它三个 P0 源未制作，固定木屋不变。墙复用地基木纹，1620 tris/2 meshes/1 material。美术任务另读 `docs/ART_PIPELINE.md`、`docs/BLENDER_FOUNDATION_PILOT.md`、`docs/BLENDER_WALL_REMODELING.md`。46 文件/327 测试、20 Python 检查不等价于美术验收；build、GUI、浏览器待用户操作。Blender/Pillow 仅离线 authoring，不进入 pnpm/CI。四向分别放置/读档通过，但原有同地基相邻墙角 AABB 冲突未改，须独立 Gameplay 修复授权。Wall 到此停止，视觉验收后才可推荐新的 Campfire Issue，不能自动制作。
 
 - 唯一包管理器：pnpm
 - 不提交 npm 的 `package-lock.json`

@@ -6,9 +6,12 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'scripts/blender'))
+from common.contracts import effective_preset_digest
 
 
 class FoundationPilotArtifacts(unittest.TestCase):
@@ -30,8 +33,8 @@ class FoundationPilotArtifacts(unittest.TestCase):
         self.assertEqual(entry['source'], self.record['source'])
         self.assertEqual(entry['sourceSha256'], self.record['sourceSha256'])
         self.assertEqual(entry['bytes'], self.record['thumbnailBytes'])
-        preset = (ROOT / 'art/blender/thumbnail-preset.json').read_bytes()
-        self.assertEqual(hashlib.sha256(preset).hexdigest(), self.record['presetSha256'])
+        preset = json.loads((ROOT / 'art/blender/thumbnail-preset.json').read_text())
+        self.assertEqual(effective_preset_digest(preset, 'foundation_wood'), self.record['effectivePresetSha256'])
 
     def test_blender_glb_embeds_one_real_1k_png(self):
         data = (ROOT / self.record['glb']).read_bytes()

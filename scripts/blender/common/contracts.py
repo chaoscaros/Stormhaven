@@ -45,6 +45,14 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def effective_preset_digest(preset, asset_id):
+    """Unrelated asset overrides must not invalidate an unchanged accepted rig."""
+    effective = {key: value for key, value in preset.items() if key != 'overrides'}
+    effective['override'] = preset.get('overrides', {}).get(asset_id, {})
+    return hashlib.sha256(json.dumps(effective, sort_keys=True, separators=(',', ':'),
+                                     allow_nan=False).encode()).hexdigest()
+
+
 def stage(entry, suffix):
     target = inside(STAGING / f"{entry['id']}{suffix}", STAGING)
     target.parent.mkdir(parents=True, exist_ok=True)

@@ -1,12 +1,34 @@
 # Blender Art Pipeline + Core Asset Remodeling v0.1
 
-## Status — Foundation Pilot delivered, visual acceptance open (2026-09-07)
+## Status — Wall delivered, wall visual acceptance open (2026-09-07)
+
+Latest: **Blender Wall Remodeling v0.1** has followed the existing pipeline. Two
+P0 sources (Foundation and Wall) are now authored; campfire/cabin/axe remain pending.
+Only Wall's live GLB/WebP changed this Issue, with a saved editable source and
+provenance. Wall: 1,620 tris / 2 meshes / 1 matte PBR material, same packed 1K albedo
+as Foundation (embedded PNG equality tested), source 1,221,569 bytes, GLB 858,976,
+WebP 7,502. Four independent edge placement and repeated SaveService load pass;
+existing adjacent-corner AABB restrictions remain. Staged pair passed all gates
+before promotion. Final tests: 46 files/327 Vitest, 20 Python, tsc/diff pass.
+No GUI/build/browser/FPS acceptance; see [Wall report](BLENDER_WALL_REMODELING.md).
+
+Wall adds `contactShadow: true` to the existing rig. This exposed an actual stale
+Foundation test caused by hashing unrelated asset overrides. New reports/checker
+use `effectivePresetSha256` (shared settings + this asset override), retaining full
+historical hash and strict old-report fallback. Foundation provenance only gained
+its unchanged effective rig digest; Foundation source/GLB/WebP remain untouched.
+Relevant rig changes still invalidate art; unrelated overrides no longer do.
+
+Current next step: user approves Wall + Foundation visuals; only then recommend a
+new **Blender Campfire Remodeling v0.1** Issue. Do not execute other assets now.
+Historical Foundation evidence below is retained, with current production status
+clarified where needed.
 
 Blender is the **authoring standard for new core assets**, not a game dependency.
 The earlier no-Blender preparation was followed by a separately authorized install
 and **real Blender Foundation Pilot**. Foundation now has a saved editable `.blend`,
-official GLB export and same-source Cycles WebP. Other four P0 sources are still
-pending; other 11 runtime GLBs/WebPs and terrain are unchanged. Full evidence,
+official GLB export and same-source Cycles WebP. At that Pilot, other four P0 sources
+were pending; Wall has since been delivered above. Full Foundation evidence,
 source/texture details, metrics and user acceptance: [Pilot report](BLENDER_FOUNDATION_PILOT.md).
 
 Target API: **Blender 4.5.x**, a pinned compatibility target, not a claim about
@@ -21,7 +43,7 @@ approved; its symmetry cannot certify the future cabin's doorway orientation.
 art/blender/manifest.json           P0 source/URL/size/budget contracts (not runtime imports)
 art/blender/thumbnail-preset.json   fixed rig + explicit per-asset overrides
 art/blender/items/                 pending stone_axe.blend
-art/blender/buildings/             real foundation_wood.blend + provenance; wall/campfire pending
+art/blender/buildings/             real foundation/wall .blend + provenance; campfire pending
 art/blender/environment/           pending environment_cabin.blend
 scripts/blender/common/            scene template, PBR checks, mesh validation, pure contracts
 scripts/blender/validate.py        read-only Blender source validation
@@ -54,7 +76,7 @@ its staged thumbnail is review-only, not a new inventory item.
 | 4 environment_cabin | exact 10.45 × 10.45 × 4.28 | 5,000–20,000 | Boards, corners, door frame, thick floor/roof/eaves |
 | 5 stone_axe | within 0.7 × 0.3 × 1.1 | 300–3,000 | Chipped stone blade, shaped haft, distinct lashings; no gameplay |
 
-All five remain **not authored**. No P1 expansion in this branch. Stylized realism
+Foundation and Wall are authored; other three remain pending. No P1 expansion. Stylized realism
 requires material contrast, restrained irregularity, believable construction,
 beveled edges, useful normals and UVs—not simply primitive assemblies or excess
 faces to meet a minimum. Triangle minima warn; caps fail. Current material cap is
@@ -117,7 +139,7 @@ or visual result exports correctly. Inspect imported materials explicitly.
 rim area lights, Cycles CPU 64 samples, AgX/neutral look/exposure 0/gamma 1. Bounds
 are projected for framing; default coverage is 78%. Light power/size scale with
 asset dimensions. No text, frame, numbers, UI colors or gameplay flame baked in.
-Foundation opts into `contactShadow: true`: isolated shadow-catcher geometry,
+Foundation and Wall opt into `contactShadow: true`: isolated shadow-catcher geometry,
 separate denoised pass and light neutral-alpha composition after real Pilot review.
 Other assets default to the unchanged no-catcher rig. PBR remains the source's
 actual material. Optional preset `overrides` also maps ID to `rotationDegrees: [x,y,z]`
@@ -171,7 +193,11 @@ python3 scripts/blender/render/convert_thumbnail.py --asset foundation_wood
 python3 scripts/blender/check_artifacts.py --asset foundation_wood
 ```
 
-Only in separately authorized later Issues, repeat with `wall_wood`, `campfire_basic`, `environment_cabin`, `stone_axe`; use
+Wall has executed this same chain with `--asset wall_wood`. Its bounded recipe
+`scripts/blender/author_wall_remodeling.py` accepts only an empty Wall template;
+it appends Foundation's packed material without rebaking or modifying Foundation.
+Both saved sources now exist: edit them, never reinitialize.
+Only in separately authorized later Issues, repeat with `campfire_basic`, `environment_cabin`, `stone_axe`; use
 `--asset all` only after **every** real source exists and is modeled. Tools stop
 on the first error and can leave earlier successful staged outputs; they do not
 claim batch atomicity. Old staged artifacts are not acceptance evidence—check
@@ -243,9 +269,9 @@ Source is 1,267,369 bytes; GLB 862,424; WebP 6,684; 1,836 triangles / 2 meshes /
 material. No GUI, production build, browser, pixel shader/FPS or actual IndexedDB
 acceptance was performed. NullEngine imports do not decode/shade texture pixels.
 
-Next step: user reviews Foundation in Blender GUI and game. Only after approval
-recommend **Blender Wall Remodeling v0.1** as a new Issue. Do not make the other
-four P0 or expand into map/vegetation/NPC/gameplay in the Pilot.
+Historical Foundation next step was Wall; the user accepted Foundation's visual
+direction and authorized that Issue. Current next step is the Wall acceptance
+recorded at the top of this document. No automatic Campfire/other asset production.
 
 ## API references
 

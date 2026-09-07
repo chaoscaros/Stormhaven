@@ -4,18 +4,20 @@
 
 ## 当前状态
 
-- 最新 Issue：**Blender Foundation Pilot v0.1 技术交付完成，用户视觉验收未完成**。真实 Blender 4.5.13 LTS 已制作 `art/blender/buildings/foundation_wood.blend`、官方导出 GLB、从同一源渲染 WebP 并成对替换正式地基文件。其它四个 P0 源仍未制作。完整证据见 `docs/BLENDER_FOUNDATION_PILOT.md`、`docs/ART_PIPELINE.md`。
-- Blender 实测：build `daeeeca98fb0`，bpy 4.5.13 / Python 3.11.15，兼容目标 4.5.x。地基 2×0.2×2m、1836 triangles、2 meshes、1 material；底部中心/identity、内嵌 1K 木纹。GLB 862,424 bytes，WebP 6,684 bytes，真实源 1,267,369 bytes。只为首轮渲染暴露的接触阴影问题修正隔离 rig；不用 legacy 软件几何渲染。Blender/Pillow 不进入 pnpm/CI。
-- 实际验证：Blender 检查/导出/Cycles 渲染、WebP 转换与产物一致性通过；暂存/正式 GLB 两轮 Vitest 均为 45 文件/319 例通过；系统 Python 15 例通过；`pnpm exec tsc -b --pretty false`、`git diff --check` 通过。未 install/dev/build/preview/重启、未浏览器/Blender GUI。NullEngine 不渲染纹理像素，不能把通过写成美术验收。
+- 最新 Issue：**Blender Wall Remodeling v0.1 技术交付完成，墙体用户视觉验收待完成**。用户接受 Foundation 的视觉方向后授权本轮；只替换玩家 `wall_wood`，固定木屋、地基源/GLB/WebP、篝火/石斧及运行时源码/玩法/Save v1 不变。已有两份真实 Blender 源；其它三个 P0 源仍未制作。完整证据见 `docs/BLENDER_WALL_REMODELING.md`。
+- Blender 实测：4.5.13 LTS，build `daeeeca98fb0`，bpy 4.5.13 / Python 3.11.15。墙体 2×2.4×0.18m、1620 triangles、2 meshes、1 material；底部中心/identity，8 块竖板、两侧柱、双面横梁，复用地基同一张 packed 1K 木纹。源 1,221,569 bytes、GLB 858,976 bytes、WebP 7,502 bytes。Blender/Pillow 仅离线 authoring，不进入 pnpm/CI。
+- 实际验证：最终暂存产物先通过 Blender validation/export/render、WebP/paired checks、46 文件/326 Vitest、20 Python、tsc/diff 后才正式替换；补充记录原有墙角限制后正式资源为 46 文件/327 Vitest、20 Python，tsc/diff 通过。四向各自放置及三次真实 SaveService.load 覆盖 Bounds/Proxy/Snap/库存/释放。未 install/dev/build/preview/重启、未浏览器/Blender GUI；NullEngine 不渲染纹理像素，不等于美术验收。
+- 本轮确认的旧限制：同一地基北墙放好后东/西墙会因原有 AABB 墙角重叠被判 `blocked`，不用 GLB 也能复现；四边分别可放不等于四墙同时围合。本轮禁止修改 Gameplay，已加回归记录，需另开建造规则修复 Issue。
+- 用户收尾截图确认另一旧缺陷：地基可穿过未拾取水瓶。源码核对 `WorldPickupPresentation` 的代理不参与 Camera Collision，`collectStaticBuildingBounds` 只收集碰撞障碍，`PlacementValidator` 又没有 Pickup 占位输入。已诊断并记录，未修复；建议独立资源占位规则，拾取后释放，不应简单开启物品相机碰撞或自动删除物资。
 - 当前游戏表现基线：Game Item Icon Art Pass v0.1（实现与自动检查完成；production build、浏览器最终视觉/输入验收待用户，不能仅凭单测宣布美术验收成功）
 - 当前版本：`0.1.0`
 - 最新 UI 规则：9 类物品和 3 类建筑正常主视觉为 `src/ui/thumbnails` 解析的透明彩色 WebP，Hotbar/Inventory/Crafting 产物与材料/Building 成本/Campfire 燃料复用同一艺术资源。Hotbar 不常驻长名称，切换格位显示 1.25 秒后淡出；菜单 hover/focus 可查看名称，原有拖拽/交换/清空、Pause、Esc 不变。
-- 缩略图状态：12 张 256² WebP 共 75,346 bytes；地基来自真实 Blender 同源渲染，其余八张保留旧 GLB 来源，布料/废金属/石斧保留 thumbnail-only 几何。图片错误回退本地 SVG，未知 ID 用 info，最后兜底 `?`。Domain/配方/Save v1 完全未改，来源与替换规则见 `docs/ASSET_CREDITS.md`。
+- 缩略图状态：12 张 256² WebP 共 78,174 bytes；地基/墙来自真实 Blender 同源渲染，其余七张保留旧 GLB 来源，布料/废金属/石斧保留 thumbnail-only 几何。图片错误回退本地 SVG，未知 ID 用 info，最后兜底 `?`。Domain/配方/Save v1 完全未改，来源与替换规则见 `docs/ASSET_CREDITS.md`。
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
 - 功能状态：Gameplay 保留高对比准星、Interaction Prompt、8 格独立 Hotbar、简化 Player Status；F6 切换 Debug。Inventory 真实 24 格、悬停/聚焦 Tooltip、即时详情，和制造/建造实时共享库存。System UI 保留 Phosphor，旧物品 SVG（含专用枯枝）仅是错误 fallback；Domain 只保存稳定 ID。菜单释放鼠标、暂停与 Esc 契约不变。
 - 存档状态：`slot_1` / IndexedDB `stormhaven.saves` / Schema v1；Esc 手动保存，标题页显式 Continue，恢复库存/资源/建筑/燃料/快捷栏/玩家/时间/天气/体热。完整格式、恢复与错误边界见 `docs/SAVE_FORMAT.md`。
-- 3D 资源状态：`src/assets` 稳定语义 ID 映射 12 个自有 GLB；官方 Loader + Cache/实例生命周期，失败保留 Primitive。6 类物品、地基/墙/篝火/木屋已接线；raw_meat 原场景无放置，未新增玩法。雪地保留 3 张 1K 本地 PBR 贴图；当前模型/地形美术载荷 4,601,072 bytes，完整首载/FPS 待测。来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
+- 3D 资源状态：`src/assets` 稳定语义 ID 映射 12 个自有 GLB；官方 Loader + Cache/实例生命周期，失败保留 Primitive。6 类物品、地基/墙/篝火/木屋已接线；raw_meat 原场景无放置，未新增玩法。雪地保留 3 张 1K 本地 PBR 贴图；当前模型/地形美术载荷 5,377,532 bytes，完整首载/FPS 待测。来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
 - 视觉/碰撞边界：GLB 不负责 Picking/Collision，沿用简单代理；木屋门洞、Shelter、建筑 Bounds/Snap 和 Save v1 不变。F6 同步显示/隐藏校准标杆；标杆两种状态均不再参与碰撞/拾取/降水，避免默认隐藏后的空气墙。
 - 明确未实现：Autosave、多存档 UI、云存档/导出导入、Hotbar 多套布局、Equipment/Item Use、Settings、Audio/Streaming Loading、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
@@ -208,6 +210,14 @@ pnpm dev
 如果环境不允许执行 `corepack enable`，请按该环境的标准方式安装 `package.json` 中声明的 pnpm 版本。
 
 ## 当前验证状态
+
+2026-09-07 Blender Wall Remodeling v0.1：最终 `pnpm test` 46 文件/327 测试、
+`python3 -m unittest discover -s tests/blender -v` 20 测试、
+`pnpm exec tsc -b --pretty false`、`git diff --check` 通过。实际后台 Blender
+validation/export/Cycles render、WebP conversion/paired checker 通过，推广前使用
+暂存文件跑完整回归。浏览器/GUI/build/真实存档 UI/FPS 均未执行，详见本轮报告。
+
+以下为历史记录：
 
 2026-09-07 Game Item Icon Art Pass v0.1：
 
@@ -430,16 +440,27 @@ pnpm dev
 
 ## 推荐下一步
 
-Pilot 到此停止。用户先按 `docs/BLENDER_FOUNDATION_PILOT.md` 在 Blender GUI/游戏
-验收地基并执行 `pnpm build`；通过后才推荐 **Blender Wall Remodeling v0.1**，不是
-本次继续制作授权。四份未制作源、GPU/旧档 UI/首载 FPS 验收、public URL 缓存失效
-和实例优化仍是待办，不扩展新玩法。
+Wall 到此停止。用户先按 `docs/BLENDER_WALL_REMODELING.md` 在 Blender GUI/游戏
+验收墙体与地基配套效果并执行 `pnpm build`；通过后才推荐 **Blender Campfire
+Remodeling v0.1**，不是本次继续制作授权。其它三份 P0 源、GPU/旧档 UI/首载 FPS、
+public URL 缓存失效和实例优化仍是待办。已确认的同地基相邻墙角 AABB 限制需独立
+建造规则修复授权，不能在纯美术任务中修改 Gameplay。
 
 Game Item Icon Art Pass v0.1 开发到此停止；尚未完成的是用户 production build、快捷栏/背包/制造/建筑实际视觉与输入验收。若用户截图仍像软件工具栏，本 Issue 的视觉目标就尚未验收成功，应只迭代本专项而非新增玩法。
 
 用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Game Item Icon Art Pass、Asset Visual Pass 与 Save Foundation 清单验收。现有 12 个对象均有缩略图；未来新增物品/建筑需登记专用主视觉，布料/废金属/石斧的世界模型仍未实现。完成浏览器/FPS/冷加载记录后再由用户授权下一 Issue，不自动继续世界美术或玩法。
 
 ## 变更记录
+
+### 2026-09-07：Blender Wall Remodeling v0.1
+
+- 真实 4.5.13 LTS 沿用现有管线，新增可编辑墙体源及 provenance，成对替换原路径 GLB/WebP；ID、代理、Ghost、Snap、Save v1 和全部运行时代码不变。
+- 8 竖板/凹缝背板/2 柱/双面横梁，1620 tris、2 meshes、1 matte PBR material；复用地基 packed albedo，测试证明 GLB 内嵌 PNG 字节相同。背板端面内缩避免与板条顶面共面。
+- 墙体新增 contactShadow override 暴露全局 preset hash 误判；最小修复为有效单资产配置 hash，保留历史完整 hash。仅补地基 provenance 的有效配置 hash，地基模型/图片无改动。
+- 推广前完整暂存门禁通过，正式资源 46 文件/327 Vitest、20 Python、tsc/diff 通过。四边独立测试真实放置/保存/三次恢复，覆盖 pivot/代理/Snap/库存/障碍/释放；404 与旧存档重建回归保留。
+- 原有同地基相邻墙角重叠限制已独立复现并测试记录，未改规则。固定木屋仍旧视觉；用户需 build、GUI、浏览器及 FPS 验收。完整指标/命令/风险见 `docs/BLENDER_WALL_REMODELING.md`。
+- 本轮中文提交 `使用Blender重制木制墙体`，按当前跟踪远端推送；实际 hash/推送结果见任务最终回复或 Git 状态。停止，不制作篝火/木屋/石斧或新玩法。
+- 用户在收尾时展示地基与水瓶重叠截图；已核对为 Pickup 缺少建造占位检查，非新墙模型问题。本轮仅解释/记录，不把提问当作修改建造规则的授权。
 
 ### 2026-09-07：Blender Foundation Pilot v0.1
 

@@ -30,6 +30,6 @@ describe("Blender pipeline integration (not visual acceptance)", () => {
       expect(readSource(path)).not.toMatch(/\.blend|art\/blender/);
     }
     expect(manifest.validatedVersion).toBe("4.5.13");
-    expect(manifest.status).toBe("foundation-pilot-awaiting-visual-acceptance");
+    expect(manifest.status).toBe("wall-remodeling-awaiting-visual-acceptance");
   });
 });

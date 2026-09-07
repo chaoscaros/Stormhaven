@@ -8,10 +8,12 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 
 其后已实现 **Game Item Icon Art Pass v0.1**：9 类物品与 3 类建筑使用彩色透明缩略图，系统操作仍使用 Phosphor。Hotbar 大图、角标数量，切换名称短暂提示；背包、制造材料/产物、建筑成本与篝火燃料使用同一套图。自动检查 43 文件/312 测试通过，最终浏览器视觉与交互待用户验收。
 
-最新表现层交付：**Blender Foundation Pilot v0.1** 已真实使用 Blender 4.5.13 LTS
-制作木制地基 `.blend`、导出 GLB 并渲染同源缩略图；仅替换地基，代理和 Save v1
-不变。45 文件/319 测试及 15 个 Python 检查通过，build、Blender GUI 和浏览器
-美术验收仍由用户完成。详见 [地基 Pilot 报告](docs/BLENDER_FOUNDATION_PILOT.md)。
+最新表现层交付：**Blender Wall Remodeling v0.1** 已使用 Blender 4.5.13 LTS
+制作木墙 `.blend`、官方 GLB 与同源缩略图，复用已完成地基的木纹。1620 tris、
+2 meshes、1 material，四向放置/读档回归通过，代理和 Save v1 不变。46 文件/327
+测试及 20 个 Python 检查通过；build、GUI、浏览器美术验收由用户完成。
+固定木屋本轮未改；原有同地基相邻墙角重叠限制需另行修复，四向分别通过不代表
+四墙同时围合。详见 [墙体重制报告](docs/BLENDER_WALL_REMODELING.md)。
 
 ## 当前完成内容
 

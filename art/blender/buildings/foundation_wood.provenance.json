@@ -14,6 +14,7 @@
   "thumbnailSha256": "9e714e5464b1e027b9c009995e9fdefe919592b3fb67d0f14d9c358adbdf1eff",
   "thumbnailBytes": 6684,
   "presetSha256": "15e303001d509a1d2a58659b2d29338051b687adb01ad41f58ad50640fecbb8b",
+  "effectivePresetSha256": "d02454098f934896acc7487739e9a7c2c274d1505e169fcac9adea923e03811d",
   "blenderDimensions": [2, 2, 0.2],
   "gameDimensions": [2, 0.2, 2],
   "triangles": 1836,

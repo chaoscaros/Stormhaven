@@ -43,9 +43,9 @@
   },
   {
     "id": "wall_wood",
-    "source": "public/assets/models/buildings/wood-wall.glb",
-    "sourceSha256": "1a2b26163d1b2eee93fd2af4541854a0c55d25e5af2d493a95fc7175cab10dd7",
-    "bytes": 4674
+    "source": "art/blender/buildings/wall_wood.blend",
+    "sourceSha256": "87a435de3b00f041857a2fb9e39446293b2709ffa33e3c2d9ff342436eb40c2f",
+    "bytes": 7502
   },
   {
     "id": "campfire_basic",

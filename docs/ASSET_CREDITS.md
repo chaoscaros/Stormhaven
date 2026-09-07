@@ -1,8 +1,24 @@
 # Asset Credits & Delivery Budget
 
+## Blender Wall Remodeling (2026-09-07)
+
+Stormhaven Original Blender Asset; author: Stormhaven project, AI-assisted real
+bpy mesh/UV/bevel authoring. Blender 4.5.13 LTS `daeeeca98fb0`. Source:
+`art/blender/buildings/wall_wood.blend` (1,221,569 bytes); runtime:
+`public/assets/models/buildings/wood-wall.glb` (858,976 bytes, 1,620 triangles,
+2 meshes, 1 PBR material); same-source Cycles 256² transparent thumbnail:
+`public/assets/thumbnails/wall_wood.webp` (7,502 bytes). Hashes/rights:
+`art/blender/buildings/wall_wood.provenance.json`. No external artwork or additional
+license; not a CC0 claim. Reuses Foundation's packed 1K albedo byte-for-byte, no
+rebake or Foundation source/GLB/WebP change. Both GLBs embed the image for portable
+delivery. Eight vertical planks, recessed joint backing, two posts, two rails per
+face. Fixed cabin remains old art. 46 files/327 Vitest, 20 Python, tsc/diff and
+staged Blender checks pass; user GUI/browser/build/FPS acceptance remains open.
+Full evidence: `BLENDER_WALL_REMODELING.md`.
+
 ## Blender Foundation Pilot (2026-09-07)
 
-**Only Foundation was remodeled in real Blender 4.5.13 LTS**, build `daeeeca98fb0`.
+**Historical Foundation-only Pilot**, real Blender 4.5.13 LTS, build `daeeeca98fb0`.
 Author: Stormhaven project, AI-assisted bpy mesh/UV/bevel modeling + Cycles diffuse
 bake; no GUI-clicking claim. Source: `art/blender/buildings/foundation_wood.blend`
 (1,267,369 bytes). Runtime: `public/assets/models/buildings/wood-foundation.glb`
@@ -15,8 +31,8 @@ not a CC0 claim. Exact hashes/rights/tool metadata:
 
 Same saved `.blend` feeds official glTF export and Cycles thumbnail rendering.
 See [Pilot report](BLENDER_FOUNDATION_PILOT.md) for actual commands, tests,
-render correction, metrics and pending **user visual acceptance**. Other four P0
-sources remain absent; do not credit them as completed Blender artwork.
+render correction and metrics. User accepted its direction for the subsequent Wall
+Issue above; campfire/cabin/axe sources remain absent, not completed Blender artwork.
 Legacy Python authoring remains available but must not overwrite promoted art;
 `generate-thumbnails.py` rejects sources.json containing `.blend` sources.
 
@@ -24,8 +40,8 @@ Legacy Python authoring remains available but must not overwrite promoted art;
 
 System Icon and Gameplay Thumbnail are separate. Phosphor (MIT, bundled `@phosphor-icons/core`) remains for navigation/status/actions; old object SVGs and the project-original branch SVG are fallback-only. No CDN, downloaded artwork, brand or commercial-game extraction.
 
-All 12 thumbnails are project-original. **Foundation now uses the Blender source
-above**; the other 11 retain their original GLB/thumbnail-only authored geometry
+All 12 thumbnails are project-original. **Foundation and Wall now use Blender sources
+above**; the other 10 retain their original GLB/thumbnail-only authored geometry
 and legacy `scripts/generate-thumbnails.py` output. No third-party art license,
 not a CC0 claim. Transparent 256² WebP, natural color, 3/4 orthographic lighting,
 78% geometry long-edge coverage, light contact shadow. Foundation uses Cycles
@@ -41,7 +57,7 @@ Runtime uses static `<img>`, never live 3D previews.
 | canned_food | items/ration-can.glb | 5,880 |
 | raw_meat | items/raw-meat.glb | 6,202 |
 | foundation_wood | `art/blender/buildings/foundation_wood.blend` (repo-relative) | 6,684 |
-| wall_wood | buildings/wood-wall.glb | 4,674 |
+| wall_wood | `art/blender/buildings/wall_wood.blend` (repo-relative) | 7,502 |
 | campfire_basic | buildings/campfire.glb + thumbnail-only flame | 10,612 |
 | cloth | Thumbnail-only folded fabric mesh | 6,746 |
 | scrap_metal | Thumbnail-only bent/chipped metal sheets with rusty edges | 6,114 |
@@ -49,8 +65,8 @@ Runtime uses static `<img>`, never live 3D previews.
 
 Files: `public/assets/thumbnails/*.webp`. Metadata: `public/assets/thumbnails/sources.json`
 (source SHA-256 and output bytes; Foundation references `.blend`). Image total
-**75,346 bytes**, largest 10,612 bytes; all <50 KB, total <1 MB. Excludes metadata,
-world GLB/PNG, JS and WASM. World art + thumbnails = **4,676,418 bytes**; complete
+**78,174 bytes**, largest 10,612 bytes; all <50 KB, total <1 MB. Excludes metadata,
+world GLB/PNG, JS and WASM. World art + thumbnails = **5,455,706 bytes**; complete
 cold HTTP load/FPS remain unmeasured.
 
 ### Reproduction / replacement
@@ -77,7 +93,7 @@ All models and terrain textures introduced by **3D Asset Foundation + First Bliz
 
 | Assets | Source / author | License / rights record | Original source | Modified |
 | --- | --- | --- | --- | --- |
-| Other 11 GLBs below (Foundation superseded above) | Stormhaven project, AI-assisted procedural authoring | Project-original work; no third-party asset license applies. Not claimed to be CC0 or a third-party licensed pack. | `scripts/author-first-blizzard-assets.py` (no external download page) | Original creation, meter/pivot calibration, merged per material |
+| Other 10 GLBs below (Foundation/Wall superseded above) | Stormhaven project, AI-assisted procedural authoring | Project-original work; no third-party asset license applies. Not claimed to be CC0 or a third-party licensed pack. | `scripts/author-first-blizzard-assets.py` (no external download page) | Original creation, meter/pivot calibration, merged per material |
 | Snow albedo / normal / roughness | Stormhaven project, deterministic periodic noise | Same project-original provenance | Same authoring script | 1024² RGB PNG, seamless sampling and packed roughness |
 
 This document records provenance, not a legal guarantee of exclusive copyright. Any future external replacement must record its actual author, original download URL, exact license and modification history here, and retain the license text in `docs/assets/`. Do not infer CC0 from this first-party asset list. Existing UI Phosphor licensing is independent of these 3D assets; its package contains its MIT license.
@@ -97,7 +113,7 @@ All paths below are relative to `public/assets/models/`. PBR values and vertex c
 | `pickup_canned_food` | `items/ration-can.glb` | 125,608 | 1,024 | 3 |
 | `pickup_raw_meat` | `items/raw-meat.glb` | 23,664 | 180 | 2 |
 | `building_foundation_wood` | `buildings/wood-foundation.glb` | 862,424 | 1,836 | 1 |
-| `building_wall_wood` | `buildings/wood-wall.glb` | 82,516 | 672 | 2 |
+| `building_wall_wood` | `buildings/wood-wall.glb` | 858,976 | 1,620 | 1 |
 | `building_campfire` | `buildings/campfire.glb` | 132,700 | 1,080 | 3 |
 | `environment_cabin` | `environment/cabin.glb` | 414,492 | 3,420 | 5 |
 
@@ -109,7 +125,7 @@ Terrain files, relative to `public/assets/textures/terrain/`:
 | `snow-normal.png` | 1024×1024 | 1,909,256 | Linear tangent-space normal |
 | `snow-roughness.png` | 1024×1024 | 318,812 | Linear: G=roughness, B=metalness 0 |
 
-Measured model/terrain payload after Foundation replacement: **4,601,072 bytes**,
+Measured model/terrain payload after Foundation/Wall replacement: **5,377,532 bytes**,
 before HTTP compression. Not total first-load traffic: JS, WASM, UI and HTML are
 additional. Total Network transfer and Chrome 1080p FPS remain **unmeasured**.
 Do not inflate assets to meet an arbitrary size range. Budget: cold load <50 MB,
@@ -123,7 +139,7 @@ individual/model+texture budget and 1K dimensions.
   Z-up → official glTF Y-up → Babylon AUTO; no hand-authored mirror or runtime scale
   correction. Other legacy models retain their game-coordinate X/winding conversion.
 - Foundation is exactly 2×0.2×2 m: ten planks, two rim beams and five joists.
-  Wall remains 2×2.4×0.18 m: ten boards plus three horizontal supports on each side.
+  Wall remains 2×2.4×0.18 m: eight boards, recessed backing, two posts, two rails per side.
   Authoritative `BuildDefinition` is unchanged.
 - Cabin visual is authored for the existing scenario: 10×10 m floor, internal 9.5×4×9.5 m, roof within the existing 10.45×0.28×10.45 m slab. Flat felt roof, fascia, timber courses, corners and open entry; no new roof/door gameplay. Original front compound boxes actually leave **1.9 m clear width** (the existing `DOOR_WIDTH=2.4` also describes header/frame): preserve those boxes rather than “correcting” the opening during an art pass.
 - Pickup registry offsets convert existing center placements to bottom pivots. Stable pickup ID hashes select granite variants; gameplay RNG and Save do not change.

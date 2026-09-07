@@ -4,7 +4,7 @@ import math
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from common.contracts import ROOT, arguments, stage, write_json, digest
+from common.contracts import ROOT, arguments, stage, write_json, digest, effective_preset_digest
 from common.validation import open_source, inspect
 
 
@@ -129,6 +129,7 @@ def main():
         scene.render.filepath = str(target)
         bpy.ops.render.render(write_still=True)
         report.update({'outputSha256': digest(target), 'presetSha256': digest(preset_path),
+                       'effectivePresetSha256': effective_preset_digest(preset, entry['id']),
                        'contactShadow': override.get('contactShadow', False)})
         write_json(stage(entry, '.png.json'), report)
         print(f'Staged {target.name}; convert with render/convert_thumbnail.py')

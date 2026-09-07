@@ -2,7 +2,7 @@
 
 > 使用方式：可以将本文档完整提供给 GPT，让它基于当前真实状态制定后续开发计划。当前需求是**规划，不是直接生成或修改代码**。
 
-> 最新交付（2026-09-07）：**Blender Foundation Pilot v0.1 技术执行完成，用户视觉验收待完成**。真实 Blender 4.5.13 LTS 已制作 `foundation_wood.blend`、Cycles 烘焙木纹、官方导出 GLB、同源透明 WebP 并成对替换正式地基。2×0.2×2m，1836 tris / 2 meshes / 1 material，GLB 862,424 bytes、WebP 6,684 bytes。Registry、Gameplay Proxy、Snap、Save v1 和其它模型/缩略图不变。tsc、45 文件/319 Vitest、15 Python 检查通过；build、Blender GUI、浏览器材质/旧档 UI/FPS 未验收。详见 `docs/BLENDER_FOUNDATION_PILOT.md`。下一步先用户验收地基，通过后才推荐 **Blender Wall Remodeling v0.1**，不得现在执行；其余四个 P0 源仍缺，不规划 P1/新玩法。
+> 最新交付（2026-09-07）：**Blender Wall Remodeling v0.1 技术完成，墙体视觉验收待用户**。接受地基方向后已真实用 Blender 4.5.13 LTS 重做玩家木墙：2×2.4×0.18m，1620 tris / 2 meshes / 1 material，GLB 858,976 bytes、WebP 7,502 bytes，同源 `.blend` 1,221,569 bytes，复用地基 packed 1K 木纹。固定木屋/地基美术、全部 runtime/Registry/Proxy/Snap/Save v1 不变。46 文件/327 Vitest、20 Python、tsc/diff 通过；GUI/build/浏览器/FPS 未验收。详见 `docs/BLENDER_WALL_REMODELING.md`。用户墙体视觉确认后才推荐 **Blender Campfire Remodeling v0.1**，本次禁止继续；三个 P0 源仍缺。四边分别放置/读档通过，但同地基相邻墙角 AABB 冲突是原有规则限制，需另行授权修复。最新截图还确认未拾取 Pickup 不阻挡地基建造，已诊断但未修复；不能在纯美术任务中偷偷改变 Gameplay。
 
 > 前一 UI 基线（2026-09-07）：**Game Item Icon Art Pass v0.1** 当时 43 文件 / 312 测试通过。System Icon 继续 Phosphor；9 物品/3 建筑使用透明 WebP（当时共 74,492 bytes，地基 Pilot 后为 75,346 bytes）。`src/ui/thumbnails` 统一解析 ID、图片失败回退；Hotbar 名称仅切换时短暂显示，Inventory/Crafting/Building/Campfire 复用。**用户 UI 截图/拖拽验收仍待完成**，不能用单测替代。不要重复规划为零开始图标库。
 
@@ -395,7 +395,7 @@ Recipe 必须 Data Driven，至少包含：
 - 库存 Slot/空位、资源耗尽/余量、建筑 ID/连接、篝火燃料/状态、Hotbar、玩家位置/视角、时间/天气过渡/Forecast 与体热恢复；离线不模拟，不保存派生表现
 - Presentation-only AssetRegistry、官方 GLB Loader、缓存一次/普通克隆、失败回退和独立实例/Source 生命周期
 - 12 个自有 GLB（6 类资源含 3 个 stone Variant、地基、墙、篝火、木屋）；raw_meat 没有 Scenario 放置，未新增玩法
-- 本地 1K 雪地 Albedo/Normal/Roughness、4m Tiling、真实环境/物品/建筑加载 Stage；新增美术 3.80 MB，不含引擎 JS/WASM
+- 本地 1K 雪地 Albedo/Normal/Roughness、4m Tiling、真实环境/物品/建筑加载 Stage；当前模型/地形美术 5,377,532 bytes，不含引擎 JS/WASM/缩略图
 - 45 个测试文件、319 个单元/集成测试；另有 15 个独立 Python 检查。地基已完成真实 Blender Pipeline 技术交付，GUI/游戏美术验收仍开放。
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
@@ -460,10 +460,10 @@ src/main.ts
 
 ## 11. 当前验证边界
 
-最新 Foundation Pilot：真实 Blender validation/export/render、同源产物检查、暂存与
-正式 GLB 导入/Save 回归通过；tsc、45 文件/319 Vitest、15 Python tests 通过。
+最新 Wall Remodeling：真实 Blender validation/export/render、同源产物检查、暂存与
+正式 GLB 导入/四向 Save 回归通过；tsc、46 文件/327 Vitest、20 Python tests 通过。
 没有 production build/GUI/browser/GPU/FPS 验收。NullEngine 不解码渲染贴图像素。
-以下为前一 UI/Asset Issue 的历史记录；完整最新证据见 `docs/BLENDER_FOUNDATION_PILOT.md`。
+以下为前一 UI/Asset Issue 的历史记录；完整最新证据见 `docs/BLENDER_WALL_REMODELING.md`。
 
 Game Item Icon Art Pass：实际 `pnpm exec tsc -b --pretty false`、`pnpm test`（43 文件 / 312 测试）和 `git diff --check` 通过。新增测试执行真实 UI renderer + 窄 DOM 契约替身、真实 error 事件和 fake timer，覆盖未知 ID、失败/迟到图片、材料/产物/燃料、Hover/Focus、拖拽/交换/清空、键盘/滚轮及 Save v1 往返。不是浏览器测试，未执行 install/dev/build/preview 或浏览器操作。仓库没有额外 Gate 文档/命令。
 
