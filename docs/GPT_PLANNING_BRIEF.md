@@ -2,7 +2,9 @@
 
 > 使用方式：可以将本文档完整提供给 GPT，让它基于当前真实状态制定后续开发计划。当前需求是**规划，不是直接生成或修改代码**。
 
-> 最新基线（2026-09-07）：Save Foundation 后已实现 **3D Asset Foundation + First Blizzard Visual Pass v0.1**。41 文件 / 298 测试通过；12 个自有 GLB、3 张 1K PBR 雪地贴图、缓存/实例/回退/真实加载阶段已接线。浏览器视觉、完整首载与 Chrome 1080p FPS、production build **待用户验收**。不要将已实现资源管线再次规划为零开始任务。
+> 当前最新基线（2026-09-07）：**Game Item Icon Art Pass v0.1** 实现和自动检查完成，43 文件 / 312 测试通过。System Icon 继续 Phosphor；9 物品/3 建筑使用同一套静态彩色透明 WebP（12×256²，共 74,492 bytes）。`src/ui/thumbnails` 统一解析 ID、图片失败回退；Hotbar 名称仅在切换时短暂显示，Inventory、Crafting 产物/材料、Building 主体/成本、Campfire/燃料均已接入。Domain、配方、世界 GLB、Save v1 均未改。**build 与用户截图/拖拽/旧档验收待完成，若快捷栏仍像软件工具栏，不算视觉目标成功。** 不要再规划为零开始图标库，也不要自动进入新玩法。
+
+> 前一里程碑（2026-09-07）：Save Foundation 后已实现 **3D Asset Foundation + First Blizzard Visual Pass v0.1**。当时 41 文件 / 298 测试通过；12 个自有 GLB、3 张 1K PBR 雪地贴图、缓存/实例/回退/真实加载阶段已接线。浏览器视觉、完整首载与 Chrome 1080p FPS、production build **待用户验收**。不要将已实现资源管线再次规划为零开始任务。
 
 ## 1. 项目概述
 
@@ -392,7 +394,7 @@ Recipe 必须 Data Driven，至少包含：
 - Presentation-only AssetRegistry、官方 GLB Loader、缓存一次/普通克隆、失败回退和独立实例/Source 生命周期
 - 12 个自有 GLB（6 类资源含 3 个 stone Variant、地基、墙、篝火、木屋）；raw_meat 没有 Scenario 放置，未新增玩法
 - 本地 1K 雪地 Albedo/Normal/Roughness、4m Tiling、真实环境/物品/建筑加载 Stage；新增美术 3.80 MB，不含引擎 JS/WASM
-- 41 个测试文件、298 个单元/集成测试
+- 43 个测试文件、312 个单元/集成测试（含新增 14 个缩略图/UI 契约回归）
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -455,6 +457,12 @@ src/main.ts
 - `docs/SAVE_FORMAT.md`
 
 ## 11. 当前验证边界
+
+Game Item Icon Art Pass：实际 `pnpm exec tsc -b --pretty false`、`pnpm test`（43 文件 / 312 测试）和 `git diff --check` 通过。新增测试执行真实 UI renderer + 窄 DOM 契约替身、真实 error 事件和 fake timer，覆盖未知 ID、失败/迟到图片、材料/产物/燃料、Hover/Focus、拖拽/交换/清空、键盘/滚轮及 Save v1 往返。不是浏览器测试，未执行 install/dev/build/preview 或浏览器操作。仓库没有额外 Gate 文档/命令。
+
+资源工具 `scripts/generate-thumbnails.py` 是离线 Python/NumPy/Pillow 软件渲染，不接入构建流程，checkout 自带 WebP；已有九份 GLB 直接导出，布料/废金属/石斧只创建缩略图几何。系统图标与物品美术职责分开，未来新增对象需补 Registry 与美术；这三件物品的世界模型仍未实现。完整来源/替换/规格见 `docs/ASSET_CREDITS.md`，人工验收见 `docs/COMMAND_RUNBOOK.md`。
+
+以下为历史 Asset Foundation 验证：
 
 2026-09-07 Asset Visual Pass：`pnpm typecheck`、`pnpm test`（41 文件 / 298 测试）与 `git diff --check` 通过。测试实际加载项目 GLB，并验证尺寸、门洞方向、独立克隆/共享资源、隐藏判定代理、404 Fallback 和 Save v1 重复恢复。离线软件预览检查了资产轮廓，不代表真实 Babylon 视觉通过。未 install/dev/build/preview、未启动或操作浏览器。
 

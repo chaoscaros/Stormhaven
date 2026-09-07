@@ -1,0 +1,74 @@
+[
+  {
+    "id": "wood",
+    "source": "public/assets/models/items/split-log.glb",
+    "sourceSha256": "3a719788751029ef59b6297c10f6df2251db4e12fcd37fcedddf86f71675bf98",
+    "bytes": 6082
+  },
+  {
+    "id": "stone",
+    "source": "public/assets/models/items/granite-1.glb",
+    "sourceSha256": "10b69181f977ccb9ea32f0447cb942b20293aa3ec68c704b398cfa443549c7c1",
+    "bytes": 6100
+  },
+  {
+    "id": "stick",
+    "source": "public/assets/models/items/branched-stick.glb",
+    "sourceSha256": "23278d14fcee6989fdcfbbfcf98bfeeff51f5e3e49d3319eaa36814b32d29d0c",
+    "bytes": 4996
+  },
+  {
+    "id": "water_bottle",
+    "source": "public/assets/models/items/water-bottle.glb",
+    "sourceSha256": "bd47f7c4654cad1f11ac510bee68dea75c2db70510408e7de873e78649d961db",
+    "bytes": 4780
+  },
+  {
+    "id": "canned_food",
+    "source": "public/assets/models/items/ration-can.glb",
+    "sourceSha256": "bbec1bebb518aa86c7f5eaece3e684823a3af8bb0ea25f8abf64a86e8094bc75",
+    "bytes": 5880
+  },
+  {
+    "id": "raw_meat",
+    "source": "public/assets/models/items/raw-meat.glb",
+    "sourceSha256": "7366cb671a31225dda1d721aa046ba62505feec55e0eb64dc8683fab2c1975e7",
+    "bytes": 6202
+  },
+  {
+    "id": "foundation_wood",
+    "source": "public/assets/models/buildings/wood-foundation.glb",
+    "sourceSha256": "8e78403d07cfb8763d021449e8d86753165bacef5bb4dd47143ca61a7abcf1ff",
+    "bytes": 5830
+  },
+  {
+    "id": "wall_wood",
+    "source": "public/assets/models/buildings/wood-wall.glb",
+    "sourceSha256": "1a2b26163d1b2eee93fd2af4541854a0c55d25e5af2d493a95fc7175cab10dd7",
+    "bytes": 4674
+  },
+  {
+    "id": "campfire_basic",
+    "source": "public/assets/models/buildings/campfire.glb",
+    "sourceSha256": "664f9d8854ec82452bebf7c97690bcc48e2d26947dde2b77222977adde3bfd09",
+    "bytes": 10612
+  },
+  {
+    "id": "cloth",
+    "source": "thumbnail-only procedural mesh",
+    "sourceSha256": null,
+    "bytes": 6746
+  },
+  {
+    "id": "scrap_metal",
+    "source": "thumbnail-only procedural mesh",
+    "sourceSha256": null,
+    "bytes": 6114
+  },
+  {
+    "id": "stone_axe",
+    "source": "thumbnail-only procedural mesh",
+    "sourceSha256": null,
+    "bytes": 6476
+  }
+]

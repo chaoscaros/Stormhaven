@@ -4,11 +4,13 @@
 
 ## 当前状态
 
-- 当前里程碑：3D Asset Foundation + First Blizzard Visual Pass v0.1（实现与自动检查完成；production build、浏览器视觉/输入/FPS 待用户验收）
+- 当前里程碑：Game Item Icon Art Pass v0.1（实现与自动检查完成；production build、浏览器最终视觉/输入验收待用户，不能仅凭单测宣布美术验收成功）
 - 当前版本：`0.1.0`
+- 最新 UI 规则：9 类物品和 3 类建筑正常主视觉为 `src/ui/thumbnails` 解析的透明彩色 WebP，Hotbar/Inventory/Crafting 产物与材料/Building 成本/Campfire 燃料复用同一艺术资源。Hotbar 不常驻长名称，切换格位显示 1.25 秒后淡出；菜单 hover/focus 可查看名称，原有拖拽/交换/清空、Pause、Esc 不变。
+- 缩略图状态：12 张 256² WebP 共 74,492 bytes；九张取材现有 GLB（篝火追加缩略图火焰），布料/废金属/石斧使用 thumbnail-only 几何，不增加世界对象。图片错误回退本地 SVG，未知 ID 用 info，最后兜底 `?`。Domain/配方/Save v1 完全未改，来源与替换规则见 `docs/ASSET_CREDITS.md`。
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；UI 首批图标通过 Registry 统一为本地构建的 Phosphor SVG，并为语义不匹配的 `stick` 提供 Stormhaven 专用枯枝 SVG，Domain 只保存稳定游戏语义 ID；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
+- 功能状态：Gameplay 保留高对比准星、Interaction Prompt、8 格独立 Hotbar、简化 Player Status；F6 切换 Debug。Inventory 真实 24 格、悬停/聚焦 Tooltip、即时详情，和制造/建造实时共享库存。System UI 保留 Phosphor，旧物品 SVG（含专用枯枝）仅是错误 fallback；Domain 只保存稳定 ID。菜单释放鼠标、暂停与 Esc 契约不变。
 - 存档状态：`slot_1` / IndexedDB `stormhaven.saves` / Schema v1；Esc 手动保存，标题页显式 Continue，恢复库存/资源/建筑/燃料/快捷栏/玩家/时间/天气/体热。完整格式、恢复与错误边界见 `docs/SAVE_FORMAT.md`。
 - 3D 资源状态：`src/assets` 以稳定语义 ID 映射 12 个自有 GLB；官方 Loader + Promise/Source Cache + 独立实例生命周期，失败保留原 Primitive。6 类物品、地基/墙/篝火和固定木屋已接线；raw_meat 原场景无放置，未新增玩法。雪地使用 3 张 1K 本地 PBR 贴图；新增美术载荷 3,803,904 bytes，完整首载流量/FPS 待测。来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
 - 视觉/碰撞边界：GLB 不负责 Picking/Collision，沿用简单代理；木屋门洞、Shelter、建筑 Bounds/Snap 和 Save v1 不变。F6 同步显示/隐藏校准标杆；标杆两种状态均不再参与碰撞/拾取/降水，避免默认隐藏后的空气墙。
@@ -203,6 +205,16 @@ pnpm dev
 如果环境不允许执行 `corepack enable`，请按该环境的标准方式安装 `package.json` 中声明的 pnpm 版本。
 
 ## 当前验证状态
+
+2026-09-07 Game Item Icon Art Pass v0.1：
+
+- `pnpm exec tsc -b --pretty false`：通过。
+- `pnpm test`：43 文件 / 312 测试通过，新增 14 例。实际 UI renderer 的 DOM 契约替身测试覆盖 Inventory Hover/Focus、制造输入/产物、建造成本、篝火燃料、Hotbar 键盘/滚轮/拖拽交换/清空和暂停清理；这不是浏览器测试。
+- `git diff --check`：通过。仓库没有 Quality Gate 文档、`.gate-version` 或 `pnpm gate`，未虚构门禁结果。
+- 使用环境已有 Python + NumPy + Pillow 离线导出并查看缩略图；文件头验证 256²/alpha、单张 <50 KB、合计 <1 MB；Save v1 往返保持不变。
+- 没有执行 install/dev/build/preview、服务重启、浏览器操作或下载第三方美术，没有新增 npm 依赖。用户按 `docs/COMMAND_RUNBOOK.md` 的 Game Item Icon Art Pass 清单完成真实 UI、图片错误、拖拽与旧存档验收。此前 GLB 世界视觉/FPS 验收仍未自动转为通过。
+
+以下为此前 Asset Foundation 记录：
 
 2026-09-07 3D Asset Foundation + First Blizzard Visual Pass v0.1：
 
@@ -415,11 +427,19 @@ pnpm dev
 
 ## 推荐下一步
 
-3D Asset Foundation + First Blizzard Visual Pass v0.1 开发到此停止；尚未完成的是用户操作的 production build、视觉/输入验收与 Chrome 1080p FPS 记录，而不是新的玩法开发。
+Game Item Icon Art Pass v0.1 开发到此停止；尚未完成的是用户 production build、快捷栏/背包/制造/建筑实际视觉与输入验收。若用户截图仍像软件工具栏，本 Issue 的视觉目标就尚未验收成功，应只迭代本专项而非新增玩法。
 
-用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Asset Visual Pass 与 Save Foundation 清单验收。记录浏览器版本/分辨率/FPS/冷加载 Network 总量后，再选择 Vegetation / World Art Pass 或 Vertical Slice Gameplay Completion Audit；本轮不提前进入这些 Issue 或其他新玩法。
+用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Game Item Icon Art Pass、Asset Visual Pass 与 Save Foundation 清单验收。现有 12 个对象均有缩略图；未来新增物品/建筑需登记专用主视觉，布料/废金属/石斧的世界模型仍未实现。完成浏览器/FPS/冷加载记录后再由用户授权下一 Issue，不自动继续世界美术或玩法。
 
 ## 变更记录
+
+### 2026-09-07 — Game Item Icon Art Pass v0.1
+
+- 分离 System Icon 与 Gameplay Thumbnail，前者继续 Phosphor，后者由稳定 Item/Build ID 查找静态图；不改变 Domain、配方、Save v1 或世界资产。
+- 新增 12 张透明 256² WebP 与 `scripts/generate-thumbnails.py` 离线软件渲染工具；GLB 复用材质和轮廓，三个缺少模型的物品仅生成 UI 用几何。布料是折叠织物、石斧有石刃/木柄/绑带、树枝无叶。
+- Hotbar 使用大图、左上键位、右下数量，建筑无数量；长名称移到短暂切换提示和菜单 hover/focus。Inventory、Crafting、Building、Campfire 共用本色图，橙色只表达选择/操作。
+- img error 一次性本地 SVG 回退，SVG 异常显示安全字符；旧图迟到事件不覆盖新图，同图刷新不重建 img。名称定时器在快切/菜单/暂停/释放时清理。
+- 实际通过类型检查、43 文件/312 测试、diff check；未运行 build 或浏览器。人工验收与未来对象规则已同步文档，停止于本专项。
 
 ### 2026-09-07 — 3D Asset Foundation + First Blizzard Visual Pass v0.1
 

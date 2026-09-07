@@ -4,8 +4,8 @@ import type { CraftResult } from "../crafting/CraftingTypes";
 import type { RecipeCatalog } from "../crafting/RecipeCatalog";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { GameUiModeController } from "./GameUiModeController";
-import { resolveGameIconId } from "./icons/GameIcon";
-import { renderGameIcon } from "./icons/iconRegistry";
+import { createGameplayThumbnail, renderGameplayThumbnail } from "./thumbnails/GameplayThumbnail";
+import { getGameplayThumbnailForItem } from "./thumbnails/thumbnailRegistry";
 
 export interface CraftingDebugUi {
   isOpen(): boolean;
@@ -53,33 +53,29 @@ export function setupCraftingDebugUi(
     recipePosition.textContent = `${selectedIndex + 1} / ${recipeList.length}`;
     recipeName.textContent = recipe.displayName;
     recipeDescription.textContent = recipe.description;
-    renderGameIcon(detailIcon, resolveGameIconId(recipe.outputs[0]?.itemId ?? "empty"), {
-      weight: "duotone",
-      size: 64,
-    });
+    renderGameplayThumbnail(detailIcon, getGameplayThumbnailForItem(recipe.outputs[0]?.itemId), "detail");
     requirements.replaceChildren(...evaluation.requiredInputs.map((input) => {
       const row = document.createElement("li");
       const name = document.createElement("span");
       const count = document.createElement("strong");
-      name.textContent = items.get(input.itemId).displayName;
+      name.className = "material-label";
+      name.append(createGameplayThumbnail(getGameplayThumbnailForItem(input.itemId)), items.get(input.itemId).displayName);
       count.textContent = `${input.quantity} / ${input.availableQuantity}`;
       count.dataset.satisfied = input.missingQuantity === 0 ? "true" : "false";
       row.append(name, count);
       return row;
     }));
-    output.textContent = recipe.outputs
-      .map((entry) => `${items.get(entry.itemId).displayName} ×${entry.quantity}`)
-      .join("、");
+    output.replaceChildren(...recipe.outputs.map((entry) => {
+      const product = document.createElement("span");
+      product.className = "material-label";
+      product.append(createGameplayThumbnail(getGameplayThumbnailForItem(entry.itemId)),
+        `${items.get(entry.itemId).displayName} ×${entry.quantity}`);
+      return product;
+    }));
     status.textContent = formatRequirementStatus(evaluation, items);
     status.dataset.available = evaluation.canCraft ? "true" : "false";
     for (const [index, button] of [...recipeListElement.querySelectorAll("button")].entries()) {
       button.setAttribute("aria-current", index === selectedIndex ? "true" : "false");
-      const icon = button.querySelector<HTMLElement>(".game-icon");
-      const itemId = recipeList[index]?.outputs[0]?.itemId;
-      if (icon) renderGameIcon(icon, resolveGameIconId(itemId), {
-        weight: index === selectedIndex ? "fill" : "duotone",
-        size: 40,
-      });
     }
   };
 
@@ -101,10 +97,7 @@ export function setupCraftingDebugUi(
     button.type = "button";
     const icon = document.createElement("span");
     icon.className = "ui-icon";
-    renderGameIcon(icon, resolveGameIconId(recipe.outputs[0]?.itemId ?? "empty"), {
-      weight: index === selectedIndex ? "fill" : "duotone",
-      size: 40,
-    });
+    renderGameplayThumbnail(icon, getGameplayThumbnailForItem(recipe.outputs[0]?.itemId), "card");
     const copy = document.createElement("span");
     copy.className = "menu-list-card__copy";
     const title = document.createElement("strong");

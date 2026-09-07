@@ -16,8 +16,9 @@ import type { ItemCatalog } from "../items/ItemCatalog";
 import type { ItemCategory } from "../items/ItemDefinition";
 import { GameUiModeController } from "./GameUiModeController";
 import { writeHotbarDragData } from "./hotbar/HotbarDragData";
-import { resolveGameIconId } from "./icons/GameIcon";
 import { renderGameIcon } from "./icons/iconRegistry";
+import { renderGameplayThumbnail } from "./thumbnails/GameplayThumbnail";
+import { getGameplayThumbnailForItem, getDisplayVisualForHotbarEntry } from "./thumbnails/thumbnailRegistry";
 
 const WEATHER_LABELS: Readonly<Record<WeatherId, string>> = Object.freeze({
   clear: "晴朗",
@@ -374,10 +375,7 @@ export function setupFoundationUi(
           button.dataset.selected = slotIndex === selectedInventorySlotIndex ? "true" : "false";
           const icon = document.createElement("span");
           icon.className = "ui-icon";
-          renderGameIcon(icon, resolveGameIconId(definition.icon ?? definition.id), {
-            weight: slotIndex === selectedInventorySlotIndex ? "fill" : "duotone",
-            size: 48,
-          });
+          renderGameplayThumbnail(icon, getGameplayThumbnailForItem(itemId), "slot");
           const count = document.createElement("strong");
           count.className = "inventory-panel__item-count";
           count.textContent = `×${quantity}`;
@@ -387,14 +385,6 @@ export function setupFoundationUi(
             selectedInventorySlotIndex = slotIndex;
             for (const candidate of inventoryItems.querySelectorAll("button")) {
               candidate.dataset.selected = candidate === button ? "true" : "false";
-              const candidateIcon = candidate.querySelector<HTMLElement>(".game-icon");
-              if (candidateIcon) {
-                renderGameIcon(
-                  candidateIcon,
-                  resolveGameIconId(candidateIcon.dataset.gameIcon),
-                  { weight: candidate === button ? "fill" : "duotone", size: 48 },
-                );
-              }
             }
             renderInventoryDetail(itemId, totals.get(itemId) ?? quantity, catalog);
             showInventoryTooltip(button, itemId, quantity, catalog);
@@ -463,10 +453,7 @@ export function setupFoundationUi(
 
   function renderInventoryDetail(itemId: string, quantity: number, catalog: ItemCatalog): void {
     const definition = catalog.get(itemId);
-    renderGameIcon(inventoryDetailIcon, resolveGameIconId(definition.icon ?? definition.id), {
-      weight: "duotone",
-      size: 64,
-    });
+    renderGameplayThumbnail(inventoryDetailIcon, getGameplayThumbnailForItem(itemId), "detail");
     setTextIfChanged(inventoryDetailCategory, ITEM_CATEGORY_LABELS[definition.category]);
     setTextIfChanged(inventoryDetailName, definition.displayName);
     setTextIfChanged(inventoryDetailDescription, definition.description);
@@ -489,10 +476,7 @@ export function setupFoundationUi(
       : Math.max(12, bounds.left - tooltipWidth - 12);
     const top = Math.min(bounds.top, window.innerHeight - 124);
     setTextIfChanged(inventoryTooltipName, definition.displayName);
-    renderGameIcon(inventoryTooltipIcon, resolveGameIconId(definition.icon ?? definition.id), {
-      weight: "regular",
-      size: 24,
-    });
+    renderGameplayThumbnail(inventoryTooltipIcon, getGameplayThumbnailForItem(itemId), "small");
     setTextIfChanged(
       inventoryTooltipMeta,
       `${ITEM_CATEGORY_LABELS[definition.category]} · 当前格 ×${quantity} · ${definition.weight.toFixed(2)} kg/件`,
@@ -507,7 +491,7 @@ export function setupFoundationUi(
   }
 
   function renderEmptyInventoryDetail(): void {
-    renderGameIcon(inventoryDetailIcon, "empty", { weight: "duotone", size: 64 });
+    renderGameplayThumbnail(inventoryDetailIcon, getDisplayVisualForHotbarEntry({ type: "empty" }), "detail");
     setTextIfChanged(inventoryDetailCategory, "物资详情");
     setTextIfChanged(inventoryDetailName, "背包为空");
     setTextIfChanged(inventoryDetailDescription, "探索雪地并拾取资源后，可在这里查看用途与重量。");

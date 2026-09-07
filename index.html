@@ -165,7 +165,7 @@
             <section class="building-panel__detail">
               <p class="building-panel__eyebrow">基础结构件 / 当前会话</p>
               <div class="menu-detail__hero">
-                <span id="building-definition-icon" class="ui-icon ui-icon--hero" data-game-icon="foundation_wood" data-game-icon-weight="duotone" data-game-icon-size="64"></span>
+                <span id="building-definition-icon"></span>
                 <div><h2 id="building-definition-name">木制地基</h2><p id="building-definition-description" class="building-panel__description"></p></div>
               </div>
               <h3>所需材料</h3>
@@ -187,7 +187,7 @@
             <section class="crafting-panel__detail">
               <p class="crafting-panel__eyebrow">即时手工制作</p>
               <div class="menu-detail__hero">
-                <span id="crafting-detail-icon" class="ui-icon ui-icon--hero" data-game-icon="stone_axe" data-game-icon-weight="duotone" data-game-icon-size="64"></span>
+                <span id="crafting-detail-icon"></span>
                 <div><h2 id="crafting-recipe-name">石斧</h2><p id="crafting-recipe-description" class="crafting-panel__description"></p></div>
               </div>
               <section>
@@ -221,7 +221,7 @@
               <small id="inventory-tooltip-hint">拖到屏幕底部快捷栏</small>
             </div>
             <section class="inventory-panel__detail" aria-live="polite">
-              <span id="inventory-detail-icon" class="ui-icon ui-icon--hero" data-game-icon="empty" data-game-icon-weight="duotone" data-game-icon-size="64"></span>
+              <span id="inventory-detail-icon"></span>
               <p id="inventory-detail-category">物资详情</p>
               <h2 id="inventory-detail-name">选择一件物资</h2>
               <p id="inventory-detail-description">拾取物资后，可在这里查看用途、重量与类别。</p>
@@ -246,7 +246,7 @@
             <button id="campfire-close-button" type="button" aria-label="关闭篝火菜单"><span class="game-icon" data-game-icon="close" data-game-icon-weight="bold" data-game-icon-size="16"></span>关闭</button>
           </header>
           <div class="campfire-panel__body">
-            <div class="campfire-panel__hero"><span class="ui-icon ui-icon--hero" data-game-icon="campfire_basic" data-game-icon-weight="duotone" data-game-icon-size="64"></span><p class="campfire-panel__eyebrow">玩家热源<br />添加燃料后点燃</p></div>
+            <div class="campfire-panel__hero"><span id="campfire-object-art"></span><p class="campfire-panel__eyebrow">玩家热源<br />添加燃料后点燃</p></div>
             <div class="campfire-panel__status-block">
               <span>状态</span>
               <strong id="campfire-status" data-status="unlit">未点燃</strong>
@@ -256,7 +256,7 @@
               <div><strong id="campfire-fuel-remaining">0</strong><small>/ <span id="campfire-fuel-capacity">900 秒</span></small></div>
             </div>
             <div class="campfire-panel__inventory-row">
-              <span>背包燃料</span><strong id="campfire-inventory-fuel">木材 ×0</strong>
+              <span class="material-label"><span id="campfire-fuel-art"></span>背包燃料</span><strong id="campfire-inventory-fuel">木材 ×0</strong>
             </div>
             <p id="campfire-feedback" class="campfire-panel__feedback" role="status" hidden></p>
             <div class="campfire-panel__actions">

@@ -13,8 +13,9 @@ import {
   readHotbarDragData,
   writeHotbarDragData,
 } from "./HotbarDragData";
-import { resolveGameIconId } from "../icons/GameIcon";
-import { renderGameIcon } from "../icons/iconRegistry";
+import { renderGameplayThumbnail } from "../thumbnails/GameplayThumbnail";
+import { getDisplayVisualForHotbarEntry } from "../thumbnails/thumbnailRegistry";
+import { HotbarSelectionNotice } from "./HotbarSelectionNotice";
 
 export interface HotbarUi {
   refresh(): void;
@@ -38,12 +39,20 @@ export function setupHotbarUi(
   callbacks: HotbarUiCallbacks,
 ): HotbarUi {
   const root = getElement("hotbar");
+  const noticeElement = document.createElement("span");
+  noticeElement.className = "hotbar__notice";
+  noticeElement.setAttribute("role", "status");
+  const notice = new HotbarSelectionNotice((name) => {
+    noticeElement.dataset.visible = name ? "true" : "false";
+    if (name) noticeElement.textContent = name;
+    noticeElement.setAttribute("aria-hidden", name ? "false" : "true");
+  });
   const buttonBindings = model.slots.map((slot) => createSlotButton(slot.slotIndex));
   const discardZone = document.createElement("div");
   discardZone.className = "hotbar__discard";
   discardZone.textContent = "拖到这里清空";
   discardZone.setAttribute("aria-label", "将快捷栏槽位拖到这里清空");
-  root.replaceChildren(...buttonBindings.map(({ frame }) => frame), discardZone);
+  root.replaceChildren(...buttonBindings.map(({ frame }) => frame), discardZone, noticeElement);
 
   const render = (): void => {
     for (const { slotIndex, frame, button, clearButton, icon, label, quantity } of buttonBindings) {
@@ -52,10 +61,7 @@ export function setupHotbarUi(
       button.dataset.selected = selected ? "true" : "false";
       button.setAttribute("aria-pressed", selected ? "true" : "false");
       button.setAttribute("aria-label", describeEntry(slot.entry));
-      renderGameIcon(icon, resolveGameIconId(iconId(slot.entry)), {
-        weight: selected ? "fill" : "bold",
-        size: 32,
-      });
+      renderGameplayThumbnail(icon, getDisplayVisualForHotbarEntry(slot.entry), "slot");
       label.textContent = entryDisplayName(slot.entry);
       frame.dataset.empty = slot.entry.type === "empty" ? "true" : "false";
       clearButton.disabled = slot.entry.type === "empty";
@@ -78,6 +84,7 @@ export function setupHotbarUi(
 
   const select = (slotIndex: number): void => {
     const selection = model.select(slotIndex);
+    if (selection.changed) notice.show(entryDisplayName(selection.slot.entry));
     render();
     activateSelection(selection.slot.entry);
   };
@@ -179,6 +186,7 @@ export function setupHotbarUi(
     const selection = model.selectKeyCode(event.code);
     if (!selection) return;
     event.preventDefault();
+    if (selection.changed) notice.show(entryDisplayName(selection.slot.entry));
     render();
     activateSelection(selection.slot.entry);
   };
@@ -187,11 +195,13 @@ export function setupHotbarUi(
     if (!isHotbarGameplayMode(modes.mode) || event.deltaY === 0) return;
     event.preventDefault();
     const selection = model.cycleByWheel(event.deltaY);
+    if (selection.changed) notice.show(entryDisplayName(selection.slot.entry));
     render();
     activateSelection(selection.slot.entry);
   };
 
   const unsubscribeMode = modes.subscribe((state) => {
+    if (!isHotbarGameplayMode(state.mode)) notice.clear();
     root.hidden = !isHotbarGameplayMode(state.mode) && state.mode !== "player_menu";
     root.dataset.editing = state.mode === "player_menu" ? "true" : "false";
     for (const { button } of buttonBindings) {
@@ -206,6 +216,7 @@ export function setupHotbarUi(
   return {
     refresh: render,
     dispose(): void {
+      notice.dispose();
       window.removeEventListener("keydown", handleKeyDown);
       canvas.removeEventListener("wheel", handleWheel);
       unsubscribeMode();
@@ -251,10 +262,10 @@ export function setupHotbarUi(
     const key = document.createElement("kbd");
     key.textContent = `${slotIndex + 1}`;
     const icon = document.createElement("span");
-    icon.className = "ui-icon";
-    renderGameIcon(icon, resolveGameIconId(iconId(slot.entry)), { weight: "bold", size: 32 });
+    renderGameplayThumbnail(icon, getDisplayVisualForHotbarEntry(slot.entry), "slot");
     const label = document.createElement("span");
-    label.className = "hotbar__label";
+    label.className = "hotbar__hover-name";
+    label.setAttribute("aria-hidden", "true");
     label.textContent = entryDisplayName(slot.entry);
     const quantity = document.createElement("strong");
     quantity.className = "hotbar__quantity";
@@ -285,8 +296,8 @@ export function setupHotbarUi(
   }
 
   function entryDisplayName(entry: HotbarEntry): string {
-    if (entry.type === "build") return builds.get(entry.id).displayName;
-    if (entry.type === "item") return items.get(entry.id).displayName;
+    if (entry.type === "build") return builds.has(entry.id) ? builds.get(entry.id).displayName : "未知建筑";
+    if (entry.type === "item") return items.has(entry.id) ? items.get(entry.id).displayName : "未知物品";
     return "空槽";
   }
 
@@ -294,11 +305,6 @@ export function setupHotbarUi(
     if (entry.type === "empty") return "空快捷槽";
     return `${entry.type === "build" ? "建造" : "物品"}：${entryDisplayName(entry)}`;
   }
-}
-
-function iconId(entry: HotbarEntry): string {
-  if (entry.type === "empty") return "empty";
-  return entry.id;
 }
 
 function getElement<T extends HTMLElement = HTMLElement>(id: string): T {

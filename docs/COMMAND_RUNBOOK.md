@@ -2,7 +2,25 @@
 
 > Primary audience: AI agents and maintainers. This is the canonical reference for setup, startup, validation, build, and preview commands.
 
-## Response policy
+## Game Item Icon Art Pass v0.1 — user acceptance
+
+This issue permits AI to run `pnpm exec tsc -b --pretty false`, `pnpm test`, `git diff --check` and Git delivery, but **not install/dev/build/preview or browser operations**. No new JS dependency was added. There is no `pnpm gate` or extra gate document/version in this checkout. Actual result: 43 files / 312 tests passed; browser acceptance is separate.
+
+用户操作：
+
+1. 在项目目录执行 `pnpm build`。开发服务如已运行，刷新页面查看；需要启动/重启时由用户执行 `pnpm dev`，默认端口仍为 9999。AI 不启动或打开浏览器。
+2. 查看 Gameplay Hotbar：木地基/木墙/篝火为彩色物体，不是单色符号；橙色只作选择边框。数字键左上、物品数量右下，建筑无数量，空槽安静，无常驻长名称。
+3. 按 1–8/滚轮切换：名称约 1.25 秒后淡出；快速切换不被旧计时器提前关闭，打开菜单/暂停后不残留，继续不会突然重播。
+4. Tab：24 格保持独立背包；鼠标移入/键盘聚焦显示 Tooltip 和大图详情。拖入底部 Hotbar、槽位交换、点击绑定、每格 ×、拖到清空区均工作且不消耗库存。快捷栏不嵌进背包。
+5. C：石斧图为石刃+木柄+绑带，输入仍是树枝 ×2 + 石头 ×2；材料、产物和数量正确，制作一次库存/快捷栏即时更新。
+6. B：木地基/墙/篝火与各自成本均是物体图；选择/拖拽与进入放置不变。E 篝火：主体石圈木柴与燃料木材图正确，点燃/熄灭/加柴/关闭仍可用。
+7. 用户可在浏览器 Network Request Blocking 中暂时阻断一张 `/assets/thumbnails/*.webp` 再刷新，确认对应位置退到安全 SVG 而菜单不报错/空白；验收后取消阻断刷新。正常状态不应再用 SVG 物品图。
+8. 验证旧 Save v1：继续旧档、检查库存/快捷栏及世界，保存→刷新→继续仍正常；图像路径不会进入存档。不需要迁移。
+9. 截图 Gameplay Hotbar、Tab Inventory、C/B 详情，记录视口/缩放。目标是生存游戏物品栏而非软件按钮栏；若截图仍不符合，记录为**视觉未验收**，只继续修本专项。
+
+Offline authoring (optional for artists): `python3 scripts/generate-thumbnails.py` requires an **already available** Python 3 + NumPy + Pillow with WebP. Do not auto-install those libraries. It generates 12 committed WebPs/metadata and an ignored review sheet at `node_modules/.cache/stormhaven-thumbnail-review.png`; no browser or world model change, no install/dev/build hook. Regular checkout/build requires no authoring environment.
+
+## General response policy
 
 When a user asks how to install, start, build, test, preview, or troubleshoot this project:
 

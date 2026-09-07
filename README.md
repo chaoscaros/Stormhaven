@@ -6,6 +6,8 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 
 最新 **3D Asset Foundation + First Blizzard Visual Pass v0.1** 已接入核心自有 GLB 模型、缓存/实例/失败回退，以及 1K PBR 雪地与真实加载阶段。原 Gameplay/Save v1 不变。资源来自项目本身，详见 [资源清单与预算](docs/ASSET_CREDITS.md)；生产构建、浏览器视觉和 FPS 仍由用户验收。
 
+其后已实现 **Game Item Icon Art Pass v0.1**：9 类物品与 3 类建筑使用彩色透明缩略图，系统操作仍使用 Phosphor。Hotbar 大图、角标数量，切换名称短暂提示；背包、制造材料/产物、建筑成本与篝火燃料使用同一套图。自动检查 43 文件/312 测试通过，最终浏览器视觉与交互待用户验收。
+
 ## 当前完成内容
 
 - TypeScript 严格模式
@@ -25,7 +27,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 8 格独立 Hotbar：初始前三格直达木地基、木墙和篝火；打开 Player Menu 时仍固定在屏幕底部，支持物品/建筑拖入、槽位交换、点击覆盖和独立清空
 - 简化玩家状态 HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
 - Inventory 使用真实 24 Slot 多列方格、数量角标、悬停 Tooltip 与即时详情；Crafting/Building 保持图标卡片和详情区
-- UI 通过 `src/ui/icons` 的稳定游戏语义 ID 请求随包构建的 SVG；默认映射 Phosphor，缺少准确语义时允许由 Registry 映射项目内置专用图标（当前仅 `stick`），Domain 数据不保存图标文件路径，颜色由 `currentColor` 和状态 CSS 控制
+- 系统 UI 通过 `src/ui/icons` 请求随包构建的 Phosphor SVG；物品/建筑主视觉通过 `src/ui/thumbnails` 按稳定 Item/Build ID 请求本地 WebP，本色不随选中变橙。旧物品 SVG（包括专用枯枝）仅作失败回退，Domain/Save 不保存美术路径
 - 确定性的 GameClock、暂停和 Time Scale
 - Data Driven WeatherDefinition、WeatherCatalog 和 WeatherManager
 - 基于游戏时间的 WeatherTransition 与 ForecastSystem
@@ -139,4 +141,4 @@ Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe J
 
 ## 当前阶段限制
 
-3D Asset Foundation + First Blizzard Visual Pass v0.1 的实现与自动检查已完成，生产构建、浏览器视觉/输入/存档和 FPS 验收由用户操作。先按 [命令手册](docs/COMMAND_RUNBOOK.md) 的 Asset Visual Pass 与 Save 清单验收，再决定新 Issue；不要顺带继续植被、新玩法、Autosave、Settings、Shelter Enclosure、Storage、Equipment、Wetness 或工具玩法。
+Game Item Icon Art Pass v0.1 的实现与自动检查已完成，生产构建、浏览器视觉/输入/存档和 FPS 验收由用户操作。先按 [命令手册](docs/COMMAND_RUNBOOK.md) 的缩略图、Asset Visual Pass 与 Save 清单验收，再决定新 Issue；不要顺带继续植被、新玩法、Autosave、Settings、Shelter Enclosure、Storage、Equipment、Wetness 或工具玩法。

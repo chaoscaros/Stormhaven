@@ -4,6 +4,8 @@ import type { CampfireSystem } from "../survival/campfire/CampfireSystem";
 import type { CampfireState } from "../survival/campfire/CampfireTypes";
 import type { FuelCatalog } from "../survival/campfire/FuelCatalog";
 import type { GameUiModeController } from "./GameUiModeController";
+import { renderGameplayThumbnail } from "./thumbnails/GameplayThumbnail";
+import { getGameplayThumbnailForBuild, getGameplayThumbnailForItem } from "./thumbnails/thumbnailRegistry";
 
 export interface CampfireUi {
   open(campfireId: string): void;
@@ -42,6 +44,8 @@ export function setupCampfireUi(
   const feedback = getElement("campfire-feedback");
   const fuel = fuels.getAll()[0];
   if (!fuel) throw new Error("Campfire Menu 至少需要一个 FuelDefinition。");
+  renderGameplayThumbnail(getElement("campfire-object-art"), getGameplayThumbnailForBuild("campfire_basic"), "detail");
+  renderGameplayThumbnail(getElement("campfire-fuel-art"), getGameplayThumbnailForItem(fuel.itemId), "small");
   let activeCampfireId: string | undefined;
 
   const getActiveState = (): CampfireState | undefined =>

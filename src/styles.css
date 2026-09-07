@@ -1664,21 +1664,10 @@ h1 span {
   transform: translateY(-3px);
 }
 
-.hotbar__label {
-  width: 100%;
-  overflow: hidden;
-  color: inherit;
-  font-size: 7px;
-  letter-spacing: 0.02em;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .hotbar__quantity {
   position: absolute;
   right: 4px;
-  bottom: 14px;
+  bottom: 4px;
   color: var(--ice);
   font-size: 9px;
   text-shadow: 0 1px 2px #000;
@@ -2028,7 +2017,7 @@ h1 span {
   z-index: 30;
 }
 
-.inventory-tooltip > span:not(.game-icon),
+.inventory-tooltip > span:not(.game-icon):not(.gameplay-thumbnail),
 .inventory-tooltip > small { grid-column: 1 / -1; }
 
 .inventory-tooltip[hidden] { display: none; }
@@ -2154,6 +2143,85 @@ h1 span {
 .pause-menu { max-height: calc(100vh - 32px); overflow-y: auto; }
 .start-screen { overflow-y: auto; }
 .start-screen__content { padding-block: 20px; }
+
+/* Object art is not a currentColor system icon. One asset, shared size tokens. */
+:root {
+  --thumbnail-small: 36px;
+  --thumbnail-slot: 72px;
+  --thumbnail-card: 64px;
+  --thumbnail-detail: 128px;
+  --hotbar-cell: clamp(42px, 7vw, 80px);
+}
+
+.gameplay-thumbnail {
+  display: inline-grid;
+  width: var(--thumbnail-slot);
+  height: var(--thumbnail-slot);
+  flex: 0 0 auto;
+  place-items: center;
+  pointer-events: none;
+  background: transparent;
+  border: 0;
+  line-height: 1;
+}
+.gameplay-thumbnail[data-thumbnail-size="small"] { width: var(--thumbnail-small); height: var(--thumbnail-small); }
+.gameplay-thumbnail[data-thumbnail-size="card"] { width: var(--thumbnail-card); height: var(--thumbnail-card); }
+.gameplay-thumbnail[data-thumbnail-size="detail"] { width: var(--thumbnail-detail); height: var(--thumbnail-detail); }
+.gameplay-thumbnail img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+.gameplay-thumbnail[data-thumbnail="empty"] { opacity: 0; }
+.gameplay-thumbnail[data-thumbnail-fallback="true"] { color: #aab9b8; }
+
+.hotbar { grid-template-columns: repeat(8, var(--hotbar-cell)); }
+.hotbar__slot-frame, .hotbar__slot { width: var(--hotbar-cell); height: var(--hotbar-cell); }
+.hotbar__slot { padding: 0; }
+.hotbar__slot .gameplay-thumbnail { width: 100%; height: 100%; }
+.hotbar__slot kbd { z-index: 1; font-size: 10px; color: #d5dfdd; text-shadow: 0 1px 3px #000; }
+.hotbar__quantity { z-index: 1; font-size: 12px; padding: 1px 3px; background: #081010c9; }
+.hotbar__slot-frame[data-empty="true"] .hotbar__slot { border-color: #d8e5e314; background: #d8e5e305; }
+.hotbar__slot[data-selected="true"] { border-color: var(--interactive); background: #eea54a13; }
+.hotbar__slot-frame[data-empty="true"] .hotbar__slot[data-selected="true"] { border-color: var(--interactive); }
+.hotbar[data-editing="true"] .hotbar__slot:hover,
+.hotbar[data-editing="true"] .hotbar__slot:focus-visible { outline: 1px solid var(--interactive); outline-offset: 2px; }
+.hotbar__notice, .hotbar__hover-name {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  width: max-content;
+  max-width: min(320px, 80vw);
+  padding: 7px 12px;
+  color: #e4ece8;
+  background: #0a1011e8;
+  border: 1px solid #c48a464d;
+  font-size: 12px;
+  line-height: 1.4;
+  transform: translateX(-50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  z-index: 3;
+}
+.hotbar__notice[data-visible="true"] { opacity: 1; }
+.hotbar[data-editing="true"] .hotbar__slot:is(:hover, :focus-visible) .hotbar__hover-name { opacity: 1; }
+.hotbar[data-editing="true"]::before { bottom: calc(100% + 48px); }
+.player-menu { bottom: 152px; }
+.inventory-panel__items .inventory-panel__slot > button { padding: 0; }
+.inventory-panel__slot .gameplay-thumbnail { width: 100%; height: 100%; }
+.inventory-tooltip { grid-template-columns: var(--thumbnail-small) minmax(0, 1fr); align-items: center; }
+.menu-detail__hero, .campfire-panel__hero { grid-template-columns: var(--thumbnail-detail) minmax(0, 1fr); }
+.crafting-panel__recipe-list button, .building-panel__list button { grid-template-columns: var(--thumbnail-card) minmax(0, 1fr); }
+.material-label { display: inline-flex; align-items: center; gap: 8px; }
+
+@media (max-width: 900px) {
+  .hotbar__discard { top: auto; bottom: calc(100% + 46px); left: auto; right: 0; min-height: 28px; transform: none; }
+  .hotbar[data-editing="true"]::before { display: none; }
+}
+@media (max-height: 700px) {
+  :root { --thumbnail-detail: 80px; }
+  .player-menu { bottom: 148px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hotbar__notice, .hotbar__hover-name { transition: none; }
+}
 
 @media (max-height: 760px) {
   .start-screen h1 { font-size: 82px; }

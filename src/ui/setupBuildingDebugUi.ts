@@ -4,8 +4,8 @@ import type { Inventory } from "../inventory/Inventory";
 import type { ItemCatalog } from "../items/ItemCatalog";
 import type { GameUiModeController } from "./GameUiModeController";
 import { writeHotbarDragData } from "./hotbar/HotbarDragData";
-import { resolveGameIconId } from "./icons/GameIcon";
-import { renderGameIcon } from "./icons/iconRegistry";
+import { createGameplayThumbnail, renderGameplayThumbnail } from "./thumbnails/GameplayThumbnail";
+import { getGameplayThumbnailForBuild, getGameplayThumbnailForItem } from "./thumbnails/thumbnailRegistry";
 
 export interface BuildingDebugUi {
   refresh(): void;
@@ -47,10 +47,7 @@ export function setupBuildingDebugUi(
     const definition = getSelected();
     if (!definition) return;
     name.textContent = definition.displayName;
-    renderGameIcon(detailIcon, resolveGameIconId(definition.id), {
-      weight: "duotone",
-      size: 64,
-    });
+    renderGameplayThumbnail(detailIcon, getGameplayThumbnailForBuild(definition.id), "detail");
     description.textContent = definition.description;
     const costState = definition.cost.map((cost) => {
       const available = inventory.getItemCount(cost.itemId);
@@ -60,7 +57,8 @@ export function setupBuildingDebugUi(
       const row = document.createElement("li");
       const label = document.createElement("span");
       const count = document.createElement("strong");
-      label.textContent = items.get(cost.itemId).displayName;
+      label.className = "material-label";
+      label.append(createGameplayThumbnail(getGameplayThumbnailForItem(cost.itemId)), items.get(cost.itemId).displayName);
       count.textContent = `${cost.quantity} / ${cost.available}`;
       count.dataset.satisfied = cost.satisfied ? "true" : "false";
       row.append(label, count);
@@ -76,12 +74,6 @@ export function setupBuildingDebugUi(
     selectButton.disabled = !canBuild;
     for (const [index, button] of [...definitionListElement.querySelectorAll("button")].entries()) {
       button.setAttribute("aria-current", index === selectedIndex ? "true" : "false");
-      const icon = button.querySelector<HTMLElement>(".game-icon");
-      const iconId = definitionList[index]?.id;
-      if (icon) renderGameIcon(icon, resolveGameIconId(iconId), {
-        weight: index === selectedIndex ? "fill" : "duotone",
-        size: 40,
-      });
     }
   };
 
@@ -93,10 +85,7 @@ export function setupBuildingDebugUi(
     const title = document.createElement("span");
     const icon = document.createElement("span");
     icon.className = "ui-icon";
-    renderGameIcon(icon, resolveGameIconId(definition.id), {
-      weight: index === selectedIndex ? "fill" : "duotone",
-      size: 40,
-    });
+    renderGameplayThumbnail(icon, getGameplayThumbnailForBuild(definition.id), "card");
     const copy = document.createElement("span");
     copy.className = "menu-list-card__copy";
     const meta = document.createElement("small");

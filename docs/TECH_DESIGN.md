@@ -117,6 +117,23 @@ Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/S
 
 ItemDefinition 的 `icon` 只允许承载可替换的稳定游戏 Icon ID，例如 `wood` 或 `stone_axe`；Item、Inventory、Crafting、Building 等 Domain 模块不得 import Phosphor 或专用 SVG。专用 Stormhaven 物品美术只替换 Registry 映射，不改变 Gameplay 数据格式。
 
+## Gameplay Thumbnail Presentation
+
+上节的物品 SVG 权重描述属于首轮图标基线，现仅用于失败回退，正常主视觉遵守下述契约。
+
+### Game Item Icon Art Pass v0.1 — UI-only asset contract
+
+- `src/ui/icons` 继续负责 System UI 的本地 Phosphor：导航、状态、操作/警告，保持 currentColor 与权重规范。
+- `src/ui/thumbnails/thumbnailRegistry.ts` 用稳定 Item/Build ID 映射本地 BASE_URL 与 fallbackIcon；9 Item/3 Build 全覆盖。未知 ID 是 info，空槽无图。Hotbar 联合由 `getDisplayVisualForHotbarEntry` 转换，不更改 Domain/Save ID 或数据格式。
+- `GameplayThumbnail.ts` 只渲染静态 `<img>`，small/slot/card/detail 集中 CSS 尺寸、本色透明图，不用 mask/选中滤色。img 不可拖拽且不捕获鼠标，原有 Drag Payload 仍在父控件生成。
+- WeakMap 缓存每 host 的视觉 key；hover/数量刷新不重建同图。先绑定一次 error 再设置 src，失败替换为无需网络的本地 SVG，SVG 异常兜底 `?`。旧图移除后的迟到事件不能替换新图；同 host 的失败不会因刷新重试。监听仅随 img 生命周期存在，无全局强引用、MutationObserver 或逐帧刷新。
+- Inventory 格子/Tooltip/详情用 Item resolver；Crafting 产物与每个 input、Building 结构与每个 cost、Campfire 主体与 fuel 都使用对应 resolver。按钮和 Domain 事务未修改。
+- Hotbar 大图、左上数字键、右下物品数量，Build 无数量。`selection.changed` 才触发 `HotbarSelectionNotice`，1,250ms 后隐藏并 CSS 淡出；快切重设 timer，菜单/暂停/销毁清理。菜单 hover/focus 名称通过 CSS 显示，不新增 Hotbar 保存状态。
+- `scripts/generate-thumbnails.py`：Python 3 + NumPy + Pillow 的离线软件 rasterizer；复用九份 GLB 的 POSITION/NORMAL/COLOR/PBR，3 倍采样、正交 3/4 视角、统一光照、78% 长边、透明轻阴影。另三物品只生成缩略图几何，不写世界 GLB。脚本不启动 Babylon/浏览器，禁止自动挂入 install/dev/build，checkout 自带产物，无新 JS 依赖。
+- 12 张 256² WebP 共 74,492 bytes，每张 <50 KB。`public/assets/thumbnails/sources.json` 记录来源/hash/大小。世界 GLB、碰撞/Snap、配方、Save v1 未改，无迁移。未来新增对象先登记 Registry/美术，未知对象始终安全 fallback。
+
+本轮实际类型检查、43 文件 / 312 测试、diff check 通过；新增 14 例覆盖映射、文件规格/预算、img 错误/迟到事件、定时器、实际 UI renderer 在 DOM 契约替身中的 hover/材料/产物/拖拽/键盘接线与 Save v1 往返。替身不模拟浏览器排版、解码、真实 DataTransfer 或 Pointer Lock；build 和最终浏览器视觉/输入仍由用户验收。
+
 ## Building Foundation
 
 Building 与 Crafting 是共享 Inventory 的独立链路：
@@ -390,7 +407,7 @@ Restore 先完整解析并在独立 Inventory/Building Registry 上验证容量/
 
 不对 Babylon 像素渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan、Atomic Transaction 和 Save Round Trip 已由纯测试覆盖；Wetness 仍未实现。
 
-当前共 41 个测试文件、298 个测试。Asset Foundation 覆盖 Registry、预算、真实 GLB 导入、共享缓存/释放、底部 Pivot/建造尺寸、门洞真实三角形朝向、隐藏代理 Picking 和 Debug 标杆；Save 重建测试同时覆盖 Primitive/GLB/模型 404，重复恢复不增加节点/灯光/障碍。原有完整存取、事务、天气、燃料/热量、回滚、IndexedDB 边界与 UI 纯逻辑回归保留。测试不验收像素、浏览器存储兼容或 FPS。本轮 AI 实际通过 typecheck、test 和 diff check；生产 build 和浏览器验证仍待用户完成。
+当前共 43 个测试文件、312 个测试。原 Asset Foundation 的 41 文件/298 测试覆盖 Registry、预算、真实 GLB 导入、共享缓存/释放、Pivot/尺寸、门洞朝向、隐藏代理和 Debug 标杆；Save 重建覆盖 Primitive/GLB/404 和重复恢复。新增 14 例缩略图与 UI 契约回归，完整存取、事务、天气、燃料/热量、回滚、IndexedDB 测试保留。测试不验收像素、浏览器存储兼容或 FPS。本轮实际通过 tsc、test、diff check；build 和浏览器验证仍待用户。
 
 ## Weather Presentation 已知边界
 

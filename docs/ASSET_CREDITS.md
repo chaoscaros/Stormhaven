@@ -1,4 +1,43 @@
-# 3D Asset Credits & Delivery Budget
+# Asset Credits & Delivery Budget
+
+## Game Item Icon Art Pass v0.1 (2026-09-07)
+
+System Icon and Gameplay Thumbnail are separate. Phosphor (MIT, bundled `@phosphor-icons/core`) remains for navigation/status/actions; old object SVGs and the project-original branch SVG are fallback-only. No CDN, downloaded artwork, brand or commercial-game extraction.
+
+All 12 thumbnails are **project-original, derived from this project's original GLBs or thumbnail-only authored geometry**, using `scripts/generate-thumbnails.py`. No third-party art license applies; not a claim of CC0. One transparent 256² WebP per object, natural material color, unified 3/4 orthographic lighting, 78% long-edge coverage, small transparent shadow, 3× supersampling. No baked text/frame/count. Runtime uses static `<img>`, never live 3D previews.
+
+| Stable ID / WebP basename | Source under `public/assets/models/` | Bytes |
+| --- | --- | ---: |
+| wood | items/split-log.glb | 6,082 |
+| stone | items/granite-1.glb | 6,100 |
+| stick | items/branched-stick.glb | 4,996 |
+| water_bottle | items/water-bottle.glb | 4,780 |
+| canned_food | items/ration-can.glb | 5,880 |
+| raw_meat | items/raw-meat.glb | 6,202 |
+| foundation_wood | buildings/wood-foundation.glb | 5,830 |
+| wall_wood | buildings/wood-wall.glb | 4,674 |
+| campfire_basic | buildings/campfire.glb + thumbnail-only flame | 10,612 |
+| cloth | Thumbnail-only folded fabric mesh | 6,746 |
+| scrap_metal | Thumbnail-only bent/chipped metal sheets with rusty edges | 6,114 |
+| stone_axe | Thumbnail-only granite blade, timber haft, pale bindings | 6,476 |
+
+Files: `public/assets/thumbnails/*.webp`. Metadata: `public/assets/thumbnails/sources.json` (GLB source SHA-256 and output bytes). Image total **74,492 bytes**, largest 10,612 bytes; all <50 KB, total <1 MB. Excludes small metadata, existing world GLB/PNG, JS and WASM. World art + thumbnail images = 3,878,396 bytes; complete cold HTTP load/FPS remain unmeasured.
+
+### Reproduction / replacement
+
+- Optional offline command: `python3 scripts/generate-thumbnails.py`, using an existing Python 3 environment with NumPy and Pillow/WebP. This issue used preinstalled libraries without installation. Players need neither Python nor authoring libraries; package.json/lockfile unchanged.
+- Repository-relative script reads the original author's GLB subset (unindexed float32 position/normal/color, root mesh, PBR factors), rejects unsupported forms, and never executes the world authoring script's main function. No world asset is overwritten.
+- Development-only review sheet: `node_modules/.cache/stormhaven-thumbnail-review.png`; not runtime art or a browser screenshot. Never auto-run the tool in install/dev/build.
+- Paths belong only to `src/ui/thumbnails/thumbnailRegistry.ts`. Replace files/registry plus metadata/credits/tests, keeping Item/Build IDs. Public filenames are stable: deployment must invalidate caches after replacement. Domain/Save cannot store thumbnail URLs/keys.
+- All requested 9 items/3 builds are covered. Future objects require registered object art. Cloth/scrap/axe **world** models remain absent; no spawns, equipment or tool gameplay were added. Unknown IDs and failed images use local SVG/info, finally a safe text marker. Save v1 requires no migration.
+
+### Evidence / open acceptance
+
+Actual tsc (`pnpm exec tsc -b --pretty false`), `pnpm test` (43 files / 312 tests), and `git diff --check` passed. Offline thumbnails inspected; WebP alpha/dimensions/budget, registry coverage, DOM error events, actual UI renderer wiring, timing and unchanged Save v1 round trip tested. DOM contract doubles are not a browser: layout, decoding, native drag, Pointer Lock and final visual acceptance remain user checks. No install/dev/build/preview/browser was run. If the user's Hotbar screenshot still looks like a software toolbar, the visual goal remains unaccepted.
+
+---
+
+## Previous 3D Asset Foundation delivery
 
 ## Provenance
 

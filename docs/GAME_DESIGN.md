@@ -36,6 +36,8 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
+最新表现层更新为 **Game Item Icon Art Pass v0.1**：System UI 保留 Phosphor，物品和建筑的正常主图改为本色、材质可辨的透明缩略图。木材为劈柴、树枝为无叶分叉枯枝、布料为折叠织物、石斧为石刃/木柄/绑带；地基、木墙和石圈木柴篝火与世界模型取材一致。Inventory、Hotbar、Crafting 材料/产物、Building 成本、Campfire 燃料共用图，橙色只用于边框/交互状态。Hotbar 不常驻长名称，切换后短提示 1.25 秒，菜单 hover/focus 可看名称。失败可暂退 SVG，不改变道具用途、存档或规则。浏览器最终视觉验收尚待用户。
+
 当前已实现现代桌面浏览器技术基础至 3D Asset Foundation + First Blizzard Visual Pass v0.1；自动检查和浏览器人工视觉验收分开记录：
 
 - 工程工具和模块边界
@@ -80,7 +82,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - Hotbar 初始前三格为木制地基、木制墙体和篝火；Player Menu 打开时仍作为独立底部 HUD 显示，不嵌入背包/建造弹窗；物品/建筑卡片可拖入任意槽，槽位可交换、点击覆盖并单格清空；1–8 与滚轮只在 Gameplay/BuildPlacement 选择
 - Debug Telemetry 保留完整开发数据但默认隐藏，以 F6 切换；F1–F5 天气预览契约不变
 - Player Menu 的背包使用 Slot Grid + Hover Tooltip + 详情区，制造与建造使用图标卡片 + 详情区，三者仍共享同一实时 Inventory
-- 首轮 UI 图标默认使用随项目构建的 Phosphor SVG：HUD、快捷栏、菜单、物品、建筑和系统操作保持一致权重与状态色；若通用库图标与道具外形明显不符，则通过同一 Registry 使用 Stormhaven 专用图标，当前 `stick` 已使用无叶片的分叉枯枝 SVG
+- System UI 使用本地 Phosphor SVG；物品/建筑主视觉使用 `src/ui/thumbnails` 的彩色透明图，SVG（包括专用枯枝）只作失败回退。Domain/Save 仍只有稳定 ID，不保存美术文件路径
 - 可重复执行的类型检查、测试和生产构建
 
 当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime 或容器。存档作为独立服务读取和恢复这些状态。Thermal Reserve 是游戏化资源，不是医学核心体温。

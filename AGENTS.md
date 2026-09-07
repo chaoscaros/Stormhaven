@@ -32,6 +32,8 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 本 Issue 开发停止，先完成用户 production build、视觉/输入/保存→刷新→继续与 Chrome 1080p FPS 验收。在新 Issue 明确授权之前，不得继续植被、新 Gameplay、Autosave、多存档 UI、云存档、导出导入、多套快捷栏、Settings、Audio/Streaming Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Tool Gameplay、Wetness 或其他范围禁止项。
 
+最新已实现 **Game Item Icon Art Pass v0.1**：System Icon（Phosphor）与 `src/ui/thumbnails` 游戏对象主视觉分层。9 物品/3 建筑使用本地透明 WebP；旧 SVG 仅是错误回退，不能重新成为正常物品主视觉。Hotbar 不常驻长名称，菜单 hover/focus 与切换短提示保留可读性；Save v1/Domain/配方/世界资产不变。43 文件/312 测试通过，build/浏览器视觉输入由用户验收；此专项开发后停止，不自动扩展玩法。
+
 ## 包管理和命令
 
 - 唯一包管理器：pnpm
