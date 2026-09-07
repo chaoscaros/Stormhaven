@@ -36,10 +36,6 @@ import jarBold from "@phosphor-icons/core/bold/jar-bold.svg?raw";
 import jarDuotone from "@phosphor-icons/core/duotone/jar-duotone.svg?raw";
 import jarFill from "@phosphor-icons/core/fill/jar-fill.svg?raw";
 import jarRegular from "@phosphor-icons/core/regular/jar.svg?raw";
-import leafBold from "@phosphor-icons/core/bold/leaf-bold.svg?raw";
-import leafDuotone from "@phosphor-icons/core/duotone/leaf-duotone.svg?raw";
-import leafFill from "@phosphor-icons/core/fill/leaf-fill.svg?raw";
-import leafRegular from "@phosphor-icons/core/regular/leaf.svg?raw";
 import logBold from "@phosphor-icons/core/bold/log-bold.svg?raw";
 import logDuotone from "@phosphor-icons/core/duotone/log-duotone.svg?raw";
 import logFill from "@phosphor-icons/core/fill/log-fill.svg?raw";
@@ -68,6 +64,10 @@ import warningFill from "@phosphor-icons/core/fill/warning-fill.svg?raw";
 import warningRegular from "@phosphor-icons/core/regular/warning.svg?raw";
 import xBold from "@phosphor-icons/core/bold/x-bold.svg?raw";
 import xRegular from "@phosphor-icons/core/regular/x.svg?raw";
+import stickBold from "./assets/stick-bold.svg?raw";
+import stickDuotone from "./assets/stick-duotone.svg?raw";
+import stickFill from "./assets/stick-fill.svg?raw";
+import stickRegular from "./assets/stick-regular.svg?raw";
 
 import type { GameIconId, GameIconSize, GameIconWeight } from "./GameIcon";
 import { isGameIconId } from "./GameIcon";
@@ -82,7 +82,7 @@ const iconRegistry = Object.freeze({
   campfire: { bold: campfireBold, duotone: campfireDuotone, fill: campfireFill },
   wood: { regular: logRegular, bold: logBold, duotone: logDuotone, fill: logFill },
   stone: { regular: mountainsRegular, bold: mountainsBold, duotone: mountainsDuotone, fill: mountainsFill },
-  stick: { regular: leafRegular, bold: leafBold, duotone: leafDuotone, fill: leafFill },
+  stick: { regular: stickRegular, bold: stickBold, duotone: stickDuotone, fill: stickFill },
   cloth: { regular: shirtRegular, bold: shirtBold, duotone: shirtDuotone, fill: shirtFill },
   scrap_metal: { regular: gearSixRegular, bold: gearSixBold, duotone: gearSixDuotone, fill: gearSixFill },
   water_bottle: { regular: flaskRegular, bold: flaskBold, duotone: flaskDuotone, fill: flaskFill },

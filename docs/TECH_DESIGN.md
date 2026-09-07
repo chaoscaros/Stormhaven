@@ -113,9 +113,9 @@ Crosshair 使用同一 DOM Component 的状态属性表达默认、可交互、P
 
 Inventory、Crafting、Building renderer 继续分别读取同一个 Inventory/Service。Inventory 直接遍历不可变 Snapshot 的全部 24 个 Slot，按多列方格渲染占用格和空格；物品格 `pointerenter/focus` 同步右侧详情并显示固定定位 Tooltip，`pointerleave/blur` 隐藏，无需点击选择。Tooltip 只读取 ItemCatalog 与当前 Stack，不修改 Inventory。Crafting/Building 继续使用图标卡片、列表与详情区。Campfire 仍是独立 Interaction Menu，但复用相同的颜色、边框、按钮和间距 Token。
 
-`src/ui/icons/GameIcon.ts` 定义稳定的游戏语义 `GameIconId`、Weight 与集中尺寸 Token；`src/ui/icons/iconRegistry.ts` 是唯一 Phosphor 映射和 SVG 注入入口。Registry 通过 `@phosphor-icons/core` 的包内 SVG `?raw` 导入，只把真正使用的资源交给 Vite 构建，不依赖 CDN 或运行时网络。Gameplay HUD 使用 regular/bold，Hotbar 使用 bold/选中 fill，Inventory/Crafting/Building 使用 duotone/选中 fill，Tooltip 使用 regular。SVG 保持 `currentColor`，颜色由父级状态 CSS 控制。
+`src/ui/icons/GameIcon.ts` 定义稳定的游戏语义 `GameIconId`、Weight 与集中尺寸 Token；`src/ui/icons/iconRegistry.ts` 是唯一 SVG 映射和注入入口。Registry 默认通过 `@phosphor-icons/core` 的包内 SVG `?raw` 导入；当 Phosphor 缺少准确语义且近似图标会误导玩家时，可映射 `src/ui/icons/assets` 中的项目内置专用 SVG，当前唯一例外是 `stick` 的四种权重树枝图标。所有资源只把实际使用文件交给 Vite 构建，不依赖 CDN 或运行时网络。Gameplay HUD 使用 regular/bold，Hotbar 使用 bold/选中 fill，Inventory/Crafting/Building 使用 duotone/选中 fill，Tooltip 使用 regular。SVG 保持 `currentColor`，颜色由父级状态 CSS 控制。
 
-ItemDefinition 的 `icon` 只允许承载可替换的稳定游戏 Icon ID，例如 `wood` 或 `stone_axe`；Item、Inventory、Crafting、Building 等 Domain 模块不得 import Phosphor。未来专用 Stormhaven 物品美术只需替换 Registry 映射，不改变 Gameplay 数据格式。
+ItemDefinition 的 `icon` 只允许承载可替换的稳定游戏 Icon ID，例如 `wood` 或 `stone_axe`；Item、Inventory、Crafting、Building 等 Domain 模块不得 import Phosphor 或专用 SVG。专用 Stormhaven 物品美术只替换 Registry 映射，不改变 Gameplay 数据格式。
 
 ## Building Foundation
 

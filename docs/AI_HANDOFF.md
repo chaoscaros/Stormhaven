@@ -8,7 +8,7 @@
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
-- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；UI 首批占位图标已统一为本地构建的 Phosphor SVG，Domain 只保存稳定游戏语义 ID；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
+- 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；UI 首批图标通过 Registry 统一为本地构建的 Phosphor SVG，并为语义不匹配的 `stick` 提供 Stormhaven 专用枯枝 SVG，Domain 只保存稳定游戏语义 ID；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
 - 明确未实现：Save/IndexedDB、Load/Continue、Hotbar 持久化/多套布局、Equipment/Item Use、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
@@ -32,7 +32,7 @@
 - 8 格 Hotbar 纯逻辑模型、1–8/滚轮选择、默认三项 Build Shortcut、拖入/交换/点击覆盖/清空与 Placement 联动
 - 简化 Player Status HUD 与默认折叠、F6 切换的 Debug Telemetry
 - Inventory 真实 24 Slot Grid、数量角标、Hover/Focus Tooltip 与即时详情；Crafting/Building 图标卡片、详情分区与 Campfire 统一视觉主题
-- `src/ui/icons` 统一 GameIcon Registry、尺寸/权重契约与本地 Phosphor SVG 映射；物品 JSON 不保存库路径
+- `src/ui/icons` 统一 GameIcon Registry、尺寸/权重契约与本地 Phosphor/Stormhaven SVG 映射；物品 JSON 不保存文件路径
 - 基础配置单元测试
 - 中文 README、游戏设计、技术设计和协作规范
 - 后续模块目录占位
@@ -105,7 +105,8 @@
 | `src/world/createControlReferenceMarkers.ts` | 无玩法含义的控制校准标杆 |
 | `src/ui/setupFoundationUi.ts` | 指针锁定、Gameplay/Menu 状态切换、Inventory Slot Grid/Tooltip 和基础 DOM 状态 |
 | `src/ui/icons/GameIcon.ts` | 稳定游戏 Icon ID、Weight、Size 与运行时 ID 守卫 |
-| `src/ui/icons/iconRegistry.ts` | UI 唯一 Phosphor SVG 映射、Weight 回退、渲染与静态 DOM Hydration 入口 |
+| `src/ui/icons/iconRegistry.ts` | UI 唯一 SVG 映射、Weight 回退、渲染与静态 DOM Hydration 入口 |
+| `src/ui/icons/assets/` | Phosphor 缺少准确语义时使用的本地专用 SVG；当前只有 `stick` 四种权重 |
 | `src/ui/GameUiModeController.ts` | 纯 Game Shell State、Player Tab 路由与 Pointer Lock 契约 |
 | `src/ui/hotbar/HotbarModel.ts` | 8 格 Hotbar 纯状态、覆盖/清空/交换、数字键映射、滚轮回绕与 Mode Gate |
 | `src/ui/hotbar/HotbarDragData.ts` | Inventory/Building/Hotbar 共用的内部拖拽 Payload 写入与校验 |
@@ -376,6 +377,13 @@ pnpm dev
 推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-08-31 — 树枝专用图标
+
+- 用户明确要求图标必须与道具相符；Phosphor 2.1.1 没有 `branch/twig`，不再使用会被理解为关系图或树叶的近似图标。
+- 新增 regular/bold/duotone/fill 四个本地 `stick` SVG，使用 `currentColor`、弯曲主枝和三处分叉，在 Inventory、Tooltip、详情与 Hotbar 继续由同一 Registry 按状态选择权重。
+- `stick` GameIconId 与 ItemDefinition 不变，Domain 不导入 SVG；新增测试校验四种权重均来自内置树枝资源、使用 `currentColor` 且没有外部 XLink。
+- AI 仅生成临时 PNG 检查 SVG 轮廓，并执行源码静态检查；未运行 typecheck/test/build、未重启服务或操作浏览器，等待用户完成最终命令和页面验收。
 
 ### 2026-08-31 — 树枝图标辨识度修正
 

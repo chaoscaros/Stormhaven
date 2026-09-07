@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" data-stormhaven-icon="stick">
+  <path d="M42 212C77 181 101 157 127 130C154 102 181 73 216 39M94 164C85 143 72 126 54 110M136 120C143 98 157 80 177 63M166 89C185 91 202 85 217 75" stroke-width="30" opacity="0.2"/>
+  <path d="M42 212C77 181 101 157 127 130C154 102 181 73 216 39" stroke-width="15"/>
+  <path d="M94 164C85 143 72 126 54 110" stroke-width="12"/>
+  <path d="M136 120C143 98 157 80 177 63" stroke-width="12"/>
+  <path d="M166 89C185 91 202 85 217 75" stroke-width="11"/>
+</svg>

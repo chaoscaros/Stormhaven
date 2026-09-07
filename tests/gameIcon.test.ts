@@ -5,6 +5,7 @@ import {
   isGameIconId,
   resolveGameIconId,
 } from "../src/ui/icons/GameIcon";
+import { getGameIconSvg } from "../src/ui/icons/iconRegistry";
 
 describe("GameIcon semantic IDs", () => {
   it("首批 UI、物品、建筑、HUD 与系统语义均已登记", () => {
@@ -30,4 +31,14 @@ describe("GameIcon semantic IDs", () => {
     expect(resolveGameIconId("future_item")).toBe("info");
     expect(resolveGameIconId(null)).toBe("info");
   });
+
+  it.each(["regular", "bold", "duotone", "fill"] as const)(
+    "stick 的 %s 权重使用内置专用树枝 SVG",
+    (weight) => {
+      const svg = getGameIconSvg("stick", weight);
+      expect(svg).toContain('data-stormhaven-icon="stick"');
+      expect(svg).toContain("currentColor");
+      expect(svg).not.toContain("http://www.w3.org/1999/xlink");
+    },
+  );
 });

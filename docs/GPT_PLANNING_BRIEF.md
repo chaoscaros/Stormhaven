@@ -62,7 +62,7 @@ Stormhaven 最重要的体验不是战斗，而是：
 - Babylon.js
 - Babylon.js Havok Physics
 - HTML、CSS、TypeScript 构建 UI
-- `@phosphor-icons/core` 作为 UI/Presentation 层统一图标源；SVG 随 Vite 构建，不使用运行时 CDN
+- `@phosphor-icons/core` 作为 UI/Presentation 层默认图标源；缺少准确物品语义时可由同一 Registry 映射项目内置专用 SVG，所有资源随 Vite 构建，不使用运行时 CDN
 - IndexedDB 作为第一阶段存档方案
 - JSON Data Driven 配置
 - pnpm
@@ -372,7 +372,7 @@ Recipe 必须 Data Driven，至少包含：
 - 8 格独立底部 Hotbar；1–8/滚轮选择，初始前三格直接进入木地基、木墙与篝火放置；Player Menu 内物品/建筑卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空
 - 简化 Player Status HUD；完整 Debug Telemetry 默认隐藏并由 F6 切换
 - Inventory 真实 24 Slot 多列方格、数量角标、Hover/Focus Tooltip 与即时详情；Crafting/Building 图标卡片、详情区与统一寒地工业主题
-- `src/ui/icons` 以稳定 `GameIconId` 映射 Phosphor SVG；Domain 数据只保存游戏语义 ID，菜单/物品/建筑/HUD/系统首批占位图标已统一且可替换
+- `src/ui/icons` 以稳定 `GameIconId` 映射 Phosphor 或项目内置专用 SVG；Domain 数据只保存游戏语义 ID，菜单/物品/建筑/HUD/系统首批占位图标已统一且可替换；`stick` 因 Phosphor 无准确树枝图标而使用四种权重的 Stormhaven 专用枯枝 SVG
 - RecipeDefinition/Catalog、Stone Axe 配方与 `hand` Station 契约
 - Requirement/Missing Inputs/Max Count、草稿 Inventory 与原子 Craft Commit
 - 统一生存菜单的 Crafting Tab，可点击配方/制作；方向键/Enter 为辅助输入
