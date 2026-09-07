@@ -11,5 +11,5 @@
     {"name":"fill","direction":[0.7,0.2,0.4],"energy":180,"size":5},
     {"name":"rim","direction":[0,-0.8,0.7],"energy":300,"size":3}
   ],
-  "overrides": {}
+  "overrides": {"foundation_wood": {"contactShadow": true}}
 }

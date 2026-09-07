@@ -4,17 +4,18 @@
 
 ## 当前状态
 
-- 最新 Issue：Blender Art Pipeline + Core Asset Remodeling v0.1 **无 Blender 分支已准备**。本机未安装 Blender（用户确认），没有创建 `.blend`、重做 P0 模型或替换现有 GLB/WebP；五个 P0 均待真实 Blender 环境制作。管线/命令/审核与推广流程见 `docs/ART_PIPELINE.md`。
-- 新增离线工具：`art/blender` 清单/预算/模板规范，`scripts/blender` 空源模板、验证、官方 GLB 导出、统一透明缩略图与产物一致性检查；输出只进入忽略的 `output/blender`。目标 API 4.5.x，实际验证版本为空，不进入 pnpm/CI。当前实际 tsc 通过、44 文件/314 个 Vitest 通过、12 个 Python 规则测试通过；未执行 Blender/build/浏览器。
+- 最新 Issue：**Blender Foundation Pilot v0.1 技术交付完成，用户视觉验收未完成**。真实 Blender 4.5.13 LTS 已制作 `art/blender/buildings/foundation_wood.blend`、官方导出 GLB、从同一源渲染 WebP 并成对替换正式地基文件。其它四个 P0 源仍未制作。完整证据见 `docs/BLENDER_FOUNDATION_PILOT.md`、`docs/ART_PIPELINE.md`。
+- Blender 实测：build `daeeeca98fb0`，bpy 4.5.13 / Python 3.11.15，兼容目标 4.5.x。地基 2×0.2×2m、1836 triangles、2 meshes、1 material；底部中心/identity、内嵌 1K 木纹。GLB 862,424 bytes，WebP 6,684 bytes，真实源 1,267,369 bytes。只为首轮渲染暴露的接触阴影问题修正隔离 rig；不用 legacy 软件几何渲染。Blender/Pillow 不进入 pnpm/CI。
+- 实际验证：Blender 检查/导出/Cycles 渲染、WebP 转换与产物一致性通过；暂存/正式 GLB 两轮 Vitest 均为 45 文件/319 例通过；系统 Python 15 例通过；`pnpm exec tsc -b --pretty false`、`git diff --check` 通过。未 install/dev/build/preview/重启、未浏览器/Blender GUI。NullEngine 不渲染纹理像素，不能把通过写成美术验收。
 - 当前游戏表现基线：Game Item Icon Art Pass v0.1（实现与自动检查完成；production build、浏览器最终视觉/输入验收待用户，不能仅凭单测宣布美术验收成功）
 - 当前版本：`0.1.0`
 - 最新 UI 规则：9 类物品和 3 类建筑正常主视觉为 `src/ui/thumbnails` 解析的透明彩色 WebP，Hotbar/Inventory/Crafting 产物与材料/Building 成本/Campfire 燃料复用同一艺术资源。Hotbar 不常驻长名称，切换格位显示 1.25 秒后淡出；菜单 hover/focus 可查看名称，原有拖拽/交换/清空、Pause、Esc 不变。
-- 缩略图状态：12 张 256² WebP 共 74,492 bytes；九张取材现有 GLB（篝火追加缩略图火焰），布料/废金属/石斧使用 thumbnail-only 几何，不增加世界对象。图片错误回退本地 SVG，未知 ID 用 info，最后兜底 `?`。Domain/配方/Save v1 完全未改，来源与替换规则见 `docs/ASSET_CREDITS.md`。
+- 缩略图状态：12 张 256² WebP 共 75,346 bytes；地基来自真实 Blender 同源渲染，其余八张保留旧 GLB 来源，布料/废金属/石斧保留 thumbnail-only 几何。图片错误回退本地 SVG，未知 ID 用 info，最后兜底 `?`。Domain/配方/Save v1 完全未改，来源与替换规则见 `docs/ASSET_CREDITS.md`。
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
 - 功能状态：Gameplay 保留高对比准星、Interaction Prompt、8 格独立 Hotbar、简化 Player Status；F6 切换 Debug。Inventory 真实 24 格、悬停/聚焦 Tooltip、即时详情，和制造/建造实时共享库存。System UI 保留 Phosphor，旧物品 SVG（含专用枯枝）仅是错误 fallback；Domain 只保存稳定 ID。菜单释放鼠标、暂停与 Esc 契约不变。
 - 存档状态：`slot_1` / IndexedDB `stormhaven.saves` / Schema v1；Esc 手动保存，标题页显式 Continue，恢复库存/资源/建筑/燃料/快捷栏/玩家/时间/天气/体热。完整格式、恢复与错误边界见 `docs/SAVE_FORMAT.md`。
-- 3D 资源状态：`src/assets` 以稳定语义 ID 映射 12 个自有 GLB；官方 Loader + Promise/Source Cache + 独立实例生命周期，失败保留原 Primitive。6 类物品、地基/墙/篝火和固定木屋已接线；raw_meat 原场景无放置，未新增玩法。雪地使用 3 张 1K 本地 PBR 贴图；新增美术载荷 3,803,904 bytes，完整首载流量/FPS 待测。来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
+- 3D 资源状态：`src/assets` 稳定语义 ID 映射 12 个自有 GLB；官方 Loader + Cache/实例生命周期，失败保留 Primitive。6 类物品、地基/墙/篝火/木屋已接线；raw_meat 原场景无放置，未新增玩法。雪地保留 3 张 1K 本地 PBR 贴图；当前模型/地形美术载荷 4,601,072 bytes，完整首载/FPS 待测。来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
 - 视觉/碰撞边界：GLB 不负责 Picking/Collision，沿用简单代理；木屋门洞、Shelter、建筑 Bounds/Snap 和 Save v1 不变。F6 同步显示/隐藏校准标杆；标杆两种状态均不再参与碰撞/拾取/降水，避免默认隐藏后的空气墙。
 - 明确未实现：Autosave、多存档 UI、云存档/导出导入、Hotbar 多套布局、Equipment/Item Use、Settings、Audio/Streaming Loading、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
@@ -429,13 +430,28 @@ pnpm dev
 
 ## 推荐下一步
 
+Pilot 到此停止。用户先按 `docs/BLENDER_FOUNDATION_PILOT.md` 在 Blender GUI/游戏
+验收地基并执行 `pnpm build`；通过后才推荐 **Blender Wall Remodeling v0.1**，不是
+本次继续制作授权。四份未制作源、GPU/旧档 UI/首载 FPS 验收、public URL 缓存失效
+和实例优化仍是待办，不扩展新玩法。
+
 Game Item Icon Art Pass v0.1 开发到此停止；尚未完成的是用户 production build、快捷栏/背包/制造/建筑实际视觉与输入验收。若用户截图仍像软件工具栏，本 Issue 的视觉目标就尚未验收成功，应只迭代本专项而非新增玩法。
 
 用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Game Item Icon Art Pass、Asset Visual Pass 与 Save Foundation 清单验收。现有 12 个对象均有缩略图；未来新增物品/建筑需登记专用主视觉，布料/废金属/石斧的世界模型仍未实现。完成浏览器/FPS/冷加载记录后再由用户授权下一 Issue，不自动继续世界美术或玩法。
 
 ## 变更记录
 
-### 2026-09-07：Blender 美术管线准备（本机无 Blender）
+### 2026-09-07：Blender Foundation Pilot v0.1
+
+- 真实 Blender 4.5.13 LTS 完成源保存、Cycles 烘焙 1K 木纹、UV/Bevel/Weighted Normal、官方 GLB 导出和同源缩略图。只替换地基 GLB/WebP，新增源/hash provenance；其余模型、运行时源码/数据、Registry、Proxy 和 Save v1 不变。
+- 10 块木板、6mm 板缝、2 根边框梁/5 根横梁，2 Mesh、1 matte PBR Material、1836 tris；精确底部中心、2×0.2×2m，无运行时补救缩放。
+- 实际渲染暴露缺接触阴影；Foundation-only catcher/独立阴影 pass/中性 alpha 合成修复，不进入 EXPORT。最终 WebP 离线检查完成，美术接受度待用户。
+- 暂存/正式资源实际 `pnpm test` 45 文件/319 例；`python3 -m unittest discover -s tests/blender -v` 15 例；`pnpm exec tsc -b --pretty false`、`git diff --check` 通过。新增四向 placement/restore/proxy/snap 与源/GLB/WebP 同源和内嵌 PNG 检查。
+- 新测试首次因粗糙度 float32 精度失败后改容差，未更改材质绕过测试。系统 Python 无 Pillow，使用已有 Pillow 12.3.0/WebP 环境，未安装依赖。
+- 未执行 build/dev/preview/install、浏览器/Blender GUI、实际 IndexedDB UI 验收或 FPS；技术检查不是用户美术验收。细节见 `docs/BLENDER_FOUNDATION_PILOT.md`。
+- 停止：先等用户地基视觉验收，再推荐新 Issue `Blender Wall Remodeling v0.1`；本次不做其它 P0 或玩法。
+
+### 2026-09-07：Blender 美术管线准备（历史：当时本机无 Blender）
 
 - 用户确认本机未安装 Blender；PATH/常见应用路径核查与 `blender --version` 失败一致。未安装或执行 Blender，没有伪造 `.blend`，没有宣称五个 P0 已重做。
 - 新增 `art/blender` P0 映射/尺寸/预算与统一缩略图预设；`scripts/blender` 提供空模板、评估后 Mesh 检查、PBR/纹理检查、官方 GLB 导出、隔离 Cycles 缩略图、WebP 转换和产物一致性检查。只写 `output/blender`，不自动推广到 public，不接 pnpm/CI。

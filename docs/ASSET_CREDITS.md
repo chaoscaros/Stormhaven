@@ -1,19 +1,22 @@
 # Asset Credits & Delivery Budget
 
-## Blender Pipeline preparation (2026-09-07)
+## Blender Foundation Pilot (2026-09-07)
 
-**No new artwork delivered in this issue.** This machine lacks Blender (confirmed
-by the user and CLI checks). `art/blender/manifest.json` lists five **planned** P0
-sources, not existing/proven Blender artwork. Target API 4.5.x; validated Blender
-version is null. No `.blend`, newly remodeled GLB or Blender-rendered WebP has been
-generated. All runtime files, counts and byte budgets below are unchanged.
+**Only Foundation was remodeled in real Blender 4.5.13 LTS**, build `daeeeca98fb0`.
+Author: Stormhaven project, AI-assisted bpy mesh/UV/bevel modeling + Cycles diffuse
+bake; no GUI-clicking claim. Source: `art/blender/buildings/foundation_wood.blend`
+(1,267,369 bytes). Runtime: `public/assets/models/buildings/wood-foundation.glb`
+(862,424 bytes, 1,836 triangles, 2 meshes, 1 material). Thumbnail:
+`public/assets/thumbnails/foundation_wood.webp` (6,684 bytes, 256² transparent).
+One original 1K wood albedo is packed in the source/embedded in GLB; matte PBR
+roughness 0.82. No external artwork or textures, no additional asset license,
+not a CC0 claim. Exact hashes/rights/tool metadata:
+`art/blender/buildings/foundation_wood.provenance.json`.
 
-`scripts/blender` and the modeling briefs/presets are project-original tooling,
-not third-party models. Future real sources must record actual author, Blender
-version, source/texture license, modifications, source hash, triangle/material/
-byte metrics and corresponding thumbnail provenance here before promotion.
-Do not label pending sources CC0 or completed Stormhaven Blender assets.
-See `docs/ART_PIPELINE.md` for the future paired `.blend`→GLB/WebP workflow.
+Same saved `.blend` feeds official glTF export and Cycles thumbnail rendering.
+See [Pilot report](BLENDER_FOUNDATION_PILOT.md) for actual commands, tests,
+render correction, metrics and pending **user visual acceptance**. Other four P0
+sources remain absent; do not credit them as completed Blender artwork.
 Legacy Python authoring remains available but must not overwrite promoted art;
 `generate-thumbnails.py` rejects sources.json containing `.blend` sources.
 
@@ -21,7 +24,13 @@ Legacy Python authoring remains available but must not overwrite promoted art;
 
 System Icon and Gameplay Thumbnail are separate. Phosphor (MIT, bundled `@phosphor-icons/core`) remains for navigation/status/actions; old object SVGs and the project-original branch SVG are fallback-only. No CDN, downloaded artwork, brand or commercial-game extraction.
 
-All 12 thumbnails are **project-original, derived from this project's original GLBs or thumbnail-only authored geometry**, using `scripts/generate-thumbnails.py`. No third-party art license applies; not a claim of CC0. One transparent 256² WebP per object, natural material color, unified 3/4 orthographic lighting, 78% long-edge coverage, small transparent shadow, 3× supersampling. No baked text/frame/count. Runtime uses static `<img>`, never live 3D previews.
+All 12 thumbnails are project-original. **Foundation now uses the Blender source
+above**; the other 11 retain their original GLB/thumbnail-only authored geometry
+and legacy `scripts/generate-thumbnails.py` output. No third-party art license,
+not a CC0 claim. Transparent 256² WebP, natural color, 3/4 orthographic lighting,
+78% geometry long-edge coverage, light contact shadow. Foundation uses Cycles
+64 samples, others legacy 3× supersampling. No text/frame/count baked into art.
+Runtime uses static `<img>`, never live 3D previews.
 
 | Stable ID / WebP basename | Source under `public/assets/models/` | Bytes |
 | --- | --- | ---: |
@@ -31,18 +40,24 @@ All 12 thumbnails are **project-original, derived from this project's original G
 | water_bottle | items/water-bottle.glb | 4,780 |
 | canned_food | items/ration-can.glb | 5,880 |
 | raw_meat | items/raw-meat.glb | 6,202 |
-| foundation_wood | buildings/wood-foundation.glb | 5,830 |
+| foundation_wood | `art/blender/buildings/foundation_wood.blend` (repo-relative) | 6,684 |
 | wall_wood | buildings/wood-wall.glb | 4,674 |
 | campfire_basic | buildings/campfire.glb + thumbnail-only flame | 10,612 |
 | cloth | Thumbnail-only folded fabric mesh | 6,746 |
 | scrap_metal | Thumbnail-only bent/chipped metal sheets with rusty edges | 6,114 |
 | stone_axe | Thumbnail-only granite blade, timber haft, pale bindings | 6,476 |
 
-Files: `public/assets/thumbnails/*.webp`. Metadata: `public/assets/thumbnails/sources.json` (GLB source SHA-256 and output bytes). Image total **74,492 bytes**, largest 10,612 bytes; all <50 KB, total <1 MB. Excludes small metadata, existing world GLB/PNG, JS and WASM. World art + thumbnail images = 3,878,396 bytes; complete cold HTTP load/FPS remain unmeasured.
+Files: `public/assets/thumbnails/*.webp`. Metadata: `public/assets/thumbnails/sources.json`
+(source SHA-256 and output bytes; Foundation references `.blend`). Image total
+**75,346 bytes**, largest 10,612 bytes; all <50 KB, total <1 MB. Excludes metadata,
+world GLB/PNG, JS and WASM. World art + thumbnails = **4,676,418 bytes**; complete
+cold HTTP load/FPS remain unmeasured.
 
 ### Reproduction / replacement
 
-- Optional offline command: `python3 scripts/generate-thumbnails.py`, using an existing Python 3 environment with NumPy and Pillow/WebP. This issue used preinstalled libraries without installation. Players need neither Python nor authoring libraries; package.json/lockfile unchanged.
+- Legacy offline command: `python3 scripts/generate-thumbnails.py` now intentionally
+  refuses the promoted `.blend` provenance. Do not run it to update Foundation;
+  use the Blender paired workflow. Players need neither Python nor authoring libraries.
 - Repository-relative script reads the original author's GLB subset (unindexed float32 position/normal/color, root mesh, PBR factors), rejects unsupported forms, and never executes the world authoring script's main function. No world asset is overwritten.
 - Development-only review sheet: `node_modules/.cache/stormhaven-thumbnail-review.png`; not runtime art or a browser screenshot. Never auto-run the tool in install/dev/build.
 - Paths belong only to `src/ui/thumbnails/thumbnailRegistry.ts`. Replace files/registry plus metadata/credits/tests, keeping Item/Build IDs. Public filenames are stable: deployment must invalidate caches after replacement. Domain/Save cannot store thumbnail URLs/keys.
@@ -62,7 +77,7 @@ All models and terrain textures introduced by **3D Asset Foundation + First Bliz
 
 | Assets | Source / author | License / rights record | Original source | Modified |
 | --- | --- | --- | --- | --- |
-| All 12 GLBs below | Stormhaven project, AI-assisted procedural authoring | Project-original work; no third-party asset license applies. Not claimed to be CC0 or a third-party licensed pack. | `scripts/author-first-blizzard-assets.py` (no external download page) | Original creation, meter/pivot calibration, merged per material |
+| Other 11 GLBs below (Foundation superseded above) | Stormhaven project, AI-assisted procedural authoring | Project-original work; no third-party asset license applies. Not claimed to be CC0 or a third-party licensed pack. | `scripts/author-first-blizzard-assets.py` (no external download page) | Original creation, meter/pivot calibration, merged per material |
 | Snow albedo / normal / roughness | Stormhaven project, deterministic periodic noise | Same project-original provenance | Same authoring script | 1024² RGB PNG, seamless sampling and packed roughness |
 
 This document records provenance, not a legal guarantee of exclusive copyright. Any future external replacement must record its actual author, original download URL, exact license and modification history here, and retain the license text in `docs/assets/`. Do not infer CC0 from this first-party asset list. Existing UI Phosphor licensing is independent of these 3D assets; its package contains its MIT license.
@@ -81,7 +96,7 @@ All paths below are relative to `public/assets/models/`. PBR values and vertex c
 | `pickup_water_bottle` | `items/water-bottle.glb` | 133,276 | 1,088 | 3 |
 | `pickup_canned_food` | `items/ration-can.glb` | 125,608 | 1,024 | 3 |
 | `pickup_raw_meat` | `items/raw-meat.glb` | 23,664 | 180 | 2 |
-| `building_foundation_wood` | `buildings/wood-foundation.glb` | 65,256 | 528 | 2 |
+| `building_foundation_wood` | `buildings/wood-foundation.glb` | 862,424 | 1,836 | 1 |
 | `building_wall_wood` | `buildings/wood-wall.glb` | 82,516 | 672 | 2 |
 | `building_campfire` | `buildings/campfire.glb` | 132,700 | 1,080 | 3 |
 | `environment_cabin` | `environment/cabin.glb` | 414,492 | 3,420 | 5 |
@@ -94,13 +109,22 @@ Terrain files, relative to `public/assets/textures/terrain/`:
 | `snow-normal.png` | 1024×1024 | 1,909,256 | Linear tangent-space normal |
 | `snow-roughness.png` | 1024×1024 | 318,812 | Linear: G=roughness, B=metalness 0 |
 
-Measured new art payload: **3,803,904 bytes (3.80 MB / 3.63 MiB)**, uncompressed HTTP transfer before any server compression. This is **not total first-load traffic**: Babylon JS, Havok WASM, UI and HTML are additional. Total Network transfer and Chrome 1080p FPS remain **not measured / user acceptance pending**. Do not inflate assets merely to reach the suggested 20–35 MB range. Budget: total cold load <50 MB, ordinary GLB <1 MB, cabin <3–5 MB; current individual art files fit. Tests enforce individual/model+texture budget and 1K dimensions.
+Measured model/terrain payload after Foundation replacement: **4,601,072 bytes**,
+before HTTP compression. Not total first-load traffic: JS, WASM, UI and HTML are
+additional. Total Network transfer and Chrome 1080p FPS remain **unmeasured**.
+Do not inflate assets to meet an arbitrary size range. Budget: cold load <50 MB,
+ordinary GLB <1 MB, cabin <3–5 MB. Current individual art files fit; tests enforce
+individual/model+texture budget and 1K dimensions.
 
 ## Art and scale contract
 
 - Coherent stylized realism: muted warm timber, cold faceted granite, blue plastic, plain metal packaging and nongory meat. No photo scans mixed with unrelated packs.
-- All model pivots: bottom-center; one unit is one meter. Authoring uses game coordinates and mirrors X/winding for glTF; Babylon AUTO restores that handedness. Do not add an extra model-root mirror.
-- Foundation is exactly 2×0.2×2 m: four support beams and ten boards. Wall is 2×2.4×0.18 m: ten boards plus three horizontal supports on each side. Authoritative `BuildDefinition` is unchanged.
+- All model pivots: bottom-center; one unit is one meter. Foundation uses Blender
+  Z-up → official glTF Y-up → Babylon AUTO; no hand-authored mirror or runtime scale
+  correction. Other legacy models retain their game-coordinate X/winding conversion.
+- Foundation is exactly 2×0.2×2 m: ten planks, two rim beams and five joists.
+  Wall remains 2×2.4×0.18 m: ten boards plus three horizontal supports on each side.
+  Authoritative `BuildDefinition` is unchanged.
 - Cabin visual is authored for the existing scenario: 10×10 m floor, internal 9.5×4×9.5 m, roof within the existing 10.45×0.28×10.45 m slab. Flat felt roof, fascia, timber courses, corners and open entry; no new roof/door gameplay. Original front compound boxes actually leave **1.9 m clear width** (the existing `DOOR_WIDTH=2.4` also describes header/frame): preserve those boxes rather than “correcting” the opening during an art pass.
 - Pickup registry offsets convert existing center placements to bottom pivots. Stable pickup ID hashes select granite variants; gameplay RNG and Save do not change.
 - Raw meat has a complete model/mapping/load test but **no existing scenario placement**. It is intentionally not newly spawned. Cloth, scrap metal and stone axe remain UI/inventory-only in this scenario; unknown/new world assets use the generic fallback until separately authored.
@@ -108,7 +132,11 @@ Measured new art payload: **3,803,904 bytes (3.80 MB / 3.63 MiB)**, uncompressed
 
 ## Reproducibility and replacement
 
-The source script is a small authoring tool, not a runtime asset store or game build step. If intentionally regenerating assets, run `python3 scripts/author-first-blizzard-assets.py` (Python 3 standard library only). Commit only intentional optimized GLB/PNG changes and their updated table. Do not run it automatically on install/dev/build. Repository checkouts already contain all runtime files.
+The legacy source script is offline tooling, not a runtime/build step. **Do not run
+`scripts/author-first-blizzard-assets.py` as an all-assets regeneration now:** it
+would overwrite the promoted Foundation. Edit the `.blend` and use the paired
+workflow; preserve other assets until separately authorized. Repository checkouts
+contain all runtime files; nothing automatically generates art on install/dev/build.
 
 Future artists can replace individual files or URLs in `src/assets/AssetRegistry.ts`, preserving semantic IDs and documented pivots/scales. New texture/model revisions need appropriate host cache invalidation; `public/` filenames are stable, not Vite-hashed. Deployment cache policy remains the hosting application's responsibility. Save v1 never stores URLs/materials/meshes.
 

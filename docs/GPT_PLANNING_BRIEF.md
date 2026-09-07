@@ -2,9 +2,9 @@
 
 > 使用方式：可以将本文档完整提供给 GPT，让它基于当前真实状态制定后续开发计划。当前需求是**规划，不是直接生成或修改代码**。
 
-> 最新准备态（2026-09-07）：**Blender Art Pipeline + Core Asset Remodeling v0.1 的无 Blender 分支**。本机未安装 Blender；已准备独立源规范/清单、空模板、验证、GLB 导出、固定缩略图与产物检查工具，详见 `docs/ART_PIPELINE.md`。**没有真实 `.blend` 或 P0 重做产物，游戏仍显示原 GLB/WebP。** 目标 API 4.5.x 未实际验证；无 Blender 的规则检查 12 例、tsc 和 44 文件/314 例 Vitest 通过，不能宣称 Blender 管线运行或美术验收成功。下一步在真实授权环境先手工建模地基、完整验证一条导出/渲染链，再做木墙、篝火、木屋、石斧。不要规划 P1/新玩法，先完成 P0 真正制作与用户视觉验收。
+> 最新交付（2026-09-07）：**Blender Foundation Pilot v0.1 技术执行完成，用户视觉验收待完成**。真实 Blender 4.5.13 LTS 已制作 `foundation_wood.blend`、Cycles 烘焙木纹、官方导出 GLB、同源透明 WebP 并成对替换正式地基。2×0.2×2m，1836 tris / 2 meshes / 1 material，GLB 862,424 bytes、WebP 6,684 bytes。Registry、Gameplay Proxy、Snap、Save v1 和其它模型/缩略图不变。tsc、45 文件/319 Vitest、15 Python 检查通过；build、Blender GUI、浏览器材质/旧档 UI/FPS 未验收。详见 `docs/BLENDER_FOUNDATION_PILOT.md`。下一步先用户验收地基，通过后才推荐 **Blender Wall Remodeling v0.1**，不得现在执行；其余四个 P0 源仍缺，不规划 P1/新玩法。
 
-> 当前最新基线（2026-09-07）：**Game Item Icon Art Pass v0.1** 实现和自动检查完成，43 文件 / 312 测试通过。System Icon 继续 Phosphor；9 物品/3 建筑使用同一套静态彩色透明 WebP（12×256²，共 74,492 bytes）。`src/ui/thumbnails` 统一解析 ID、图片失败回退；Hotbar 名称仅在切换时短暂显示，Inventory、Crafting 产物/材料、Building 主体/成本、Campfire/燃料均已接入。Domain、配方、世界 GLB、Save v1 均未改。**build 与用户截图/拖拽/旧档验收待完成，若快捷栏仍像软件工具栏，不算视觉目标成功。** 不要再规划为零开始图标库，也不要自动进入新玩法。
+> 前一 UI 基线（2026-09-07）：**Game Item Icon Art Pass v0.1** 当时 43 文件 / 312 测试通过。System Icon 继续 Phosphor；9 物品/3 建筑使用透明 WebP（当时共 74,492 bytes，地基 Pilot 后为 75,346 bytes）。`src/ui/thumbnails` 统一解析 ID、图片失败回退；Hotbar 名称仅切换时短暂显示，Inventory/Crafting/Building/Campfire 复用。**用户 UI 截图/拖拽验收仍待完成**，不能用单测替代。不要重复规划为零开始图标库。
 
 > 前一里程碑（2026-09-07）：Save Foundation 后已实现 **3D Asset Foundation + First Blizzard Visual Pass v0.1**。当时 41 文件 / 298 测试通过；12 个自有 GLB、3 张 1K PBR 雪地贴图、缓存/实例/回退/真实加载阶段已接线。浏览器视觉、完整首载与 Chrome 1080p FPS、production build **待用户验收**。不要将已实现资源管线再次规划为零开始任务。
 
@@ -396,7 +396,7 @@ Recipe 必须 Data Driven，至少包含：
 - Presentation-only AssetRegistry、官方 GLB Loader、缓存一次/普通克隆、失败回退和独立实例/Source 生命周期
 - 12 个自有 GLB（6 类资源含 3 个 stone Variant、地基、墙、篝火、木屋）；raw_meat 没有 Scenario 放置，未新增玩法
 - 本地 1K 雪地 Albedo/Normal/Roughness、4m Tiling、真实环境/物品/建筑加载 Stage；新增美术 3.80 MB，不含引擎 JS/WASM
-- 43 个测试文件、312 个单元/集成测试（含新增 14 个缩略图/UI 契约回归）
+- 45 个测试文件、319 个单元/集成测试；另有 15 个独立 Python 检查。地基已完成真实 Blender Pipeline 技术交付，GUI/游戏美术验收仍开放。
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -459,6 +459,11 @@ src/main.ts
 - `docs/SAVE_FORMAT.md`
 
 ## 11. 当前验证边界
+
+最新 Foundation Pilot：真实 Blender validation/export/render、同源产物检查、暂存与
+正式 GLB 导入/Save 回归通过；tsc、45 文件/319 Vitest、15 Python tests 通过。
+没有 production build/GUI/browser/GPU/FPS 验收。NullEngine 不解码渲染贴图像素。
+以下为前一 UI/Asset Issue 的历史记录；完整最新证据见 `docs/BLENDER_FOUNDATION_PILOT.md`。
 
 Game Item Icon Art Pass：实际 `pnpm exec tsc -b --pretty false`、`pnpm test`（43 文件 / 312 测试）和 `git diff --check` 通过。新增测试执行真实 UI renderer + 窄 DOM 契约替身、真实 error 事件和 fake timer，覆盖未知 ID、失败/迟到图片、材料/产物/燃料、Hover/Focus、拖拽/交换/清空、键盘/滚轮及 Save v1 往返。不是浏览器测试，未执行 install/dev/build/preview 或浏览器操作。仓库没有额外 Gate 文档/命令。
 

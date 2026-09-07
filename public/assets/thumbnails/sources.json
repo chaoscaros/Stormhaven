@@ -37,9 +37,9 @@
   },
   {
     "id": "foundation_wood",
-    "source": "public/assets/models/buildings/wood-foundation.glb",
-    "sourceSha256": "8e78403d07cfb8763d021449e8d86753165bacef5bb4dd47143ca61a7abcf1ff",
-    "bytes": 5830
+    "source": "art/blender/buildings/foundation_wood.blend",
+    "sourceSha256": "50a678084ed7a8b96f23333a06ceb0f40d7eda59f953ffeddb0a63dd1860bf3e",
+    "bytes": 6684
   },
   {
     "id": "wall_wood",

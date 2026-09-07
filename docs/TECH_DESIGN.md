@@ -2,13 +2,16 @@
 
 ## 技术基线
 
-离线美术新增准备态 Blender authoring 管线，不改变以下运行时基线。
+离线 Blender authoring 管线已通过木制地基真实 Pilot，不改变以下运行时基线。
 `art/blender/manifest.json` 只属于开发工具，映射现有 Asset/Thumbnail ID 与源文件、
 尺寸预算；不被 Game/Domain/Save 导入。`scripts/blender` 的初始化、校验、官方
-glTF 导出和隔离缩略图渲染只在真实 Blender 4.5.x 环境由用户运行；当前本机无
-Blender，API/导出/渲染未实际验证，五份 P0 源尚不存在。报告包含源与产物 hash；
-只输出忽略的审核目录，人工验收后再整组推广模型/缩略图/metadata。正常 pnpm
-与 CI 无 Blender 依赖。详细架构/限制见 `docs/ART_PIPELINE.md`。
+glTF 导出和隔离缩略图渲染只在授权的 Blender 4.5.x 环境运行；4.5.13 LTS 已实际
+完成 Foundation source → GLB/WebP。其它四份 P0 源尚不存在。报告包含源与产物 hash；
+工具只输出忽略的审核目录，本次通过暂存导入检查后成对推广地基模型/缩略图/metadata，
+用户 GUI/游戏美术验收仍开放。Foundation 为 2 mesh、1 material、1K packed albedo、
+1836 tris，Bottom-center/identity；旧中心点代理和 Save v1 不变。缩略图隔离场景的
+contact-shadow catcher/中性 alpha 合成不进入 EXPORT。正常 pnpm 与 CI 无 Blender
+依赖。详细证据/边界见 `docs/ART_PIPELINE.md`、`docs/BLENDER_FOUNDATION_PILOT.md`。
 
 - TypeScript，开启严格模式
 - Vite，负责本地开发与生产构建
@@ -138,7 +141,7 @@ ItemDefinition 的 `icon` 只允许承载可替换的稳定游戏 Icon ID，例�
 - Inventory 格子/Tooltip/详情用 Item resolver；Crafting 产物与每个 input、Building 结构与每个 cost、Campfire 主体与 fuel 都使用对应 resolver。按钮和 Domain 事务未修改。
 - Hotbar 大图、左上数字键、右下物品数量，Build 无数量。`selection.changed` 才触发 `HotbarSelectionNotice`，1,250ms 后隐藏并 CSS 淡出；快切重设 timer，菜单/暂停/销毁清理。菜单 hover/focus 名称通过 CSS 显示，不新增 Hotbar 保存状态。
 - `scripts/generate-thumbnails.py`：Python 3 + NumPy + Pillow 的离线软件 rasterizer；复用九份 GLB 的 POSITION/NORMAL/COLOR/PBR，3 倍采样、正交 3/4 视角、统一光照、78% 长边、透明轻阴影。另三物品只生成缩略图几何，不写世界 GLB。脚本不启动 Babylon/浏览器，禁止自动挂入 install/dev/build，checkout 自带产物，无新 JS 依赖。
-- 12 张 256² WebP 共 74,492 bytes，每张 <50 KB。`public/assets/thumbnails/sources.json` 记录来源/hash/大小。世界 GLB、碰撞/Snap、配方、Save v1 未改，无迁移。未来新增对象先登记 Registry/美术，未知对象始终安全 fallback。
+- 12 张 256² WebP 共 75,346 bytes，每张 <50 KB。`public/assets/thumbnails/sources.json` 记录来源/hash/大小；地基来自 Blender 同源渲染，其它保留原产物。碰撞/Snap、配方、Save v1 未改，无迁移。未来新增对象先登记 Registry/美术，未知对象始终安全 fallback。
 
 本轮实际类型检查、43 文件 / 312 测试、diff check 通过；新增 14 例覆盖映射、文件规格/预算、img 错误/迟到事件、定时器、实际 UI renderer 在 DOM 契约替身中的 hover/材料/产物/拖拽/键盘接线与 Save v1 往返。替身不模拟浏览器排版、解码、真实 DataTransfer 或 Pointer Lock；build 和最终浏览器视觉/输入仍由用户验收。
 
@@ -387,7 +390,7 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 - 固定 Cabin 模型按当前 Scenario 尺寸 authored，未改纯 Shelter AABB/地板高度/原门洞碰撞；若未来改 Scenario 尺寸必须同步重作者模型，不得自动从复杂 Mesh 推导新的 Gameplay Bounds。
 - `createSnowMaterial` 等待三张 1K PNG 的实际完成/失败；PBR albedo 为 sRGB、normal/MR 为 linear，G roughness / B metalness=0，4m repeat、4× anisotropy。任一失败释放贴图并恢复基础雪色。无液体 Shader、KTX2、Draco 或 Shadow Generator 扩展。
 - `public/assets` 通过 Vite BASE_URL 本地 URL 加载，生产 build 复制进 dist；不是 Base64 TypeScript。按 URL 正常使用 HTTP Cache，静态名称版本更新的缓存失效由部署策略负责。
-- GLB 按材质合并（1–5 个材质/模型），无逐物体 Frame Update、在线下载器、CMS、森林/LOD/Streaming。新增美术总计 3,803,904 bytes；这不包含现有 JS/WASM，完整冷首载和 Chrome 1080p FPS 待用户实测。
+- GLB 按材质/逻辑结构合并（1–5 个材质/模型；Blender 地基为 2 Mesh/1 材质），无逐物体 Frame Update、在线下载器、CMS、森林/LOD/Streaming。模型/地形美术总计 4,601,072 bytes；不包含 JS/WASM/UI缩略图，完整冷首载和 Chrome 1080p FPS 待用户实测。
 
 - 避免为大量对象分别执行每帧更新。
 - 森林重复模型优先使用 Thin Instances。

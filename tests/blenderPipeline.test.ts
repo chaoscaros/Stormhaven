@@ -4,7 +4,7 @@ import { ASSET_DEFINITIONS } from "../src/assets/AssetRegistry";
 import { getGameplayThumbnailForBuild, getGameplayThumbnailForItem } from "../src/ui/thumbnails/thumbnailRegistry";
 import { readSource } from "./helpers/assetFiles.mjs";
 
-describe("Prepared Blender pipeline integration (not Blender execution)", () => {
+describe("Blender pipeline integration (not visual acceptance)", () => {
   it("maps P0 replacements to existing URLs without registering the unbuilt axe", () => {
     expect(manifest.assets).toHaveLength(5);
     for (const asset of manifest.assets) {
@@ -29,7 +29,7 @@ describe("Prepared Blender pipeline integration (not Blender execution)", () => 
     for (const path of ["src/save/schema/SaveGameV1.ts", "data/items/items.json", "data/building/buildings.json", "src/assets/AssetRegistry.ts"]) {
       expect(readSource(path)).not.toMatch(/\.blend|art\/blender/);
     }
-    expect(manifest.validatedVersion).toBeNull();
-    expect(manifest.status).toBe("prepared-no-blender");
+    expect(manifest.validatedVersion).toBe("4.5.13");
+    expect(manifest.status).toBe("foundation-pilot-awaiting-visual-acceptance");
   });
 });

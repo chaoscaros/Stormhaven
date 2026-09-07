@@ -36,7 +36,7 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 包管理和命令
 
-新增 **Blender Art Pipeline v0.1 无 Blender 分支**：管线准备完毕，五份 P0 源和重做产物仍未制作，现有 GLB/WebP 不变。美术任务另读 `docs/ART_PIPELINE.md`；不要把准备态清单解释为模型完成。目标 API 4.5.x 但没有实际 Blender 验证版本。Blender/Pillow 只属于用户操作的离线 authoring，不进入 pnpm/CI。此分支到此停止，等待真实 Blender 环境与用户授权后再制作/验收，不扩展玩法。
+最新 **Blender Foundation Pilot v0.1**：Blender 4.5.13 LTS 已真实制作地基源、官方导出 GLB、渲染同源 WebP 并替换现有地基文件；其余四个 P0 源未制作。美术任务另读 `docs/ART_PIPELINE.md`、`docs/BLENDER_FOUNDATION_PILOT.md`。45 文件/319 测试、15 Python 测试通过不等价于美术验收；build、GUI、浏览器待用户操作。Blender/Pillow 只用于离线 authoring，不进入 pnpm/CI。Pilot 到此停止，只有用户视觉验收通过并明确授权下一 Issue 后才可制作木墙等其它资产，不扩展玩法。
 
 - 唯一包管理器：pnpm
 - 不提交 npm 的 `package-lock.json`

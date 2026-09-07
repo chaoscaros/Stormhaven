@@ -1,20 +1,19 @@
 # Blender Art Pipeline + Core Asset Remodeling v0.1
 
-## Status — prepared, not remodeled (2026-09-07)
+## Status — Foundation Pilot delivered, visual acceptance open (2026-09-07)
 
 Blender is the **authoring standard for new core assets**, not a game dependency.
-This machine has no Blender: PATH/common macOS app checks found none,
-`blender --version` returned command not found, and the user confirmed absence.
-No Blender was installed, launched or executed. **No `.blend`, remodeled GLB or
-Blender-rendered thumbnail has been delivered.** Existing 12 GLBs, 12 WebPs and
-terrain textures remain byte-for-byte unchanged. The no-Blender branch of this
-Issue is delivered; P0 art production and visual acceptance remain open.
+The earlier no-Blender preparation was followed by a separately authorized install
+and **real Blender Foundation Pilot**. Foundation now has a saved editable `.blend`,
+official GLB export and same-source Cycles WebP. Other four P0 sources are still
+pending; other 11 runtime GLBs/WebPs and terrain are unchanged. Full evidence,
+source/texture details, metrics and user acceptance: [Pilot report](BLENDER_FOUNDATION_PILOT.md).
 
 Target API: **Blender 4.5.x**, a pinned compatibility target, not a claim about
-the newest release. `validatedVersion: null` in `art/blender/manifest.json` is
-intentional. The scripts reject other minor versions until deliberately ported
-and tested. Record the actual `blender --version` and build/hash in handoff when
-first executing; Python syntax/unit tests cannot certify `bpy` behavior.
+the newest release. Actual validated version is **4.5.13 LTS**, build `daeeeca98fb0`,
+bpy `(4, 5, 13)` / Python 3.11.15. The scripts reject other minor versions until
+deliberately ported and tested. Foundation is technically delivered, not user-art
+approved; its symmetry cannot certify the future cabin's doorway orientation.
 
 ## Ownership and files
 
@@ -22,7 +21,7 @@ first executing; Python syntax/unit tests cannot certify `bpy` behavior.
 art/blender/manifest.json           P0 source/URL/size/budget contracts (not runtime imports)
 art/blender/thumbnail-preset.json   fixed rig + explicit per-asset overrides
 art/blender/items/                 pending stone_axe.blend
-art/blender/buildings/             pending foundation_wood/wall_wood/campfire_basic.blend
+art/blender/buildings/             real foundation_wood.blend + provenance; wall/campfire pending
 art/blender/environment/           pending environment_cabin.blend
 scripts/blender/common/            scene template, PBR checks, mesh validation, pure contracts
 scripts/blender/validate.py        read-only Blender source validation
@@ -34,7 +33,7 @@ public/assets/models/             existing checked-in runtime GLBs
 public/assets/thumbnails/         existing checked-in WebPs and sources.json
 ```
 
-Formal future chain: **saved `.blend` → official GLB export → runtime visual**;
+Executed for Foundation: **saved `.blend` → official GLB export → runtime visual**;
 the **same saved `.blend` → fixed thumbnail rig → PNG → WebP → UI Registry**.
 GUI modeling is a first-class workflow. Template creation only sets an empty
 scene/collections; it does not generate or approximate finished P0 art.
@@ -118,8 +117,10 @@ or visual result exports correctly. Inspect imported materials explicitly.
 rim area lights, Cycles CPU 64 samples, AgX/neutral look/exposure 0/gamma 1. Bounds
 are projected for framing; default coverage is 78%. Light power/size scale with
 asset dimensions. No text, frame, numbers, UI colors or gameplay flame baked in.
-No shadow catcher in this first prepared rig. PBR remains the source's actual
-material. The optional preset `overrides` maps ID to `rotationDegrees: [x,y,z]`
+Foundation opts into `contactShadow: true`: isolated shadow-catcher geometry,
+separate denoised pass and light neutral-alpha composition after real Pilot review.
+Other assets default to the unchanged no-catcher rig. PBR remains the source's
+actual material. Optional preset `overrides` also maps ID to `rotationDegrees: [x,y,z]`
 and `coverage` (0.5..0.85); use it for deliberate reproducible orientation, never
 drag the camera differently for each run. Source transforms are not saved by rendering.
 
@@ -132,8 +133,9 @@ stale/mixed artifacts, not maliciously forged reports or artistic quality.
 ## Commands — user operated, from repository root
 
 No Blender is needed for `pnpm install/dev/test/build` or normal CI. Checkout already
-contains runtime art. **Do not run the following Blender commands on this machine
-until the user has installed Blender themselves and authorized execution.**
+contains runtime art. **Execution requires user authorization.** Foundation Pilot
+authorized background Blender and checks; GUI, browser and game build remain
+user-operated. Foundation source exists: do not reinitialize or overwrite it.
 
 In an installed Blender 4.5 environment, check:
 
@@ -145,13 +147,16 @@ On macOS if the app exists but PATH has no `blender`, substitute
 `/Applications/Blender.app/Contents/MacOS/Blender` for the executable only. Do not
 hard-code any person's home/project path into scripts.
 
-First-time template (refuses to overwrite an existing source):
+First-time template only (already executed for Foundation; now correctly refuses):
 
 ```bash
 blender --background --factory-startup --disable-autoexec --python-exit-code 1 --python scripts/blender/common/scene_setup.py -- --asset foundation_wood
 ```
 
 Then **open the `.blend` yourself in Blender GUI, model/UV/material/edit and save**.
+Foundation Pilot used actual bpy modeling/UV/bevels and a Cycles bake through the
+bounded `scripts/blender/author_foundation_pilot.py` recipe, not GUI clicking.
+That recipe only accepts an empty Foundation template; future edits use the source.
 Exporting an empty template is supposed to fail. The pipeline does not substitute
 for an artist. `--asset all` initializes all missing sources only if none exist;
 when some exist use individual IDs to avoid batch overwrite.
@@ -166,7 +171,7 @@ python3 scripts/blender/render/convert_thumbnail.py --asset foundation_wood
 python3 scripts/blender/check_artifacts.py --asset foundation_wood
 ```
 
-Repeat with `wall_wood`, `campfire_basic`, `environment_cabin`, `stone_axe`; use
+Only in separately authorized later Issues, repeat with `wall_wood`, `campfire_basic`, `environment_cabin`, `stone_axe`; use
 `--asset all` only after **every** real source exists and is modeled. Tools stop
 on the first error and can leave earlier successful staged outputs; they do not
 claim batch atomicity. Old staged artifacts are not acceptance evidence—check
@@ -186,6 +191,11 @@ support. If missing, ask the user to prepare that optional authoring environment
 never install automatically. These tools are not pnpm/CI prerequisites.
 
 ## Promotion and rollback — intentionally review-gated
+
+Foundation Pilot's explicit Issue authorized technical promotion after staged
+checks, with user GUI/game acceptance **after delivery**. That exception does not
+approve the artwork or authorize subsequent P0 production; see its report. The
+general later-asset review workflow below remains the default.
 
 1. Save/commit actual `.blend` sources and packed/relative images after GUI review.
    Record actual Blender version. Ignore `.blend1/.blend2`, autosave/cache/downloads,
@@ -223,19 +233,19 @@ undo promoted art. Normal builds invoke neither tool.
 
 ## Evidence and remaining work
 
-Actual in this branch: `pnpm exec tsc -b --pretty false` passed; `pnpm test` passed
-44 files / 314 tests; Python contract suite passed 12 tests; `git diff --check`
-passed. Existing world art and UI images untouched. Tests cover prepared mappings,
-runtime dependency isolation, pure bounds/budget/path policy and staged GLB
-container restrictions—not actual Blender source opening, nodes, export, Cycles
-rendering or full glTF conformance. First installed-environment execution may
-require API/rig adjustments. No Blender GUI/export/render, production build,
-browser or FPS test was performed. P0 remodeling is explicitly deferred.
+Foundation: real initialization, bpy authoring + bake, validation, official export,
+Cycles rendering, Pillow WebP conversion and staged pair checks passed. Actual
+`pnpm exec tsc -b --pretty false`, `pnpm test` (45 files / 319 tests), Python tests
+(15) and `git diff --check` passed. Staged GLB and promoted GLB both went through
+Babylon/Save regression. Foundation-only contact-shadow catcher/pass compositing
+fix followed real render inspection; it cannot enter EXPORT or change the source.
+Source is 1,267,369 bytes; GLB 862,424; WebP 6,684; 1,836 triangles / 2 meshes / 1
+material. No GUI, production build, browser, pixel shader/FPS or actual IndexedDB
+acceptance was performed. NullEngine imports do not decode/shade texture pixels.
 
-Next step: use an authorized Blender 4.5 environment, complete and validate **one
-foundation** through the full pipeline before proceeding to the remaining four.
-After those assets are actually reviewed, plan the next issue; do not expand into
-map/vegetation/NPC/gameplay now.
+Next step: user reviews Foundation in Blender GUI and game. Only after approval
+recommend **Blender Wall Remodeling v0.1** as a new Issue. Do not make the other
+four P0 or expand into map/vegetation/NPC/gameplay in the Pilot.
 
 ## API references
 
@@ -243,4 +253,4 @@ map/vegetation/NPC/gameplay now.
 - [Official glTF PBR material guidance](https://docs.blender.org/manual/en/4.0/addons/import_export/scene_gltf2.html)
 
 These references inform the prepared options/material restrictions. They are not
-a substitute for the missing local Blender 4.5 execution evidence.
+a substitute for actual local execution evidence; see the Pilot report above.

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "status": "prepared-no-blender",
+  "status": "foundation-pilot-awaiting-visual-acceptance",
   "targetVersion": "4.5",
-  "validatedVersion": null,
+  "validatedVersion": "4.5.13",
   "assets": [
     {"id":"foundation_wood","source":"art/blender/buildings/foundation_wood.blend","runtimeId":"building_foundation_wood","glb":"public/assets/models/buildings/wood-foundation.glb","thumbnail":"foundation_wood","dimensions":[2,2,0.2],"exactBounds":true,"triangles":[500,4000],"materials":3,"textureSize":1024,"glbBytes":1000000},
     {"id":"wall_wood","source":"art/blender/buildings/wall_wood.blend","runtimeId":"building_wall_wood","glb":"public/assets/models/buildings/wood-wall.glb","thumbnail":"wall_wood","dimensions":[2,0.18,2.4],"exactBounds":true,"triangles":[500,4000],"materials":3,"textureSize":1024,"glbBytes":1000000},

@@ -53,6 +53,18 @@ def main():
         camera_data.ortho_scale = max(max(p[i] for p in projected) - min(p[i] for p in projected) for i in (0, 1)) / coverage
         camera_data.clip_end = max(100, extent * 10)
         scene.camera = camera
+        # Actual Pilot render exposed a floating silhouette. A Cycles catcher
+        # supplies contact shadow on alpha, without adding geometry to EXPORT.
+        if override.get('contactShadow', False):
+            floor = bpy.data.meshes.new('thumbnail_shadow_mesh')
+            half = extent * 1.25
+            z = min(p.z for p in points) - .001
+            floor.from_pydata([(center.x+x, center.y+y, z)
+                              for x, y in ((-half, -half), (half, -half),
+                                           (half, half), (-half, half))], [], [(0, 1, 2, 3)])
+            catcher = bpy.data.objects.new('thumbnail_shadow_catcher', floor)
+            scene.collection.objects.link(catcher)
+            catcher.is_shadow_catcher = True
         for light in preset['lights']:
             data = bpy.data.lights.new(light['name'], 'AREA')
             data.energy = light['energy'] * extent * extent
@@ -69,6 +81,40 @@ def main():
         scene.cycles.device = 'CPU'
         scene.cycles.samples = preset['samples']
         scene.cycles.seed = 0
+        # Denoise sparse, low-alpha catcher samples instead of retaining colored
+        # speckles around the silhouette at this small output size.
+        scene.cycles.use_denoising = override.get('contactShadow', False)
+        if override.get('contactShadow', False):
+            # Separate the catcher pass: approximate combined RGBA left colored
+            # low-alpha speckles in the actual 4.5 Pilot. Compose a restrained
+            # neutral shadow in Blender, never in a bitmap post-processing tool.
+            scene.view_layers[0].cycles.use_pass_shadow_catcher = True
+            scene.use_nodes = True
+            nodes, links = scene.node_tree.nodes, scene.node_tree.links
+            nodes.clear()
+            layers = nodes.new('CompositorNodeRLayers')
+            layers.scene = scene
+            denoise = nodes.new('CompositorNodeDenoise')
+            links.new(layers.outputs['Shadow Catcher'], denoise.inputs['Image'])
+            luminance = nodes.new('CompositorNodeRGBToBW')
+            links.new(denoise.outputs['Image'], luminance.inputs['Image'])
+            alpha = nodes.new('CompositorNodeMath')
+            alpha.operation = 'SUBTRACT'
+            alpha.use_clamp = True
+            alpha.inputs[0].default_value = 1
+            links.new(luminance.outputs[0], alpha.inputs[1])
+            strength = nodes.new('CompositorNodeMath')
+            strength.operation = 'MULTIPLY'
+            strength.inputs[1].default_value = .35
+            links.new(alpha.outputs[0], strength.inputs[0])
+            shadow = nodes.new('CompositorNodeSetAlpha')
+            shadow.inputs['Image'].default_value = (0, 0, 0, 1)
+            links.new(strength.outputs[0], shadow.inputs['Alpha'])
+            over = nodes.new('CompositorNodeAlphaOver')
+            links.new(shadow.outputs[0], over.inputs[1])
+            links.new(layers.outputs['Image'], over.inputs[2])
+            output = nodes.new('CompositorNodeComposite')
+            links.new(over.outputs[0], output.inputs['Image'])
         scene.render.film_transparent = True
         scene.render.resolution_x = scene.render.resolution_y = preset['resolution']
         scene.render.resolution_percentage = 100
@@ -82,7 +128,8 @@ def main():
         target = stage(entry, '.png')
         scene.render.filepath = str(target)
         bpy.ops.render.render(write_still=True)
-        report.update({'outputSha256': digest(target), 'presetSha256': digest(preset_path)})
+        report.update({'outputSha256': digest(target), 'presetSha256': digest(preset_path),
+                       'contactShadow': override.get('contactShadow', False)})
         write_json(stage(entry, '.png.json'), report)
         print(f'Staged {target.name}; convert with render/convert_thumbnail.py')
 
