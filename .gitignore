@@ -10,3 +10,11 @@ node_modules/.tmp/
 output/
 package-lock.json
 npm-shrinkwrap.json
+*.blend[0-9]*
+*.blend@
+__pycache__/
+*.pyc
+art/blender/cache/
+art/blender/tmp/
+art/blender/downloads/
+art/blender/**/*.fbx

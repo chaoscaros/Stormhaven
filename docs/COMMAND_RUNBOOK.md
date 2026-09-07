@@ -2,6 +2,25 @@
 
 > Primary audience: AI agents and maintainers. This is the canonical reference for setup, startup, validation, build, and preview commands.
 
+## Blender Pipeline — prepared, not required to play
+
+本机无 Blender（用户确认）。本轮只准备管线，不安装 Blender，不启动 GUI，
+不替换现有模型。目标 API 4.5.x，实际验证版本为空；五个 P0 尚未制作。
+完整初始化、人工建模、验证、导出、渲染、WebP 转换、推广命令见
+[ART_PIPELINE.md](ART_PIPELINE.md#commands--user-operated-from-repository-root)。
+
+用户问“没装 Blender 能运行项目吗”：
+
+> 可以。游戏运行和 pnpm build 使用仓库中已提交的 GLB/WebP，不需要 Blender。
+> 只有重做 3D 源模型和重新渲染缩略图才需要 Blender。当前不会自动安装，
+> 也不会伪造模型完成；可在你之后准备好的 Blender 环境继续制作。
+
+允许的独立无 Blender 检查：`python3 -m unittest discover -s tests/blender -v`
+（Python 3.9+，标准库，不是普通 pnpm/CI 前置依赖）。本轮实际通过 12 例。
+`pnpm exec tsc -b --pretty false`、`pnpm test`（44 文件/314 例）、
+`git diff --check` 也通过；build/dev/preview/浏览器仍由用户操作。
+旧缩略图脚本是 legacy fallback，正式 Blender 来源登记后会拒绝全量覆盖。
+
 ## Game Item Icon Art Pass v0.1 — user acceptance
 
 This issue permits AI to run `pnpm exec tsc -b --pretty false`, `pnpm test`, `git diff --check` and Git delivery, but **not install/dev/build/preview or browser operations**. No new JS dependency was added. There is no `pnpm gate` or extra gate document/version in this checkout. Actual result: 43 files / 312 tests passed; browser acceptance is separate.

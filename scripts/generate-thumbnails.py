@@ -165,6 +165,10 @@ def render(parts):
 
 
 def main():
+    # Legacy rasterizer must never silently replace promoted Blender artwork.
+    metadata = OUT / 'sources.json'
+    if metadata.exists() and any(row['source'].endswith('.blend') for row in json.loads(metadata.read_text())):
+        raise RuntimeError('Blender artwork is registered; use scripts/blender/render, not the legacy all-assets generator')
     OUT.mkdir(parents=True,exist_ok=True)
     manifest = []
     sheet = Image.new('RGB',(1024,768),(22,29,30))

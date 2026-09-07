@@ -2,6 +2,14 @@
 
 ## 技术基线
 
+离线美术新增准备态 Blender authoring 管线，不改变以下运行时基线。
+`art/blender/manifest.json` 只属于开发工具，映射现有 Asset/Thumbnail ID 与源文件、
+尺寸预算；不被 Game/Domain/Save 导入。`scripts/blender` 的初始化、校验、官方
+glTF 导出和隔离缩略图渲染只在真实 Blender 4.5.x 环境由用户运行；当前本机无
+Blender，API/导出/渲染未实际验证，五份 P0 源尚不存在。报告包含源与产物 hash；
+只输出忽略的审核目录，人工验收后再整组推广模型/缩略图/metadata。正常 pnpm
+与 CI 无 Blender 依赖。详细架构/限制见 `docs/ART_PIPELINE.md`。
+
 - TypeScript，开启严格模式
 - Vite，负责本地开发与生产构建
 - Babylon.js，负责渲染和浏览器输入
@@ -407,7 +415,7 @@ Restore 先完整解析并在独立 Inventory/Building Registry 上验证容量/
 
 不对 Babylon 像素渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan、Atomic Transaction 和 Save Round Trip 已由纯测试覆盖；Wetness 仍未实现。
 
-当前共 43 个测试文件、312 个测试。原 Asset Foundation 的 41 文件/298 测试覆盖 Registry、预算、真实 GLB 导入、共享缓存/释放、Pivot/尺寸、门洞朝向、隐藏代理和 Debug 标杆；Save 重建覆盖 Primitive/GLB/404 和重复恢复。新增 14 例缩略图与 UI 契约回归，完整存取、事务、天气、燃料/热量、回滚、IndexedDB 测试保留。测试不验收像素、浏览器存储兼容或 FPS。本轮实际通过 tsc、test、diff check；build 和浏览器验证仍待用户。
+当前共 44 个 Vitest 文件、314 个测试，另有独立 Python 管线规则测试 12 个。原 Asset Foundation 的 41 文件/298 测试覆盖 Registry、预算、真实 GLB 导入、共享缓存/释放、Pivot/尺寸、门洞朝向、隐藏代理和 Debug 标杆；Save 重建覆盖 Primitive/GLB/404 和重复恢复。缩略图与 UI 契约回归 14 例，Blender 准备态映射/依赖隔离新增 2 例；完整存取、事务、天气、燃料/热量、回滚、IndexedDB 测试保留。测试不验收像素、Blender API 执行、浏览器存储兼容或 FPS。本轮实际通过 tsc、test、Python 规则和 diff check；Blender/build/浏览器验证未执行。
 
 ## Weather Presentation 已知边界
 

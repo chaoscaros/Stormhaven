@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "status": "prepared-no-blender",
+  "targetVersion": "4.5",
+  "validatedVersion": null,
+  "assets": [
+    {"id":"foundation_wood","source":"art/blender/buildings/foundation_wood.blend","runtimeId":"building_foundation_wood","glb":"public/assets/models/buildings/wood-foundation.glb","thumbnail":"foundation_wood","dimensions":[2,2,0.2],"exactBounds":true,"triangles":[500,4000],"materials":3,"textureSize":1024,"glbBytes":1000000},
+    {"id":"wall_wood","source":"art/blender/buildings/wall_wood.blend","runtimeId":"building_wall_wood","glb":"public/assets/models/buildings/wood-wall.glb","thumbnail":"wall_wood","dimensions":[2,0.18,2.4],"exactBounds":true,"triangles":[500,4000],"materials":3,"textureSize":1024,"glbBytes":1000000},
+    {"id":"campfire_basic","source":"art/blender/buildings/campfire_basic.blend","runtimeId":"building_campfire","glb":"public/assets/models/buildings/campfire.glb","thumbnail":"campfire_basic","dimensions":[1.1,1.1,0.5],"exactBounds":false,"triangles":[1000,5000],"materials":3,"textureSize":1024,"glbBytes":1000000},
+    {"id":"environment_cabin","source":"art/blender/environment/environment_cabin.blend","runtimeId":"environment_cabin","glb":"public/assets/models/environment/cabin.glb","thumbnail":null,"dimensions":[10.45,10.45,4.28],"exactBounds":true,"triangles":[5000,20000],"materials":3,"textureSize":2048,"glbBytes":3000000},
+    {"id":"stone_axe","source":"art/blender/items/stone_axe.blend","runtimeId":null,"glb":"public/assets/models/items/stone-axe.glb","thumbnail":"stone_axe","dimensions":[0.7,0.3,1.1],"exactBounds":false,"triangles":[300,3000],"materials":3,"textureSize":1024,"glbBytes":1000000}
+  ]
+}

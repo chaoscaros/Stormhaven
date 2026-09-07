@@ -36,6 +36,8 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 ## 包管理和命令
 
+新增 **Blender Art Pipeline v0.1 无 Blender 分支**：管线准备完毕，五份 P0 源和重做产物仍未制作，现有 GLB/WebP 不变。美术任务另读 `docs/ART_PIPELINE.md`；不要把准备态清单解释为模型完成。目标 API 4.5.x 但没有实际 Blender 验证版本。Blender/Pillow 只属于用户操作的离线 authoring，不进入 pnpm/CI。此分支到此停止，等待真实 Blender 环境与用户授权后再制作/验收，不扩展玩法。
+
 - 唯一包管理器：pnpm
 - 不提交 npm 的 `package-lock.json`
 - 必须提交由 `pnpm install` 生成的 `pnpm-lock.yaml`

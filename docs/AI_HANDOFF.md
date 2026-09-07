@@ -4,7 +4,9 @@
 
 ## 当前状态
 
-- 当前里程碑：Game Item Icon Art Pass v0.1（实现与自动检查完成；production build、浏览器最终视觉/输入验收待用户，不能仅凭单测宣布美术验收成功）
+- 最新 Issue：Blender Art Pipeline + Core Asset Remodeling v0.1 **无 Blender 分支已准备**。本机未安装 Blender（用户确认），没有创建 `.blend`、重做 P0 模型或替换现有 GLB/WebP；五个 P0 均待真实 Blender 环境制作。管线/命令/审核与推广流程见 `docs/ART_PIPELINE.md`。
+- 新增离线工具：`art/blender` 清单/预算/模板规范，`scripts/blender` 空源模板、验证、官方 GLB 导出、统一透明缩略图与产物一致性检查；输出只进入忽略的 `output/blender`。目标 API 4.5.x，实际验证版本为空，不进入 pnpm/CI。当前实际 tsc 通过、44 文件/314 个 Vitest 通过、12 个 Python 规则测试通过；未执行 Blender/build/浏览器。
+- 当前游戏表现基线：Game Item Icon Art Pass v0.1（实现与自动检查完成；production build、浏览器最终视觉/输入验收待用户，不能仅凭单测宣布美术验收成功）
 - 当前版本：`0.1.0`
 - 最新 UI 规则：9 类物品和 3 类建筑正常主视觉为 `src/ui/thumbnails` 解析的透明彩色 WebP，Hotbar/Inventory/Crafting 产物与材料/Building 成本/Campfire 燃料复用同一艺术资源。Hotbar 不常驻长名称，切换格位显示 1.25 秒后淡出；菜单 hover/focus 可查看名称，原有拖拽/交换/清空、Pause、Esc 不变。
 - 缩略图状态：12 张 256² WebP 共 74,492 bytes；九张取材现有 GLB（篝火追加缩略图火焰），布料/废金属/石斧使用 thumbnail-only 几何，不增加世界对象。图片错误回退本地 SVG，未知 ID 用 info，最后兜底 `?`。Domain/配方/Save v1 完全未改，来源与替换规则见 `docs/ASSET_CREDITS.md`。
@@ -432,6 +434,16 @@ Game Item Icon Art Pass v0.1 开发到此停止；尚未完成的是用户 produ
 用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Game Item Icon Art Pass、Asset Visual Pass 与 Save Foundation 清单验收。现有 12 个对象均有缩略图；未来新增物品/建筑需登记专用主视觉，布料/废金属/石斧的世界模型仍未实现。完成浏览器/FPS/冷加载记录后再由用户授权下一 Issue，不自动继续世界美术或玩法。
 
 ## 变更记录
+
+### 2026-09-07：Blender 美术管线准备（本机无 Blender）
+
+- 用户确认本机未安装 Blender；PATH/常见应用路径核查与 `blender --version` 失败一致。未安装或执行 Blender，没有伪造 `.blend`，没有宣称五个 P0 已重做。
+- 新增 `art/blender` P0 映射/尺寸/预算与统一缩略图预设；`scripts/blender` 提供空模板、评估后 Mesh 检查、PBR/纹理检查、官方 GLB 导出、隔离 Cycles 缩略图、WebP 转换和产物一致性检查。只写 `output/blender`，不自动推广到 public，不接 pnpm/CI。
+- 目标 API 4.5.x，实际运行验证版本仍为空；初始化器只建立空集合，必须人工建模后才能通过验证。原 Python 缩略图工具标为 legacy，并拒绝覆盖已经登记 `.blend` 来源的正式新图。
+- 新文档 `docs/ART_PIPELINE.md` 包含 P0 制作 Brief、GUI 工作流、完整用户命令、推广/回滚、已知未验证边界；同步命令手册、规划 Brief、技术设计、来源与入口。
+- 实际验证：`pnpm exec tsc -b --pretty false` 通过；`pnpm test` 44 文件/314 测试通过；`python3 -m unittest discover -s tests/blender -v` 12 测试通过；`git diff --check` 通过。新增测试验证准备态映射/依赖隔离和纯规则/容器检查，不等价于 Blender 执行。
+- 未验证：Blender Python API 实际调用、真实导出/材质/坐标校准、缩略图渲染、美术质量、production build、浏览器输入/渲染/FPS。本轮原有 public 资产与 Domain/Save/proxy 完全未改。
+- 未完成：foundation_wood、wall_wood、campfire_basic、environment_cabin、stone_axe 五份正式源和重做产物。下一步在用户授权的 Blender 环境先完成一个地基全链路，之后再按 P0 顺序制作；无 Blender 分支到此停止，不扩大玩法或 P1。
 
 ### 2026-09-07 — Game Item Icon Art Pass v0.1
 

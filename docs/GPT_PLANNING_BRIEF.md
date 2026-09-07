@@ -2,6 +2,8 @@
 
 > 使用方式：可以将本文档完整提供给 GPT，让它基于当前真实状态制定后续开发计划。当前需求是**规划，不是直接生成或修改代码**。
 
+> 最新准备态（2026-09-07）：**Blender Art Pipeline + Core Asset Remodeling v0.1 的无 Blender 分支**。本机未安装 Blender；已准备独立源规范/清单、空模板、验证、GLB 导出、固定缩略图与产物检查工具，详见 `docs/ART_PIPELINE.md`。**没有真实 `.blend` 或 P0 重做产物，游戏仍显示原 GLB/WebP。** 目标 API 4.5.x 未实际验证；无 Blender 的规则检查 12 例、tsc 和 44 文件/314 例 Vitest 通过，不能宣称 Blender 管线运行或美术验收成功。下一步在真实授权环境先手工建模地基、完整验证一条导出/渲染链，再做木墙、篝火、木屋、石斧。不要规划 P1/新玩法，先完成 P0 真正制作与用户视觉验收。
+
 > 当前最新基线（2026-09-07）：**Game Item Icon Art Pass v0.1** 实现和自动检查完成，43 文件 / 312 测试通过。System Icon 继续 Phosphor；9 物品/3 建筑使用同一套静态彩色透明 WebP（12×256²，共 74,492 bytes）。`src/ui/thumbnails` 统一解析 ID、图片失败回退；Hotbar 名称仅在切换时短暂显示，Inventory、Crafting 产物/材料、Building 主体/成本、Campfire/燃料均已接入。Domain、配方、世界 GLB、Save v1 均未改。**build 与用户截图/拖拽/旧档验收待完成，若快捷栏仍像软件工具栏，不算视觉目标成功。** 不要再规划为零开始图标库，也不要自动进入新玩法。
 
 > 前一里程碑（2026-09-07）：Save Foundation 后已实现 **3D Asset Foundation + First Blizzard Visual Pass v0.1**。当时 41 文件 / 298 测试通过；12 个自有 GLB、3 张 1K PBR 雪地贴图、缓存/实例/回退/真实加载阶段已接线。浏览器视觉、完整首载与 Chrome 1080p FPS、production build **待用户验收**。不要将已实现资源管线再次规划为零开始任务。

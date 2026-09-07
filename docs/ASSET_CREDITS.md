@@ -1,5 +1,22 @@
 # Asset Credits & Delivery Budget
 
+## Blender Pipeline preparation (2026-09-07)
+
+**No new artwork delivered in this issue.** This machine lacks Blender (confirmed
+by the user and CLI checks). `art/blender/manifest.json` lists five **planned** P0
+sources, not existing/proven Blender artwork. Target API 4.5.x; validated Blender
+version is null. No `.blend`, newly remodeled GLB or Blender-rendered WebP has been
+generated. All runtime files, counts and byte budgets below are unchanged.
+
+`scripts/blender` and the modeling briefs/presets are project-original tooling,
+not third-party models. Future real sources must record actual author, Blender
+version, source/texture license, modifications, source hash, triangle/material/
+byte metrics and corresponding thumbnail provenance here before promotion.
+Do not label pending sources CC0 or completed Stormhaven Blender assets.
+See `docs/ART_PIPELINE.md` for the future paired `.blend`→GLB/WebP workflow.
+Legacy Python authoring remains available but must not overwrite promoted art;
+`generate-thumbnails.py` rejects sources.json containing `.blend` sources.
+
 ## Game Item Icon Art Pass v0.1 (2026-09-07)
 
 System Icon and Gameplay Thumbnail are separate. Phosphor (MIT, bundled `@phosphor-icons/core`) remains for navigation/status/actions; old object SVGs and the project-original branch SVG are fallback-only. No CDN, downloaded artwork, brand or commercial-game extraction.

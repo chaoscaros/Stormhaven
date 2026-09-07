@@ -125,6 +125,7 @@ pnpm build
 
 ## 文档入口
 
+- [Blender 美术管线](docs/ART_PIPELINE.md)：无 Blender 准备态、P0 待制作清单、源规范与完整导出/缩略图命令；游戏启动/构建不需要 Blender
 - [游戏设计](docs/GAME_DESIGN.md)：产品定位、核心体验和阶段边界
 - [技术设计](docs/TECH_DESIGN.md)：架构、模块职责和技术约束
 - [命令手册](docs/COMMAND_RUNBOOK.md)：安装、启动、测试、构建、预览及常见故障处理
