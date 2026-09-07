@@ -61,6 +61,7 @@ export interface BuildPlacement {
 
 export type PlacementFailureReason =
   | "ok"
+  | "blocked_by_pickup"
   | "blocked"
   | "unsupported"
   | "snap_required"
@@ -85,6 +86,7 @@ export interface BuildRequirement {
 
 export type BuildFailureReason =
   | "ok"
+  | "blocked_by_pickup"
   | "unknown_definition"
   | "not_enough_resources"
   | "invalid_position"

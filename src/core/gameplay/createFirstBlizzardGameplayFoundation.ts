@@ -12,6 +12,7 @@ import { WorldPickupRegistry } from "../../world/pickups/WorldPickupRegistry";
 import buildingDefinitionsData from "../../../data/building/buildings.json";
 import { BuildCatalog } from "../../building/BuildCatalog";
 import { WorldBuildingRegistry } from "../../building/WorldBuildingRegistry";
+import { PickupBuildObstacles } from "../../building/PickupBuildObstacles";
 import fuelDefinitionsData from "../../../data/survival/fuels.json";
 import campfireConfigData from "../../../data/survival/campfire.json";
 import { FuelCatalog } from "../../survival/campfire/FuelCatalog";
@@ -50,6 +51,7 @@ export function createFirstBlizzardGameplayFoundation(heatSourceSystem: HeatSour
     campfireSystem,
     worldBuildingRegistry: new WorldBuildingRegistry(),
     pickupRegistry,
+    pickupBuildObstacles: new PickupBuildObstacles(pickupPlacements, pickupRegistry),
     interactionService: new InteractionService(
       itemCatalog,
       inventory,

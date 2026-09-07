@@ -152,6 +152,8 @@ ItemDefinition 的 `icon` 只允许承载可替换的稳定游戏 Icon ID，例�
 
 ## Building Foundation
 
+`PickupBuildObstacles` is a pure placement-only obstacle source composed from fixed scenario placements and the live `WorldPickupRegistry`. It precomputes conservative envelopes around legacy pickup centers, then filters by remaining quantity on every validation (including after save restore). `PlacementValidator` checks these after snapping and returns `blocked_by_pickup`; preview and `BuildService.place` share the validator. This does not enable camera collision, derive gameplay bounds from GLB triangles, delete pickups, or migrate existing overlapping saves. Update envelope sizes when pickup art/anchors change; dynamic spawning would require an explicit position lifecycle extension.
+
 Building 与 Crafting 是共享 Inventory 的独立链路：
 
 ```text

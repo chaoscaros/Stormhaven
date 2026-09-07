@@ -264,6 +264,7 @@ function formatFailure(reason: BuildFailureReason | string): string {
     case "snap_occupied": return "该地基边缘已经被占用";
     case "out_of_range": return "超出 5 米建造距离";
     case "blocked_by_player": return "不能放在玩家当前位置";
+    case "blocked_by_pickup": return "此处有未拾取物资，请先拾取";
     case "invalid_surface": return "需要对准可用地面";
     case "presentation_failed": return "建筑表现创建失败，材料未消耗";
     default: return "当前位置不可建造";

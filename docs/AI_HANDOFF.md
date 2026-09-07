@@ -4,11 +4,14 @@
 
 ## 当前状态
 
+- 最新修复：**未拾取物资阻止建造**已接入。`PickupBuildObstacles` 用独立保守包围盒读取实时 Pickup Registry，地基/墙/篝火预览与正式提交均检查；部分拾取仍阻挡，全部拾取后释放，读档后实时恢复。提示“此处有未拾取物资，请先拾取”，不扣材料、不删除物资、不增加玩家移动碰撞。旧存档已有重叠保持原样，不迁移 Save v1。
+- 最新视觉反馈：固定木屋仍是旧 GLB 的纯色/顶点色与几何细线木纹，地基/玩家墙为 Blender 烘焙贴图；屋内板距约 0.25m、新地基约 0.2m，不能仅调 UV 偏移统一。**本轮未改木屋美术**，已询问是否统一木屋地板/墙面风格并保留尺寸/门洞/碰撞，待用户确认。
+- 本轮验证：`pnpm test` **47 文件/331 项通过**；`git diff --check` 通过。未运行 typecheck/build/dev/preview、未启动或操作浏览器；实际放置与木纹视觉仍待用户验收。下方 Blender 验证数量为上一轮历史结果。
 - 最新 Issue：**Blender Wall Remodeling v0.1 技术交付完成，墙体用户视觉验收待完成**。用户接受 Foundation 的视觉方向后授权本轮；只替换玩家 `wall_wood`，固定木屋、地基源/GLB/WebP、篝火/石斧及运行时源码/玩法/Save v1 不变。已有两份真实 Blender 源；其它三个 P0 源仍未制作。完整证据见 `docs/BLENDER_WALL_REMODELING.md`。
 - Blender 实测：4.5.13 LTS，build `daeeeca98fb0`，bpy 4.5.13 / Python 3.11.15。墙体 2×2.4×0.18m、1620 triangles、2 meshes、1 material；底部中心/identity，8 块竖板、两侧柱、双面横梁，复用地基同一张 packed 1K 木纹。源 1,221,569 bytes、GLB 858,976 bytes、WebP 7,502 bytes。Blender/Pillow 仅离线 authoring，不进入 pnpm/CI。
 - 实际验证：最终暂存产物先通过 Blender validation/export/render、WebP/paired checks、46 文件/326 Vitest、20 Python、tsc/diff 后才正式替换；补充记录原有墙角限制后正式资源为 46 文件/327 Vitest、20 Python，tsc/diff 通过。四向各自放置及三次真实 SaveService.load 覆盖 Bounds/Proxy/Snap/库存/释放。未 install/dev/build/preview/重启、未浏览器/Blender GUI；NullEngine 不渲染纹理像素，不等于美术验收。
 - 本轮确认的旧限制：同一地基北墙放好后东/西墙会因原有 AABB 墙角重叠被判 `blocked`，不用 GLB 也能复现；四边分别可放不等于四墙同时围合。本轮禁止修改 Gameplay，已加回归记录，需另开建造规则修复 Issue。
-- 用户收尾截图确认另一旧缺陷：地基可穿过未拾取水瓶。源码核对 `WorldPickupPresentation` 的代理不参与 Camera Collision，`collectStaticBuildingBounds` 只收集碰撞障碍，`PlacementValidator` 又没有 Pickup 占位输入。已诊断并记录，未修复；建议独立资源占位规则，拾取后释放，不应简单开启物品相机碰撞或自动删除物资。
+- 用户截图中的水瓶穿地基缺陷已由本轮独立资源占位规则修复（代码/单测层面），浏览器验收待用户；旧根因为静态建筑障碍只收集 Camera Collision 代理、遗漏 Pickup。
 - 当前游戏表现基线：Game Item Icon Art Pass v0.1（实现与自动检查完成；production build、浏览器最终视觉/输入验收待用户，不能仅凭单测宣布美术验收成功）
 - 当前版本：`0.1.0`
 - 最新 UI 规则：9 类物品和 3 类建筑正常主视觉为 `src/ui/thumbnails` 解析的透明彩色 WebP，Hotbar/Inventory/Crafting 产物与材料/Building 成本/Campfire 燃料复用同一艺术资源。Hotbar 不常驻长名称，切换格位显示 1.25 秒后淡出；菜单 hover/focus 可查看名称，原有拖拽/交换/清空、Pause、Esc 不变。
@@ -451,6 +454,13 @@ Game Item Icon Art Pass v0.1 开发到此停止；尚未完成的是用户 produ
 用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Game Item Icon Art Pass、Asset Visual Pass 与 Save Foundation 清单验收。现有 12 个对象均有缩略图；未来新增物品/建筑需登记专用主视觉，布料/废金属/石斧的世界模型仍未实现。完成浏览器/FPS/冷加载记录后再由用户授权下一 Issue，不自动继续世界美术或玩法。
 
 ## 变更记录
+
+### 2026-09-07：修复物资占位时仍允许建造
+
+- 新增纯逻辑 `src/building/PickupBuildObstacles.ts`；按场景稳定 ID 和中心位置预计算保守体积，每次查询读取剩余数量。通过窄 `getBounds()` 接口注入 `PlacementValidator`；Game 与 Save 测试装配使用同一来源。新增 `blocked_by_pickup` 原因和中文提示。
+- 不修改 Pickup 的 Camera Collision、世界位置、Save v1 或库存事务；旧存档已有重叠物体不被自动清理。物资模型形状/锚点或动态生成能力变化时须同步更新包围盒契约。
+- 新增真实场景水瓶、部分消耗、移除/反复恢复、吸附后位置、高处物资/边界接触、预览到提交重校验测试。初次夹具遗漏同一区域另一堆木材导致 2 项失败；保留规则并修正夹具先拾取该木材后，全量 `pnpm test` 47 文件/331 项通过。
+- `git diff --check` 通过。typecheck/build 与浏览器由用户执行，本轮未运行。木屋纹理不一致已定位但未改资源，范围确认待用户；相邻墙角 AABB 限制也不属于本轮修复。
 
 ### 2026-09-07：Blender Wall Remodeling v0.1
 

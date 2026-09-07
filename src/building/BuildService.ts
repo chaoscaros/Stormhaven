@@ -171,6 +171,7 @@ function mapPlacementReason(reason: string): BuildFailureReason {
     || reason === "snap_occupied"
     || reason === "out_of_range"
     || reason === "blocked_by_player"
+    || reason === "blocked_by_pickup"
     || reason === "invalid_surface"
   ) return reason;
   return "invalid_position";

@@ -99,6 +99,7 @@ export class Game {
     const placementValidator = new PlacementValidator(
       this.gameplay.worldBuildingRegistry,
       collectStaticBuildingBounds(world.scene),
+      this.gameplay.pickupBuildObstacles,
     );
     const buildService = new BuildService(
       this.gameplay.buildCatalog,

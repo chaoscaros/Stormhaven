@@ -20,6 +20,7 @@ export class PlacementValidator {
   constructor(
     private readonly registry: WorldBuildingRegistry,
     private readonly staticBounds: readonly BuildingBounds[] = Object.freeze([]),
+    private readonly pickupObstacles?: { getBounds(): readonly BuildingBounds[] },
   ) {}
 
   validate(
@@ -45,6 +46,10 @@ export class PlacementValidator {
     const blocked = [...this.staticBounds, ...this.registry.getBounds()].some((existing) =>
       boundsOverlap(bounds, existing, BUILDING_CONFIG.overlapEpsilonMeters));
     if (blocked) return Object.freeze({ valid: false, reason: "blocked", bounds, placement: resolved });
+    if (this.pickupObstacles?.getBounds().some((existing) =>
+      boundsOverlap(bounds, existing, BUILDING_CONFIG.overlapEpsilonMeters))) {
+      return Object.freeze({ valid: false, reason: "blocked_by_pickup", bounds, placement: resolved });
+    }
     return Object.freeze({ valid: true, reason: "ok", bounds, placement: resolved });
   }
 

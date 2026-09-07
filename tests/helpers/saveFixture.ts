@@ -47,7 +47,7 @@ export function createSaveFixture() {
     refresh: () => undefined,
   };
   const runtime: SaveRuntime = { gameplay, simulation, hotbar, player, presentation };
-  const builds = new BuildService(gameplay.buildCatalog, gameplay.inventory, gameplay.worldBuildingRegistry, new PlacementValidator(gameplay.worldBuildingRegistry));
+  const builds = new BuildService(gameplay.buildCatalog, gameplay.inventory, gameplay.worldBuildingRegistry, new PlacementValidator(gameplay.worldBuildingRegistry, [], gameplay.pickupBuildObstacles));
   const binding = new CampfireBuildingBinding(gameplay.campfireSystem);
   const buildPresentation = {
     prepare(entity: Parameters<CampfireBuildingBinding["prepare"]>[0]) {
