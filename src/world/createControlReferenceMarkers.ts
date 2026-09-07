@@ -2,6 +2,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import type { Scene } from "@babylonjs/core/scene";
+import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 interface MarkerDefinition {
   readonly name: string;
@@ -19,7 +20,8 @@ const MARKERS: readonly MarkerDefinition[] = Object.freeze([
 ]);
 
 /** 创建无玩法含义的基础标杆，用于确认移动、转向和跳跃是否生效。 */
-export function createControlReferenceMarkers(scene: Scene): void {
+export function createControlReferenceMarkers(scene: Scene): (visible: boolean) => void {
+  const meshes: Mesh[] = [];
   const standardMaterial = createMarkerMaterial(
     scene,
     "control-marker-standard-material",
@@ -39,7 +41,10 @@ export function createControlReferenceMarkers(scene: Scene): void {
     );
     marker.position.set(definition.x, definition.height / 2, definition.z);
     marker.material = definition.accent ? accentMaterial : standardMaterial;
-    marker.checkCollisions = true;
+    marker.checkCollisions = false;
+    marker.isPickable = false;
+    marker.isVisible = false;
+    meshes.push(marker);
 
     const cap = MeshBuilder.CreateBox(
       `${definition.name}-cap`,
@@ -48,8 +53,13 @@ export function createControlReferenceMarkers(scene: Scene): void {
     );
     cap.position.set(definition.x, definition.height, definition.z);
     cap.material = definition.accent ? accentMaterial : standardMaterial;
-    cap.checkCollisions = true;
+    cap.checkCollisions = false;
+    cap.isPickable = false;
+    cap.isVisible = false;
+    meshes.push(cap);
   }
+  // Debug-only helpers never create invisible walls or change rain/build rules.
+  return visible => { for (const mesh of meshes) mesh.isVisible = visible; };
 }
 
 function createMarkerMaterial(

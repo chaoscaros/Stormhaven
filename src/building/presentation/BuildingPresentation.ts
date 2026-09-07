@@ -16,6 +16,8 @@ import {
   type PreparedBuildingGameplay,
 } from "../BuildingGameplayBinding";
 import type { PrecipitationObstacleRegistry } from "../../weather/presentation/PrecipitationObstacleRegistry";
+import type { AssetInstanceFactory } from "../../assets/AssetInstanceFactory";
+import { buildingAssetId } from "../../assets/AssetRegistry";
 
 interface BuildingVisual {
   readonly meshes: readonly Mesh[];
@@ -44,6 +46,7 @@ export class BuildingPresentation implements BuildingPresentationFactory {
     private readonly definitions: BuildCatalog,
     private readonly precipitationObstacles: PrecipitationObstacleRegistry,
     private readonly gameplayBinding: BuildingGameplayBinding = NO_BUILDING_GAMEPLAY,
+    private readonly assets?: AssetInstanceFactory,
   ) {
     this.#woodMaterial = createMaterial(scene, "player-building-wood-material", new Color3(0.24, 0.17, 0.1));
     this.#campfireStoneMaterial = createMaterial(scene, "campfire-stone-material", new Color3(0.27, 0.29, 0.28));
@@ -59,6 +62,13 @@ export class BuildingPresentation implements BuildingPresentationFactory {
     const visual = definition.tags.includes("campfire")
       ? this.#createCampfireVisual(entity, gameplay.interactionTargetId)
       : this.#createBoxVisual(entity, definition);
+    const model = this.assets?.create(buildingAssetId(definition.id), entity.id, {
+      x: entity.position.x, y: entity.position.y - definition.size.y / 2, z: entity.position.z,
+    }, entity.rotationDegrees);
+    if (model) {
+      model.root.setEnabled(false);
+      for (const mesh of visual.meshes) mesh.visibility = 0;
+    }
     for (const mesh of visual.meshes) mesh.setEnabled(false);
     visual.flame?.setEnabled(false);
     if (visual.light) visual.light.intensity = 0;
@@ -71,6 +81,7 @@ export class BuildingPresentation implements BuildingPresentationFactory {
       if (disposed) return;
       if (obstacleAdded) this.precipitationObstacles.remove(obstacleId);
       this.#presented.delete(entity.id);
+      model?.dispose();
       for (const mesh of visual.meshes) {
         this.#interactionMeshes.delete(mesh.uniqueId);
         mesh.dispose(false, false);
@@ -86,6 +97,7 @@ export class BuildingPresentation implements BuildingPresentationFactory {
       activate: (): void => {
         if (active || disposed) return;
         gameplay.activate();
+        model?.root.setEnabled(true);
         for (const mesh of visual.meshes) {
           mesh.setEnabled(true);
           if (gameplay.interactionTargetId) {

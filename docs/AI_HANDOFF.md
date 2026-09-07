@@ -4,13 +4,15 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Save Foundation v0.1（代码与自动检查完成，浏览器人工验收待完成）
+- 当前里程碑：3D Asset Foundation + First Blizzard Visual Pass v0.1（实现与自动检查完成；production build、浏览器视觉/输入/FPS 待用户验收）
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
 - 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；UI 首批图标通过 Registry 统一为本地构建的 Phosphor SVG，并为语义不匹配的 `stick` 提供 Stormhaven 专用枯枝 SVG，Domain 只保存稳定游戏语义 ID；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
 - 存档状态：`slot_1` / IndexedDB `stormhaven.saves` / Schema v1；Esc 手动保存，标题页显式 Continue，恢复库存/资源/建筑/燃料/快捷栏/玩家/时间/天气/体热。完整格式、恢复与错误边界见 `docs/SAVE_FORMAT.md`。
-- 明确未实现：Autosave、多存档 UI、云存档/导出导入、Hotbar 多套布局、Equipment/Item Use、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
+- 3D 资源状态：`src/assets` 以稳定语义 ID 映射 12 个自有 GLB；官方 Loader + Promise/Source Cache + 独立实例生命周期，失败保留原 Primitive。6 类物品、地基/墙/篝火和固定木屋已接线；raw_meat 原场景无放置，未新增玩法。雪地使用 3 张 1K 本地 PBR 贴图；新增美术载荷 3,803,904 bytes，完整首载流量/FPS 待测。来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
+- 视觉/碰撞边界：GLB 不负责 Picking/Collision，沿用简单代理；木屋门洞、Shelter、建筑 Bounds/Snap 和 Save v1 不变。F6 同步显示/隐藏校准标杆；标杆两种状态均不再参与碰撞/拾取/降水，避免默认隐藏后的空气墙。
+- 明确未实现：Autosave、多存档 UI、云存档/导出导入、Hotbar 多套布局、Equipment/Item Use、Settings、Audio/Streaming Loading、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
 
@@ -23,7 +25,7 @@
 - WASD 移动、Shift 奔跑、Space 跳跃
 - 显式 Babylon Collision Coordinator 注册
 - 米/秒到 Babylon Camera Speed 的集中换算
-- Pointer Lock 后 Canvas 聚焦与四个控制校准标杆
+- Pointer Lock 后 Canvas 聚焦与仅 F6 Debug 显示的四个控制校准标杆
 - 正式标题界面、真实初始化 Loading Overlay、HUD 和错误提示
 - 单一 Boot/Main/Gameplay/Player/Interaction/BuildPlacement/Paused Shell State
 - Player Menu 的 Inventory/Crafting/Building Tab、快捷键路由与实时 Inventory 联动
@@ -60,7 +62,7 @@
 - Data Driven Heat Source Profile、smoothstep 距离衰减、多源叠加与全局上限
 - Weather + Shelter + Heat Source → ThermalEnvironmentBuilder → ThermalModel 组合链路
 - 相机每帧只向 Simulation 传递普通 `{x,y,z}` 坐标，不泄漏 Babylon 类型
-- 共用 Scenario Placement 的固定 Primitive 测试木屋、入口与碰撞；不再包含常开测试炉
+- 共用 Scenario Placement 的固定 GLB 木屋、原始简单代理入口/碰撞与 Primitive Fallback；不再包含常开测试炉
 - HUD 展示庇护、挡风、原始→有效风力及热源加成
 - 暴雪中室外失温、无火庇护减缓、玩家篝火旁回暖及 FPS 一致性 Integration Test
 - 局部降水粒子路径与静态碰撞 Mesh AABB 的 Slab 检测，碰撞后回收粒子
@@ -90,12 +92,16 @@
 - SaveGame v1 纯数据 Snapshot、Runtime Validation、Migration Boundary 和单槽原子 IndexedDB Repository
 - Pause Save、Main Continue、真实恢复 Stage、串行操作/输入冻结和失败回滚/重试
 - Inventory 空槽/顺序、Pickup 耗尽/部分余量、建筑 ID/Snap、Campfire 状态/燃料/Heat、Hotbar 自定义、Player Transform、Time/Weather/Forecast/Thermal Restore
-- 40 个测试文件、288 个单元与集成测试
+- 3D AssetRegistry/Loader/InstanceFactory、稳定变体、本地模型/贴图、真实资源 Loading Stage 和失败 Fallback
+- 41 个测试文件、298 个单元与集成测试
 
 ## 关键架构入口
 
 | 文件 | 作用 |
 | --- | --- |
+| `src/assets/` | Presentation-only Registry、缓存官方 GLB Loader、实例生命周期与分阶段加载 |
+| `src/world/createSnowMaterial.ts` | 三张本地 1K 雪地纹理、4m Tiling、失败材质回退 |
+| `docs/ASSET_CREDITS.md` | 3D 资源来源、预算、尺寸、保留占位与验收边界 |
 | `src/main.ts` | 浏览器入口，初始化 UI 和 Game |
 | `src/save/schema/` | SaveGame v1、完全校验及 future/older schema 拒绝边界 |
 | `src/save/SaveSnapshotBuilder.ts` | 将领域 Source of Truth 组合成纯数据存档 |
@@ -197,6 +203,16 @@ pnpm dev
 如果环境不允许执行 `corepack enable`，请按该环境的标准方式安装 `package.json` 中声明的 pnpm 版本。
 
 ## 当前验证状态
+
+2026-09-07 3D Asset Foundation + First Blizzard Visual Pass v0.1：
+
+- `pnpm typecheck`：通过。
+- `pnpm test`：41 文件 / 298 测试通过，包含所有真实 GLB 导入、源缓存与克隆释放、精确建造尺寸、木屋正面门洞与代理射线、Debug 标杆，以及 Primitive/GLB/404 三种表现路径下的重复存档恢复。
+- `git diff --check`：通过。
+- 自有资源离线生成完成，软件预览检查大轮廓，并修正地基宽度、罐头标签/屋顶共面；未安装任何依赖。
+- 未运行 `pnpm dev/build/preview`、未重启服务、未操作浏览器。完整首载流量、Chrome 1080p FPS、真实 PBR 光照/材质/深度、键鼠交互和浏览器 Save 仍待用户验收。不可把 NullEngine 测试或离线预览写成真实游戏画面验收。
+
+以下为历史验证记录：
 
 2026-09-07 Save Foundation v0.1（本次附件明确允许 AI 执行 typecheck/test/Git）：
 
@@ -389,7 +405,7 @@ pnpm dev
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
 - Thermal 与 Campfire Fuel 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；Pause 时均为零，未来系统增多时可评估 Fixed Simulation Tick。
-- Campfire 当前只有 wood 单一 Fuel、即时点火和基础 Primitive 表现；燃料/状态可恢复，离线不燃烧。没有点火物、烹饪、灰烬、烟雾伤害或音效。
+- Campfire 当前只有 wood 单一 Fuel、即时点火；GLB 石圈/木柴配合原火焰 Mesh/PointLight，失败回退 Primitive；燃料/状态可恢复，离线不燃烧。没有点火物、烹饪、灰烬、烟雾伤害或音效。
 - Pause Menu 保存已启用，设置和返回标题仍 Disabled。Main Menu 提供新游戏/Continue，不提供运行中返回标题和完整 Session Reset。
 - Hotbar 8 格布局/选中格随手动存档恢复；未知物品/建筑 ID 清空该槽并提示，合法但库存为零的绑定保留。不支持多套布局或 Item Use。
 - IndexedDB 仅此浏览器/网站 Origin，Git 不备份存档，切换主机/端口/电脑不会共享。无 Autosave；并行标签页最后成功手动保存覆盖之前记录。
@@ -399,11 +415,20 @@ pnpm dev
 
 ## 推荐下一步
 
-Save Foundation v0.1 开发到此停止；尚未完成的是用户操作的 production build 与浏览器验收，而不是新的玩法开发。
+3D Asset Foundation + First Blizzard Visual Pass v0.1 开发到此停止；尚未完成的是用户操作的 production build、视觉/输入验收与 Chrome 1080p FPS 记录，而不是新的玩法开发。
 
-用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Save Foundation 手工清单验收保存→刷新→继续及再次覆盖保存。记录浏览器版本/实际 URL 与结果后，再由用户/GPT 选择下一独立 Issue；不得顺带进入 Autosave、多槽、Settings、Shelter Enclosure、Storage、Equipment、工具玩法、Wetness 或建筑扩展。
+用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Asset Visual Pass 与 Save Foundation 清单验收。记录浏览器版本/分辨率/FPS/冷加载 Network 总量后，再选择 Vegetation / World Art Pass 或 Vertical Slice Gameplay Completion Audit；本轮不提前进入这些 Issue 或其他新玩法。
 
 ## 变更记录
+
+### 2026-09-07 — 3D Asset Foundation + First Blizzard Visual Pass v0.1
+
+- 新增 Presentation-only Asset Registry、官方 glTF Loader、按 URL 去重的 Promise/Container Cache、稳定 ID 变体与共享材质的独立克隆；实例释放不销毁其他实例的资源，Source 随 Scene 生命周期释放。
+- 新增 12 个 Stormhaven 自有 GLB：劈柴、三种不规则岩石、分叉枯枝、瓶盖/瓶肩水瓶、拉环无品牌罐头、低模肉块、四梁木地基、支撑木墙、石圈木柴篝火和木屋。未新增 Scenario Pickup 或更改 Gameplay ID。
+- 木屋/建筑/Pickup 保留原判定代理；正常隐藏代理外观，失败恢复旧 Primitive，不因 GLB 404 让 Save rollback。Save v1 无 Schema/Migration 变化。
+- 雪地使用 1K albedo/normal/roughness 与 4m Tiling；资源加载接入真实环境/物品/建筑 Stage。F6 校准标杆仅用于显示，两种状态均不参与 Gameplay 判定。
+- 新增源代码作者工具与 `docs/ASSET_CREDITS.md`，记录原创来源、模型面数/字节、尺寸和未替换项；未引入第三方美术或新依赖。
+- 自动检查 41 文件 / 298 测试通过；build、真实渲染/输入/存档、Chrome 1080p FPS 待用户。严格停止，不进入植被或玩法扩展。
 
 ### 2026-09-07 — Save Foundation v0.1
 

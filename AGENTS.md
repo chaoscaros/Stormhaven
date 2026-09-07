@@ -28,7 +28,9 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 已在上述基础上完成 **Save Foundation v0.1**：版本化单槽 IndexedDB、Pause 手动保存、Main Menu 继续游戏、库存/资源/建筑/篝火/快捷栏/玩家/时间/天气/体热恢复。存档只保存 Source of Truth；具体契约见 `docs/SAVE_FORMAT.md`。自动检查与浏览器验收必须分开记录。
 
-本 Issue 开发停止，后续先完成人工保存→刷新→继续验收。在新的 Issue 明确授权之前，不得继续扩展 Autosave、多存档 UI、云存档、导出导入、多套快捷栏、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Tool Gameplay、Wetness 或其他范围禁止项。
+其后已实现 **3D Asset Foundation + First Blizzard Visual Pass v0.1**：Presentation-only AssetRegistry、官方 GLB Loader、缓存/克隆/回退、12 个自有 GLB、1K PBR 雪地和真实资源 Loading Stage。GLB 与碰撞代理分离，Save v1 不改；F6 标杆默认隐藏且两种状态均不参与 Gameplay 判定。资源来源/尺寸/预算见 `docs/ASSET_CREDITS.md`。
+
+本 Issue 开发停止，先完成用户 production build、视觉/输入/保存→刷新→继续与 Chrome 1080p FPS 验收。在新 Issue 明确授权之前，不得继续植被、新 Gameplay、Autosave、多存档 UI、云存档、导出导入、多套快捷栏、Settings、Audio/Streaming Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Tool Gameplay、Wetness 或其他范围禁止项。
 
 ## 包管理和命令
 
@@ -41,6 +43,8 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 当前用户要求：涉及启动、编译、重启或浏览器操作时，先告诉用户需要执行的命令，由用户亲自操作；除非用户之后明确授权，否则 AI 不要自行运行这些操作。
 
 Save Foundation v0.1 任务明确允许 AI 运行 typecheck、test、diff check 和 Git status/commit/push；仍禁止主动 install/dev/build/preview 和浏览器操作。本次授权不自动扩展到未来任务的其他命令。
+
+3D Asset Foundation Issue 同样明确允许 typecheck/test/diff/Git 检查与交付，仍由用户执行 install/dev/build/preview 和浏览器操作。资产离线作者脚本不属于游戏启动命令，也不应自动挂入构建/安装脚本。
 
 完成一轮开发或修复后，应使用中文 Commit Message 提交，并在检查无误后推送到当前跟踪的 Git 远端，方便定位问题、修改和回退版本。若推送失败，必须明确报告本地提交和远端之间的差异。
 

@@ -4,6 +4,8 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 
 当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链、HUD/UI 图标与 **Save Foundation v0.1**。支持 Esc 暂停后手动保存，刷新后从标题页继续上次进度。存档恢复背包、资源余量、建筑、篝火燃料/燃烧状态、快捷栏、玩家位置/视角、时间、天气过渡和体热；实际浏览器读写及画面验收仍待用户完成。
 
+最新 **3D Asset Foundation + First Blizzard Visual Pass v0.1** 已接入核心自有 GLB 模型、缓存/实例/失败回退，以及 1K PBR 雪地与真实加载阶段。原 Gameplay/Save v1 不变。资源来自项目本身，详见 [资源清单与预算](docs/ASSET_CREDITS.md)；生产构建、浏览器视觉和 FPS 仍由用户验收。
+
 ## 当前完成内容
 
 - TypeScript 严格模式
@@ -14,7 +16,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 程序化天空、雪地、雾和灯光
 - 第一人称鼠标视角、WASD 移动、Shift 奔跑、Space 跳跃
 - Babylon Collision Coordinator 与米/秒 Camera Speed 换算
-- 用于手动确认控制效果的雪地校准标杆
+- 默认隐藏、随 F6 Debug 显示的无碰撞控制校准标杆
 - 正式第一版标题界面、真实初始化 Loading Overlay Contract 与 HUD
 - 单一 Game Shell State：Boot、Main Menu、Gameplay、Player Menu、Interaction Menu、Build Placement、Paused
 - Tab/C/B 统一生存菜单及背包/制造/建造 Tab；三个页面共享同一 Inventory
@@ -41,7 +43,7 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 通用 Heat Source Profile、smoothstep 距离衰减、多热源叠加和全局上限
 - 与领域坐标共用配置的固定测试木屋和带实体木色门框的开放入口；原常开测试炉已移除
 - 庇护状态、挡风比例、原始/有效风力和热源加成 Debug HUD
-- 局部降水粒子与固定/动态碰撞障碍的路径检测：屋顶、墙体、地面、标杆和玩家建筑会拦截雪花，开放入口仍允许风雪进入
+- 局部降水粒子与固定/动态碰撞障碍的路径检测：屋顶、墙体、地面和玩家建筑会拦截雪花，开放入口仍允许风雪进入
 - 屏幕中央 2.75m Interaction Raycast、`E` 单次拾取与可见 Prompt
 - JSON 驱动的 9 类 Item Definition 与 6 个场景 World Pickup；资源受场景墙体正常遮挡，不使用隔墙覆盖渲染
 - 24 Slot / 30kg Inventory、Stack 合并及容量/重量限制下的 Partial Add
@@ -137,4 +139,4 @@ Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe J
 
 ## 当前阶段限制
 
-Save Foundation v0.1 代码与自动检查已完成，生产构建和浏览器验收由用户操作。未经新 Issue 明确授权，不要扩展为 Autosave、多存档/多套快捷栏 UI、云存档、导出导入、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Equipment、Wetness 或工具玩法。下一步先按 [命令手册](docs/COMMAND_RUNBOOK.md) 完成保存→刷新→继续验收。
+3D Asset Foundation + First Blizzard Visual Pass v0.1 的实现与自动检查已完成，生产构建、浏览器视觉/输入/存档和 FPS 验收由用户操作。先按 [命令手册](docs/COMMAND_RUNBOOK.md) 的 Asset Visual Pass 与 Save 清单验收，再决定新 Issue；不要顺带继续植被、新玩法、Autosave、Settings、Shelter Enclosure、Storage、Equipment、Wetness 或工具玩法。

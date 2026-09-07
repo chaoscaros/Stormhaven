@@ -32,6 +32,7 @@ const ui = setupFoundationUi(canvas, {
   onSimulationPausedChanged(paused): void {
     simulation.setPaused(paused);
   },
+  onDebugVisibilityChanged(visible): void { game?.setDebugVisible(visible); },
 });
 ui.showLoading("正在初始化游戏世界……");
 ui.updateDebugHud(simulation.snapshot);
@@ -139,7 +140,7 @@ hotbarUi = setupHotbarUi(
 let saveUi: ReturnType<typeof setupSaveUi> | undefined;
 try {
   ui.setLoadingStage("正在创建世界与天气系统……");
-  await game.start();
+  await game.start(ui.setLoadingStage);
   const saveService = new SaveService(new IndexedDbSaveRepository(), {
     gameplay, simulation, hotbar, ...game.getSaveBindings(),
   }, {

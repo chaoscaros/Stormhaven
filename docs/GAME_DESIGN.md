@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础至 Save Foundation v0.1：
+当前已实现现代桌面浏览器技术基础至 3D Asset Foundation + First Blizzard Visual Pass v0.1；自动检查和浏览器人工视觉验收分开记录：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -91,7 +91,11 @@ Save Foundation v0.1 完成“游玩 → Esc 暂停 → 保存 → 刷新 → �
 
 存档保留 24 格库存顺序与空格、资源剩余数量、建筑及连接、燃料和燃烧状态、8 格快捷栏及选中格、玩家坐标/朝向、游戏时间/天气过渡和体热。已拾取资源不重生，建筑不重复收费，离线不烧燃料、不推进时间。恢复后速度清零、重新探测落地；派生热量、庇护和天气画面重新计算，F1–F4 视觉预览不保存。
 
-自动保存、多存档 UI、云存档、设置和正式 Asset Loading Pipeline 均未实现；自建结构转化为 Shelter Zone 仍留给独立 Issue。
+核心近距离物资、地基/墙/篝火与固定木屋使用统一 Stylized Realism 自有 GLB：劈柴、不规则岩石、无叶分叉枯枝、正常瓶子/罐头、木板与支撑结构。肉块模型已准备，但不新增原场景没有的资源。雪地增加 PBR 表面细节，不改变平面地形；校准标杆只在 F6 Debug 显示且不参与碰撞。
+
+模型只提供外观，原碰撞代理、门洞、Shelter、Snap、Interaction、Fuel/Heat 与 Save v1 保持原契约。加载环境/物品/建筑时显示真实 Stage；失败使用旧 Primitive。美术来源与已保留占位见 `docs/ASSET_CREDITS.md`。本阶段没有新玩法、门/屋顶玩法、植被或地形系统。
+
+自动保存、多存档 UI、云存档、设置、Audio/Streaming Loading 均未实现；自建结构转化为 Shelter Zone 仍留给独立 Issue。
 
 ## 非目标
 

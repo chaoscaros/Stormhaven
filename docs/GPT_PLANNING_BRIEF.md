@@ -2,6 +2,8 @@
 
 > 使用方式：可以将本文档完整提供给 GPT，让它基于当前真实状态制定后续开发计划。当前需求是**规划，不是直接生成或修改代码**。
 
+> 最新基线（2026-09-07）：Save Foundation 后已实现 **3D Asset Foundation + First Blizzard Visual Pass v0.1**。41 文件 / 298 测试通过；12 个自有 GLB、3 张 1K PBR 雪地贴图、缓存/实例/回退/真实加载阶段已接线。浏览器视觉、完整首载与 Chrome 1080p FPS、production build **待用户验收**。不要将已实现资源管线再次规划为零开始任务。
+
 ## 1. 项目概述
 
 项目名称：**Stormhaven**
@@ -122,7 +124,7 @@ Stormhaven 最重要的体验不是战斗，而是：
 - 一个简单木屋
 - 少量可搜刮地点
 
-允许使用 Cube、Cylinder 和其他 Primitive 作为占位资源，先验证玩法，不追求最终美术。
+核心近距离资源、木屋、玩家地基/墙/篝火已替换为项目自有 GLB；Primitive 继续作为失败 Fallback、不可见判定代理、Ghost 与既有火焰表现。目标为清晰轮廓、真实比例的 Stylized Realism，不追求最终照片级美术。
 
 完整可玩流程：
 
@@ -340,7 +342,7 @@ Recipe 必须 Data Driven，至少包含：
 - Space 跳跃
 - 显式 Babylon Collision Coordinator 注册
 - 米/秒 Camera Speed 换算、Pointer Lock 后 Canvas 聚焦
-- 四个无玩法含义的雪地控制校准标杆
+- 四个仅 F6 Debug 显示的控制校准标杆（不参与碰撞、Picking 或降水）
 - 正式标题界面、真实初始化 Loading Overlay Contract 与开始前 Simulation Pause
 - 基础 HUD、天气 Debug HUD 和错误提示
 - 纯 GameClock、Pause、Time Scale 和后台 Delta Clamp
@@ -361,7 +363,7 @@ Recipe 必须 Data Driven，至少包含：
 - 庇护、挡风、原始→有效风力和热源加成 Debug HUD
 - 局部降水粒子与静态碰撞 Mesh AABB 的线段碰撞及回收
 - 9 个 JSON ItemDefinition 与 Runtime Validation/Catalog
-- 6 个 JSON Scenario World Pickup、Primitive Mesh 与 Registry
+- 6 个 JSON Scenario World Pickup、GLB 外观 / 原始简单判定代理 / Primitive Fallback 与 Registry
 - 2.75m Camera Forward Interaction Raycast、Target/Result 和 E 单次拾取
 - 24 Slot/30kg 纯 Inventory、Stack、Weight 和 Partial Add Transaction
 - 单一 Game Shell State：Boot/Main/Gameplay/Player/Interaction/BuildPlacement/Paused
@@ -387,7 +389,10 @@ Recipe 必须 Data Driven，至少包含：
 - SaveGame Schema v1、IndexedDB 单槽原子写入、Migration Boundary 与完整 Runtime Validation
 - 暂停手动保存、标题页 Continue、新游戏覆盖说明、真实恢复 Stage、输入冻结和失败回滚/重试
 - 库存 Slot/空位、资源耗尽/余量、建筑 ID/连接、篝火燃料/状态、Hotbar、玩家位置/视角、时间/天气过渡/Forecast 与体热恢复；离线不模拟，不保存派生表现
-- 40 个测试文件、288 个单元/集成测试
+- Presentation-only AssetRegistry、官方 GLB Loader、缓存一次/普通克隆、失败回退和独立实例/Source 生命周期
+- 12 个自有 GLB（6 类资源含 3 个 stone Variant、地基、墙、篝火、木屋）；raw_meat 没有 Scenario 放置，未新增玩法
+- 本地 1K 雪地 Albedo/Normal/Roughness、4m Tiling、真实环境/物品/建筑加载 Stage；新增美术 3.80 MB，不含引擎 JS/WASM
+- 41 个测试文件、298 个单元/集成测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -403,7 +408,7 @@ Recipe 必须 Data Driven，至少包含：
 - 自建建筑 Shelter Enclosure/Room Detection
 - 多存档 UI、云存档、导出/导入、Autosave；当前仅一个手动 `slot_1`
 - Hotbar 多套快捷栏与 Item Use；单套布局已支持手动存档恢复
-- Settings/Settings Persistence 与完整 Loading Pipeline
+- Settings/Settings Persistence、Audio/Streaming Loading（GLB/Texture Stage 已实现）
 - 完整地图内容
 - 音效和最终美术
 
@@ -413,6 +418,7 @@ Recipe 必须 Data Driven，至少包含：
 
 ```text
 src/main.ts
+  ├─ src/assets/（Registry / Loader / InstanceFactory / Loading Stage）
   ├─ src/core/Game.ts
   ├─ src/core/config.ts
   ├─ src/core/time/
@@ -445,8 +451,16 @@ src/main.ts
 - `docs/COMMAND_RUNBOOK.md`
 - `docs/GAME_DESIGN.md`
 - `docs/TECH_DESIGN.md`
+- `docs/ASSET_CREDITS.md`
+- `docs/SAVE_FORMAT.md`
 
 ## 11. 当前验证边界
+
+2026-09-07 Asset Visual Pass：`pnpm typecheck`、`pnpm test`（41 文件 / 298 测试）与 `git diff --check` 通过。测试实际加载项目 GLB，并验证尺寸、门洞方向、独立克隆/共享资源、隐藏判定代理、404 Fallback 和 Save v1 重复恢复。离线软件预览检查了资产轮廓，不代表真实 Babylon 视觉通过。未 install/dev/build/preview、未启动或操作浏览器。
+
+生产构建、真实光照/材质/深度、拾取/建造/存档/雪阻挡和 Chrome 1080p FPS 仍由用户手动验证。资源单文件与新增美术总量已测，完整首载流量尚未测。来源、每个模型的尺寸/面数/字节和保留 Primitive 范围见 `docs/ASSET_CREDITS.md`。
+
+以下为历史 Save Foundation 记录：
 
 2026-09-07 Save Foundation v0.1：AI 在本次明确授权范围内执行 `pnpm exec tsc -b --pretty false`、`pnpm test`、`git diff --check` 均通过；40 文件/288 测试。新增 39 个纯存档集成用例、1 个真实 Babylon NullEngine 表现重建用例和 1 个 IndexedDB 注入事务边界用例（另有树枝图标 4 个回归）。没有 install/dev/build/preview 或真实浏览器操作。
 
@@ -557,7 +571,7 @@ src/main.ts
 
 规划时不得把这些未验证内容视为已验收完成。
 
-**Save Foundation v0.1 已实现，不能再次规划为尚未开始。** 当前下一步是用户完成生产构建和完整保存→刷新→继续验收，然后再明确选择新 Issue。请勿因已有存档边界而自动扩展 Autosave、多槽、云存档、Settings、Shelter Enclosure、Storage、Equipment、Tool Gameplay、Wetness 或 Hotbar 多套布局。
+**Save Foundation 与 3D Asset Foundation v0.1 均已实现，不能再次规划为尚未开始。** 先完成 Asset Visual Pass + 保存→刷新→继续的浏览器验收与 FPS 记录，再由用户选择 Vegetation / World Art Pass 或 Vertical Slice Gameplay Completion Audit。不要自动进入植被、新玩法、Autosave、Settings、Shelter Enclosure、Storage、Equipment、Tool Gameplay、Wetness 或 Hotbar 扩展。
 
 ## 12. 协作与交付约束
 

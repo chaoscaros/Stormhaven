@@ -6,19 +6,23 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { InteractionResult } from "../../interaction/InteractionResult";
 import type { ItemCatalog } from "../../items/ItemCatalog";
 import type { WorldPickupPlacement } from "./WorldPickupPlacement";
+import type { AssetInstance, AssetInstanceFactory } from "../../assets/AssetInstanceFactory";
+import { pickupAssetId } from "../../assets/AssetRegistry";
 
 interface InteractionMeshMetadata {
   readonly interactionTargetId: string;
 }
 
-/** Primitive Pickup Mesh 与 Target ID 的 Babylon 窄适配层。 */
+/** GLB 外观 + 保留判定代理/Primitive Fallback，与 Target ID 的 Babylon 窄适配层。 */
 export class WorldPickupPresentation {
   readonly #meshes = new Map<string, AbstractMesh>();
+  readonly #visuals = new Map<string, AssetInstance>();
 
   constructor(
     private readonly scene: Scene,
     private readonly placements: readonly WorldPickupPlacement[],
     private readonly catalog: ItemCatalog,
+    private readonly assets?: AssetInstanceFactory,
   ) {
     this.restore(() => true);
   }
@@ -38,6 +42,12 @@ export class WorldPickupPresentation {
       mesh.metadata = Object.freeze({ interactionTargetId: placement.pickup.id });
       mesh.isPickable = true;
       mesh.checkCollisions = false;
+      const visual = this.assets?.create(pickupAssetId(placement.pickup.itemId), placement.pickup.id, placement.position);
+      if (visual) {
+        // visibility=0 hides rendering but retains Babylon picking (isVisible=true).
+        mesh.visibility = 0;
+        this.#visuals.set(placement.pickup.id, visual);
+      }
       this.#meshes.set(placement.pickup.id, mesh);
       this.catalog.get(placement.pickup.itemId);
     }
@@ -59,10 +69,14 @@ export class WorldPickupPresentation {
     const mesh = this.#meshes.get(result.targetId);
     if (!mesh) return;
     this.#meshes.delete(result.targetId);
+    this.#visuals.get(result.targetId)?.dispose();
+    this.#visuals.delete(result.targetId);
     mesh.dispose(false, true);
   }
 
   dispose(): void {
+    for (const visual of this.#visuals.values()) visual.dispose();
+    this.#visuals.clear();
     for (const mesh of this.#meshes.values()) mesh.dispose(false, true);
     this.#meshes.clear();
   }

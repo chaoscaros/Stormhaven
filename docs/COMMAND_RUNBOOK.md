@@ -15,6 +15,8 @@ When a user asks how to install, start, build, test, preview, or troubleshoot th
 
 Save Foundation v0.1 explicitly authorizes the AI to run typecheck/test/diff and Git checks/commit/push. It does **not** authorize install/dev/build/preview or browser operation. Record this issue-specific exception separately from future task permissions.
 
+3D Asset Foundation + First Blizzard Visual Pass v0.1 repeats the typecheck/test/diff/Git authorization. No install/dev/build/preview or browser authorization is implied. Runtime art is checked into `public/assets`; no asset download or authoring command is needed to play/build on another machine.
+
 ## Toolchain baseline
 
 | Tool | Required version | Source of truth |
@@ -132,7 +134,7 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 1. 初始化期间只显示真实阶段文案的 Stormhaven Loading Overlay，不出现虚假百分比或故意延时。
 2. 初始化完成后显示“第一场暴雪”标题页和“开始新游戏”；存在本地存档时“继续游戏”可点击，否则 Disabled；不会自动读档。
 3. 在标题页等待数秒，初始时间必须保持 `14:00`；点击“开始新游戏”后才进入场景并请求 Pointer Lock；Continue 则先完整恢复存档。
-4. 开始后移动鼠标会相对四个校准标杆改变第一人称视角。
+4. 校准标杆默认隐藏；需要测试参考物时按 F6 显示，再移动鼠标确认第一人称视角改变。标杆仅显示，不参与碰撞/拾取/降水。
 5. `W A S D` changes the distance and direction to those beacons.
 6. Holding `Shift` increases movement speed.
 7. Pressing `Space` jumps and the player lands on the ground.
@@ -153,7 +155,7 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 22. 未放置或未点燃篝火时，木屋内任何位置的热源加成都应为 `+0.0℃`。
 23. 暴雪中室外体热下降最快，木屋内无火时下降较慢；只有后续点燃玩家篝火后，火旁趋势才应转为回暖。
 24. 暴雪中进入木屋：雪花不能穿过屋顶、墙体或地面；站在开放入口附近仍可看到并允许少量风雪从入口飘入，不能表现为一进 Shelter 就让所有降雪瞬间消失。
-25. 出生点与木屋附近能看到 6 个少量 Primitive 资源；实体木墙必须遮住墙后的资源，只有通过开放入口才能看到屋外物体；准星在约 2.75m 内对准后显示 `[E] 拾取 名称 ×N`，移开或走远即消失。
+25. 出生点与木屋附近能看到 6 个少量 GLB 资源（加载失败时才为 Primitive）；实体木墙必须遮住墙后的资源，只有通过开放入口才能看到屋外物体；准星在约 2.75m 内对准后显示 `[E] 拾取 名称 ×N`，移开或走远即消失。
 26. 每按一次 `E` 只触发一次拾取；完全拾取后 Mesh 消失，容量或重量只允许部分拾取时 Mesh 保留且 Prompt 显示余量。
 27. 按 `Tab` 打开统一生存菜单的背包 Tab：Pointer Lock 主动释放、鼠标出现；顶部可切换“背包 / 制造 / 建造”，任意时刻只显示一个 Tab。背包应显示多列方形槽位，已占用和空槽合计 24 格。
 28. 重复拾取木材确认 Stack 合并；接近容量上限时，未被接受的世界物品不得消失。
@@ -209,6 +211,40 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 78. 检查 Player Menu 页签、9 类物品、3 类建筑、HUD 温度/庇护/天气/负重，以及关闭/暂停/继续/警告/信息均显示统一 Registry 图标，不再出现 CSS 字符几何占位；树枝必须显示无叶片、带分叉的枯枝轮廓，不能显示关系节点、树叶、整棵树或工具。
 79. 检查菜单卡片默认是 duotone、选中项切换为 fill；Hotbar 默认 bold、当前槽 fill；Tooltip 为 regular。Hover/Selected/Disabled/Warning 颜色由 UI 状态改变，同一图标不加载白/橙/绿多份资源。
 80. 在浏览器 Network 面板中过滤 `phosphoricons.com` 和常见 CDN 域名，应没有图标运行时请求；断网刷新已构建页面时图标仍应由本地资源显示。
+
+## Asset Visual Pass manual acceptance
+
+No new dependency is required for this issue. Existing checkouts already have the official Babylon loaders package. The user runs:
+
+```bash
+pnpm build
+```
+
+Inspect that `dist/assets/models/` and `dist/assets/textures/terrain/` contain the files listed in `docs/ASSET_CREDITS.md`. If a development server is already running, refresh it yourself; otherwise run `pnpm dev`. To test actual production output, run `pnpm preview` after the build. AI must not start/restart services or open a browser.
+
+1. 初始化实际加载期间依次出现“加载环境资源 / 加载物品模型 / 加载建筑模型”，没有虚假百分比；缓存命中时阶段可能很快，不故意延迟。
+2. 开始游戏，近距离确认：木材有劈柴截面，石头为不规则岩石，树枝有弯曲分叉且不是树叶；水瓶有瓶肩/瓶颈/瓶盖，罐头有金属卷边/拉环/无品牌标签。
+3. 默认没有校准标杆；F6 显示/隐藏仅切换参考物和 Debug，不产生碰撞空气墙或改变暴雪。
+4. 木屋应可辨识木料、角柱、屋顶和开放入口，不再是大黑盒；从内外观察墙后物品不能透视。进入/离开、木屋地板跳跃、Shelter 显示与此前相同；门洞没有新增门或锁。
+5. 雪地有不纯白的细节；走近/远眺检查 UV 比例、重复接缝、法线、闪烁与白屏。在晴朗与 F4 暴雪下分别观察，F5 恢复计划。
+6. 拾取仍为原距离/原数量、部分拾取保持模型、全取后模型和交互目标同时消失。
+7. 建木地基和木墙：四梁/木板/横梁可辨识；半透明 Box Ghost 仍是预期；2m Grid/贴边、90° R 旋转、Wall Snap/占用、碰撞/跳跃与扣材料正常，没有模型浮空或额外缝隙。
+8. 建篝火：不规则石圈/木柴可辨识；E 菜单、加柴、点燃/熄灭、原火焰/点光源/热量正常；不新增 Fire Particle 或燃烧玩法。raw_meat 仅备好模型，没有新增肉块刷点，这是预期。
+9. F4 暴雪检查固定屋顶/墙及新建地基/墙继续挡雪；开放入口允许少量雪飘入，不能进入 Shelter 就全局停雪。
+10. 按下方 Save 清单，特别验证本次以前的 v1 存档 → 刷新 → Continue，建筑/资源/篝火使用新外观且 ID、库存、燃料、碰撞和障碍正确；反复继续不出现重复模型。
+11. 在可丢弃的测试浏览器配置中，Network Request Blocking 阻止某个 GLB URL 后刷新（禁用缓存），应看到 console warning + 对应旧占位，但仍能开始和读档。解除阻止后刷新恢复；不要删除有价值的唯一存档。
+12. Chrome 桌面 1920×1080，记录浏览器版本、硬件、DPR、晴天室外/屋内/F4 暴雪正常 Gameplay FPS，以及冷缓存 Network 总传输量。可用 Chrome DevTools Rendering → Frame Rendering Stats；不要把 NullEngine 测试时长当 FPS。目标冷首载 <50MB；目前仅测得新增美术 3.80MB，不含 JS/WASM。若明显掉帧，先记录场景模型/材质数量，不立即扩展 LOD/Streaming。
+
+Acceptance record (fill with actual observations):
+
+| Check | Current result |
+| --- | --- |
+| `pnpm typecheck` / tests / diff | AI passed, 41 files / 298 tests |
+| Production build and copied public assets | Pending user |
+| Babylon PBR appearance / depth / input / weather | Pending user |
+| Browser old-save compatibility | Pending user; automated Primitive/GLB/404 restore passed |
+| Chrome 1080p FPS, hardware, DPR | Not measured |
+| Full cold-cache transfer including engine/WASM | Not measured |
 
 ## Save Foundation manual acceptance
 

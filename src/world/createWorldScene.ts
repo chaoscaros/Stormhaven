@@ -2,7 +2,6 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
@@ -20,6 +19,9 @@ import environmentScenarioData from "../../data/world/first-blizzard-environment
 import { parseSurvivalEnvironmentScenario } from "../survival/environment/SurvivalEnvironmentScenario";
 import { createFirstBlizzardCabin } from "./createFirstBlizzardCabin";
 import { PrecipitationObstacleRegistry } from "../weather/presentation/PrecipitationObstacleRegistry";
+import { createAssetRuntime } from "../assets/createAssetRuntime";
+import type { AssetInstanceFactory } from "../assets/AssetInstanceFactory";
+import { createSnowMaterial } from "./createSnowMaterial";
 
 const GRAVITY = new Vector3(0, -9.81, 0);
 
@@ -27,10 +29,12 @@ export interface WorldSceneRuntime {
   readonly scene: Scene;
   readonly weatherEnvironment: WeatherEnvironmentBindings;
   readonly precipitationObstacles: PrecipitationObstacleRegistry;
+  readonly assets: AssetInstanceFactory;
+  readonly setDebugVisible: (visible: boolean) => void;
 }
 
 /** 创建基础 Scene，并显式暴露天气表现层需要的最小环境引用。 */
-export async function createWorldScene(engine: Engine): Promise<WorldSceneRuntime> {
+export async function createWorldScene(engine: Engine, onStage: (stage: string) => void = () => {}): Promise<WorldSceneRuntime> {
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.54, 0.64, 0.67, 1);
   scene.ambientColor = new Color3(0.18, 0.23, 0.25);
@@ -45,11 +49,12 @@ export async function createWorldScene(engine: Engine): Promise<WorldSceneRuntim
 
   const skyMaterial = createSky(scene);
   const lights = createLights(scene);
-  createGround(scene);
-  createControlReferenceMarkers(scene);
+  const assets = await createAssetRuntime(scene, onStage, () => createGround(scene));
+  const setDebugVisible = createControlReferenceMarkers(scene);
   createFirstBlizzardCabin(
     scene,
     parseSurvivalEnvironmentScenario(environmentScenarioData),
+    assets,
   );
   const precipitationObstacles = new PrecipitationObstacleRegistry();
   registerInitialPrecipitationObstacles(scene, precipitationObstacles);
@@ -62,6 +67,8 @@ export async function createWorldScene(engine: Engine): Promise<WorldSceneRuntim
       directionalLight: lights.sun,
     }),
     precipitationObstacles,
+    assets,
+    setDebugVisible,
   });
 }
 
@@ -153,7 +160,7 @@ function createLights(scene: Scene): {
   return { ambient, sun };
 }
 
-function createGround(scene: Scene): void {
+async function createGround(scene: Scene): Promise<void> {
   const ground = MeshBuilder.CreateBox(
     "snow-ground",
     {
@@ -164,11 +171,7 @@ function createGround(scene: Scene): void {
     scene,
   );
   ground.position.y = -WORLD_CONFIG.groundThicknessMeters / 2;
-  const groundMaterial = new StandardMaterial("snow-ground-material", scene);
-  groundMaterial.diffuseColor = new Color3(0.74, 0.8, 0.8);
-  groundMaterial.specularColor = new Color3(0.1, 0.12, 0.12);
-  groundMaterial.roughness = 0.92;
-  ground.material = groundMaterial;
+  ground.material = await createSnowMaterial(scene, WORLD_CONFIG.sizeMeters);
   ground.metadata = { buildingGroundSurface: true };
   ground.checkCollisions = true;
   ground.receiveShadows = true;

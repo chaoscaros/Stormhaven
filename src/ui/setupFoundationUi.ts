@@ -66,6 +66,7 @@ export interface FoundationUi {
 
 interface FoundationUiCallbacks {
   readonly onSimulationPausedChanged: (paused: boolean) => void;
+  readonly onDebugVisibilityChanged?: (visible: boolean) => void;
 }
 
 /** 将基础启动界面与 Pointer Lock 入口连接起来。 */
@@ -166,6 +167,7 @@ export function setupFoundationUi(
     if (event.code === "F6" && !["boot", "main_menu"].includes(modes.mode)) {
       event.preventDefault();
       playerStatus.hidden = !playerStatus.hidden;
+      callbacks.onDebugVisibilityChanged?.(!playerStatus.hidden);
       return;
     }
     if (event.code === INTERACTION_CONFIG.inventoryKeyCode) {

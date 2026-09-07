@@ -4,6 +4,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import type { Scene } from "@babylonjs/core/scene";
 import type { AxisAlignedBounds } from "../survival/shelter/AxisAlignedVolume";
 import type { SurvivalEnvironmentScenario } from "../survival/environment/SurvivalEnvironmentScenario";
+import type { AssetInstanceFactory } from "../assets/AssetInstanceFactory";
 
 const WALL_THICKNESS = 0.25;
 const FLOOR_THICKNESS = 0.12;
@@ -17,6 +18,7 @@ const DOOR_THRESHOLD_HEIGHT = 0.055;
 export function createFirstBlizzardCabin(
   scene: Scene,
   scenario: SurvivalEnvironmentScenario,
+  assets?: AssetInstanceFactory,
 ): void {
   const cabin = scenario.shelters[0];
   if (!cabin) return;
@@ -37,7 +39,19 @@ export function createFirstBlizzardCabin(
   doorFrameMaterial.specularColor = Color3.Black();
   doorFrameMaterial.roughness = 0.9;
 
+  const existing = new Set(scene.meshes);
   createCabinShell(scene, cabin.bounds, wallMaterial, floorMaterial, doorFrameMaterial);
+  const model = assets?.create("environment_cabin", cabin.id, {
+    x: (cabin.bounds.min.x + cabin.bounds.max.x) / 2,
+    y: cabin.bounds.min.y,
+    z: (cabin.bounds.min.z + cabin.bounds.max.z) / 2,
+  });
+  if (model) {
+    // Retain original names, ground metadata, compound collision and door opening.
+    for (const mesh of scene.meshes) {
+      if (!existing.has(mesh) && mesh.name.startsWith("test-cabin-")) mesh.visibility = 0;
+    }
+  }
 
 }
 

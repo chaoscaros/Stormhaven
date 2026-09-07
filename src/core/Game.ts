@@ -40,6 +40,7 @@ export class Game {
   #buildingPlacement: BuildingPlacementController | undefined;
   #unsubscribeUiMode: (() => void) | undefined;
   #player: PlayerTransformPort | undefined;
+  #setDebugVisible: ((visible: boolean) => void) | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -64,9 +65,10 @@ export class Game {
     });
   }
 
-  async start(): Promise<void> {
-    const world = await createWorldScene(this.#engine);
+  async start(onStage: (stage: string) => void = () => {}): Promise<void> {
+    const world = await createWorldScene(this.#engine, onStage);
     this.#scene = world.scene;
+    this.#setDebugVisible = world.setDebugVisible;
     const isPlayerInputEnabled = (): boolean =>
       this.uiModes.mode === "gameplay" || this.uiModes.mode === "build_placement";
     const camera = createFirstPersonCamera(world.scene, this.canvas, isPlayerInputEnabled);
@@ -86,6 +88,7 @@ export class Game {
       world.scene,
       this.gameplay.pickupPlacements,
       this.gameplay.itemCatalog,
+      world.assets,
     );
     this.#weatherPresentation = createWeatherPresentation(
       world.scene,
@@ -108,6 +111,7 @@ export class Game {
       this.gameplay.buildCatalog,
       world.precipitationObstacles,
       new CampfireBuildingBinding(this.gameplay.campfireSystem),
+      world.assets,
     );
     this.#interaction = new InteractionRaycastController(
       world.scene,
@@ -177,6 +181,8 @@ export class Game {
   beginBuildingPlacement(definitionId: string): void {
     this.#buildingPlacement?.begin(definitionId);
   }
+
+  setDebugVisible(visible: boolean): void { this.#setDebugVisible?.(visible); }
 
   /** Narrow runtime handles; save orchestration stays outside Game. */
   getSaveBindings(): Pick<SaveRuntime, "player" | "presentation"> {

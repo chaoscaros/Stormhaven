@@ -90,7 +90,7 @@ Esc 优先级为 BuildPlacement → Interaction Menu → Player Menu → Gamepla
 
 Main Menu 出现前 Runtime 已完成异步 World/Havok 初始化，但 `GameSimulation` 从 Boot 起保持 Pause；点击开始才进入 Gameplay、恢复 Simulation 并请求 Pointer Lock。Paused/Main Menu/Boot 会调用 `GameSimulation.setPaused(true)`；只有 Paused 是运行中暂停。Pause 时 GameClock、Forecast/Weather、Thermal 和所有 Runtime System（包括 Campfire Fuel）均接收零推进量。Camera 在非 Gameplay/BuildPlacement Mode 下 detach，阻止 WASD、Jump 和 Look。
 
-`setupFoundationUi` 暴露 `showLoading(stage) / setLoadingStage(stage) / hideLoading()` 窄契约，仅显示真实阶段文本，不提供虚假百分比或延时。`setupSaveUi` 已将存档读取/校验/恢复阶段接入；完整 GLB/Texture/Audio Asset Loading Pipeline 仍未实现。Save/Load 处理中由 Shell operationPending 阻止顶层转换，保持 Pause 或 Main Menu 冻结；异步 Pointer Lock 被拒绝时回到 Pause 等待用户点击 Resume。
+`setupFoundationUi` 暴露 `showLoading(stage) / setLoadingStage(stage) / hideLoading()` 窄契约，仅显示真实阶段文本，不提供虚假百分比或延时。`createAssetRuntime` 已接入环境（含雪地贴图）→物品→建筑模型三个真实阶段，`setupSaveUi` 接入存档读取/校验/恢复阶段；没有 Audio/Streaming Pipeline。Save/Load 处理中由 Shell operationPending 阻止顶层转换，保持 Pause 或 Main Menu 冻结；异步 Pointer Lock 被拒绝时回到 Pause 等待用户点击 Resume。
 
 ## HUD + UX Layer
 
@@ -250,7 +250,7 @@ Weather Domain
 
 `ShelterSystem` 使用 Inclusive AABB Volume 查询普通 `{x,y,z}` 坐标，Profile 提供 `0..1` 挡风比例和非负温度加成。`HeatSourceSystem` 使用球形半径和 smoothstep 距离衰减；启用热源贡献可相加，但由配置的全局温度上限 Clamp。热源不要求位于 Shelter 内，因此领域语义可支持室外热源。相机每帧只把普通坐标传入 `GameSimulation`，上述领域层不导入 Babylon。
 
-固定测试木屋的空间注册位于 `data/world/first-blizzard-environment.json`。`src/world/createFirstBlizzardCabin.ts` 读取相同 Placement 创建 Primitive 表现与碰撞，但 Mesh 不参与 Shelter 判定。原常开测试炉和固定 HeatSource 已移除，正常运行时只有点燃的玩家篝火能动态提供热量。
+固定测试木屋的空间注册位于 `data/world/first-blizzard-environment.json`。`src/world/createFirstBlizzardCabin.ts` 保留相同 Placement 的简单碰撞/Picking Proxy，正常外观由 GLB 提供，失败显示原 Primitive；Mesh 不参与 Shelter 判定。原常开测试炉和固定 HeatSource 已移除，正常运行时只有点燃的玩家篝火能动态提供热量。
 
 `data/survival/thermal.json` 集中保存以下占位平衡参数：
 
@@ -336,19 +336,33 @@ F1–F4 只用于快速视觉验收，F5 恢复正常 Schedule 驱动。HUD 的 
 
 ## 渲染和物理基础
 
-Scene 使用程序化内向天空球、500m 方形雪地、指数距离雾、半球环境光和方向光。验证启动不依赖外部美术资源。
+Scene 使用程序化内向天空球、500m 方形 PBR 雪地、指数距离雾、半球环境光和方向光。美术随项目本地交付；模型或纹理加载失败有基础外观回退，不依赖外部 CDN。
 
 天空使用内联 ShaderMaterial，不依赖外部贴图或 Babylon Materials 扩展包。`createWorldScene` 返回 `WorldSceneRuntime`，其中只暴露表现层所需的 Sky Material 和两个 Light 引用，避免 Controller 通过名称查找场景节点。
 
 Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 物理插件。地面包含静态 PhysicsAggregate。当前第一人称控制器使用 Babylon Camera Collision 加自有垂直速度；`createFirstPersonCamera.ts` 必须显式导入 `@babylonjs/core/Collisions/collisionCoordinator`，该导入负责注册运行时碰撞 Side Effect，不得作为“未使用代码”删除。
 
-玩家配置以米/秒描述行走和奔跑速度，`player/cameraSpeed.ts` 集中转换为 Babylon TargetCamera Speed。Pointer Lock 成功后 UI 会显式聚焦 Canvas，确保键盘输入目标稳定。雪地中的四个校准标杆没有玩法含义，只用于手动确认移动、视角、跳跃和奔跑。
+玩家配置以米/秒描述行走和奔跑速度，`player/cameraSpeed.ts` 集中转换为 Babylon TargetCamera Speed。Pointer Lock 成功后 UI 会显式聚焦 Canvas，确保键盘输入目标稳定。四个校准标杆默认隐藏，由 UI F6 回调经 Game 窄接口同步显示；显示/隐藏均不参与 Picking/Collision/降水/Placement，避免空气墙，也不让 Debug 切换改变玩法规则。
 
 `PlayerVerticalMotion` 独立计算跳跃速度和重力位移。FreeCamera 内部已经会把碰撞椭球中心下移 `ellipsoid.y`，因此 `ellipsoidOffset` 必须保持为零；再次设置负向 Offset 会让碰撞体嵌入地面并阻止跳跃。地面探测只保留小幅容差，不承担完整 Character Controller 功能。
 
 以后可以使用专用 Havok Character Controller 替换当前 Camera Controller，而不影响 World 或 UI 模块。
 
 ## 性能约束
+
+### 3D Asset Foundation v0.1
+
+`Domain ID → pickupAssetId/buildingAssetId → AssetRegistry → AssetLoader → AssetInstanceFactory → GLB visual`。文件路径只存在 `src/assets/AssetRegistry.ts`，不进入 Item/Build/Save；现有 Schema v1 不变。资源来源、完整面数/字节与 Pivot 表见 `docs/ASSET_CREDITS.md`。
+
+- `AssetRegistry` 验证重复 ID、合法本地 URL、正数有限 scale 和有限变换；10 个语义 ID / 12 个 GLB。石头三个变体仅由稳定实例 ID Hash 选择，不写 Save、不改变 RNG。
+- `AssetLoader` 显式导入官方 `@babylonjs/loaders/glTF`，调用 `LoadAssetContainerAsync`。按 URL 缓存 in-flight Promise 和 Source Container，失败也缓存，避免反复放置/读档重试 404。缓存源不加入 Scene 显示列表。
+- `AssetInstanceFactory` 从预加载 Container `instantiateModelsToScene(..., false, {doNotInstantiate:true})` 普通克隆，共享不可变 Geometry/PBR Material。独立 TransformNode 持有位置、scale、角度和子节点；每个实例仅 dispose 克隆，不 dispose 共享 Material。Scene 释放时先清实例再清 Source；延迟返回的加载也会被释放。
+- Factory 未知 ID / 404 / 克隆失败返回 `undefined` 并 warn；调用方继续显示原 Primitive。Fallback 和 GLB 采用相同游戏代理及事务。Save 重建同步使用缓存，不因艺术资源失败回滚 Domain。正常/404/旧 Primitive 三条 Save 路径都有回归测试。
+- 正常 GLB 子 Mesh `isPickable=false/checkCollisions=false`。原 Primitive 代理只设 `visibility=0`，不能设置 `isVisible=false`，否则 Babylon 默认 Picking 会跳过它。保留 Mesh 名称、buildingGroundSurface、buildingEntityId、Interaction lookup，维持最近命中遮挡、Ground Probe、Wall Snap 与动态降水 Bounds。Fallback 将同一代理继续作为可见占位。
+- 固定 Cabin 模型按当前 Scenario 尺寸 authored，未改纯 Shelter AABB/地板高度/原门洞碰撞；若未来改 Scenario 尺寸必须同步重作者模型，不得自动从复杂 Mesh 推导新的 Gameplay Bounds。
+- `createSnowMaterial` 等待三张 1K PNG 的实际完成/失败；PBR albedo 为 sRGB、normal/MR 为 linear，G roughness / B metalness=0，4m repeat、4× anisotropy。任一失败释放贴图并恢复基础雪色。无液体 Shader、KTX2、Draco 或 Shadow Generator 扩展。
+- `public/assets` 通过 Vite BASE_URL 本地 URL 加载，生产 build 复制进 dist；不是 Base64 TypeScript。按 URL 正常使用 HTTP Cache，静态名称版本更新的缓存失效由部署策略负责。
+- GLB 按材质合并（1–5 个材质/模型），无逐物体 Frame Update、在线下载器、CMS、森林/LOD/Streaming。新增美术总计 3,803,904 bytes；这不包含现有 JS/WASM，完整冷首载和 Chrome 1080p FPS 待用户实测。
 
 - 避免为大量对象分别执行每帧更新。
 - 森林重复模型优先使用 Thin Instances。
@@ -376,7 +390,7 @@ Restore 先完整解析并在独立 Inventory/Building Registry 上验证容量/
 
 不对 Babylon 像素渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan、Atomic Transaction 和 Save Round Trip 已由纯测试覆盖；Wetness 仍未实现。
 
-当前共 40 个测试文件、288 个测试。Save 新增完整存取集成、非法数据/未来版本、库存顺序、资源余量、建筑不重复扣费和稳定 ID、燃料/热量、Hotbar、天气时间线、回滚/重试测试；NullEngine 验证真实建筑/资源表现重建但不验收像素；IndexedDB 注入边界测试验证 commit/abort 契约但不替代浏览器。原 Hotbar、Craft/Build、GameIcon 等回归仍保留。本轮 AI 实际通过 typecheck、test 和 diff check；生产 build 和浏览器验证仍待用户完成。
+当前共 41 个测试文件、298 个测试。Asset Foundation 覆盖 Registry、预算、真实 GLB 导入、共享缓存/释放、底部 Pivot/建造尺寸、门洞真实三角形朝向、隐藏代理 Picking 和 Debug 标杆；Save 重建测试同时覆盖 Primitive/GLB/模型 404，重复恢复不增加节点/灯光/障碍。原有完整存取、事务、天气、燃料/热量、回滚、IndexedDB 边界与 UI 纯逻辑回归保留。测试不验收像素、浏览器存储兼容或 FPS。本轮 AI 实际通过 typecheck、test 和 diff check；生产 build 和浏览器验证仍待用户完成。
 
 ## Weather Presentation 已知边界
 
