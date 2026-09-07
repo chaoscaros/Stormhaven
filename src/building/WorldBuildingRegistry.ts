@@ -26,6 +26,15 @@ export class WorldBuildingRegistry {
     return Object.freeze([...this.#buildings.values()].map(({ entity }) => entity));
   }
 
+  getConsumedSnapPointId(id: string): string | undefined {
+    return this.#buildings.get(id)?.consumedSnapPointId;
+  }
+
+  clear(): void {
+    this.#buildings.clear();
+    this.#snapPoints.clear();
+  }
+
   getBounds(): readonly BuildingBounds[] {
     return Object.freeze([...this.#buildings.values()].map(({ bounds }) => bounds));
   }

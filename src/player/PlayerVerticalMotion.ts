@@ -24,6 +24,10 @@ export class PlayerVerticalMotion {
     return this.#velocity;
   }
 
+  reset(): void {
+    this.#velocity = 0;
+  }
+
   tryJump(isGrounded: boolean): boolean {
     if (!isGrounded) {
       return false;

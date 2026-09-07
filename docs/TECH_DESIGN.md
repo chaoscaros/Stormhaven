@@ -8,7 +8,7 @@
 - Babylon.js Havok，作为物理后端
 - HTML 与 CSS，负责界面层
 - JSON，承载未来的数据配置
-- IndexedDB，承载未来的版本化存档
+- IndexedDB，承载版本化单槽本地存档
 - Vitest，测试纯逻辑和基础配置
 - pnpm，作为唯一包管理器
 
@@ -63,12 +63,12 @@ src/main.ts
 | `src/building` | BuildDefinition/Catalog、Grid/Wall Snap、Placement Validation、原子事务与 WorldBuildingRegistry |
 | `src/building/presentation` | Babylon Ghost、Placement Ray/Input、正式 Mesh、Camera Collision 与降水障碍接线 |
 | `src/survival/campfire` | Fuel/Campfire 纯领域状态、事务、燃烧和 Building Gameplay Binding |
-| `src/save` | 未来的版本化 IndexedDB 持久化 |
+| `src/save` | SaveGame v1 校验/迁移边界、快照组合、恢复协调与 IndexedDB Adapter |
 | `data` | 按领域划分的未来 JSON 定义 |
 | `public/assets` | 未来的模型、贴图与音频 |
 | `tests` | 纯逻辑测试与高价值集成测试 |
 
-`src/save` 等其余功能目录在当前阶段仍只是预留边界。
+未实现的其他功能目录仍只是预留边界；`src/save` 已实现，详见 `docs/SAVE_FORMAT.md`。
 
 ## Game Shell + Unified Menu + Pause
 
@@ -90,7 +90,7 @@ Esc 优先级为 BuildPlacement → Interaction Menu → Player Menu → Gamepla
 
 Main Menu 出现前 Runtime 已完成异步 World/Havok 初始化，但 `GameSimulation` 从 Boot 起保持 Pause；点击开始才进入 Gameplay、恢复 Simulation 并请求 Pointer Lock。Paused/Main Menu/Boot 会调用 `GameSimulation.setPaused(true)`；只有 Paused 是运行中暂停。Pause 时 GameClock、Forecast/Weather、Thermal 和所有 Runtime System（包括 Campfire Fuel）均接收零推进量。Camera 在非 Gameplay/BuildPlacement Mode 下 detach，阻止 WASD、Jump 和 Look。
 
-`setupFoundationUi` 暴露 `showLoading(stage) / setLoadingStage(stage) / hideLoading()` 窄契约，仅显示真实初始化阶段文本，不提供虚假百分比或延时。未来 Loading Pipeline v0.1 才负责 Config、Save、GLB、Texture、Audio、Scene、World Restore 的真实进度。
+`setupFoundationUi` 暴露 `showLoading(stage) / setLoadingStage(stage) / hideLoading()` 窄契约，仅显示真实阶段文本，不提供虚假百分比或延时。`setupSaveUi` 已将存档读取/校验/恢复阶段接入；完整 GLB/Texture/Audio Asset Loading Pipeline 仍未实现。Save/Load 处理中由 Shell operationPending 阻止顶层转换，保持 Pause 或 Main Menu 冻结；异步 Pointer Lock 被拒绝时回到 Pause 等待用户点击 Resume。
 
 ## HUD + UX Layer
 
@@ -105,7 +105,7 @@ Debug Telemetry    完整开发遥测，默认隐藏，F6 切换
 
 `src/ui/hotbar/HotbarModel.ts` 是 DOM/Babylon 无关的 8 格运行时模型。`HotbarSlot` 使用从 0 开始的 `slotIndex`，`entry` 为 `empty | item | build` 判别联合；第一版默认 1–3 分别绑定 `foundation_wood`、`wall_wood`、`campfire_basic`，其余为空。`assign/clear/swap` 生成不可变 Slot Snapshot 并通知订阅者；不管理 Inventory、装备、建筑事务或持久化。
 
-`setupHotbarUi` 同时负责 Gameplay renderer 与 Player Menu 编辑适配，但 DOM 始终只有一套位于屏幕底部的 Hotbar。Inventory/Building 卡片通过 `HotbarDragData` 写入受校验的内部 Drag Payload；拖到槽位时覆盖，Hotbar 槽位间拖动时交换，每格 `×` 和独立丢弃区负责清空。选择卡片后点击槽位仍可快速绑定。编辑只在 Player Menu 开放，不激活 Gameplay 行为；当前没有多套布局或存档。
+`setupHotbarUi` 同时负责 Gameplay renderer 与 Player Menu 编辑适配，但 DOM 始终只有一套位于屏幕底部的 Hotbar。Inventory/Building 卡片通过 `HotbarDragData` 写入受校验的内部 Drag Payload；拖到槽位时覆盖，Hotbar 槽位间拖动时交换，每格 `×` 和独立丢弃区负责清空。选择卡片后点击槽位仍可快速绑定。编辑只在 Player Menu 开放，不激活 Gameplay 行为；布局由独立 Save 层持久化，当前没有多套布局。
 
 `setupHotbarUi` 只在 `gameplay` / `build_placement` 接收数字键与 Canvas 滚轮；Player Menu 只开放拖拽/点击编辑。Build Entry 通过 `Game.beginBuildingPlacement` 复用既有 Placement Controller；切到空槽或 Item Entry 时只退出当前建造放置，不产生工具使用。Player Menu、Interaction Menu 与 Pause 中不会发生 Hotbar Gameplay Side Effect。F1–F5 保留天气预览，因此 Debug Telemetry 使用 F6，避免输入冲突。
 
@@ -136,7 +136,7 @@ data/building/buildings.json
 
 `BuildService` 每次确认放置都会重新运行资源与 Placement 校验，不相信菜单缓存。事务为 `Plan → Clone Inventory → Consume Cost on Draft → Prepare Disabled Presentation Candidate → Commit Inventory + Registry → Activate Mesh`。Prepare 或 Activate 失败会释放候选并恢复 Inventory/Registry；失败不吞材料。成功后保持同一 Ghost，允许连续建造，直到资源不足或玩家按 B/Esc 退出。
 
-`WorldBuildingRegistry` 只保存纯 `WorldBuilding`、Bounds 与 SnapPoint，不持有 Mesh。Ghost 不进入 Registry、不参与碰撞、不参与 Picking。正式篝火由 `CampfireBuildingBinding` 创建独立 Gameplay State 和 Interaction Target；其他玩家建筑仍没有 Interaction Target。所有状态仅存在当前运行会话，且不会自动注册为 Shelter。
+`WorldBuildingRegistry` 只保存纯 `WorldBuilding`、Bounds 与 SnapPoint，不持有 Mesh。Ghost 不进入 Registry、不参与碰撞、不参与 Picking。正式篝火由 `CampfireBuildingBinding` 创建独立 Gameplay State 和 Interaction Target；其他玩家建筑仍没有 Interaction Target。Save 仅保存建筑来源字段与 consumedSnapPointId 的外部表示，恢复重新推导 Bounds/Snap，且不会自动注册为 Shelter。
 
 输入统一由 Game Shell Mode 与 Player Menu Tab 路由；Building Tab 点击结构件后恢复 Pointer Lock 并进入 BuildPlacement。放置中左键确认、R 旋转、B/Esc 退出，世界 E Interaction 被屏蔽。
 
@@ -360,26 +360,32 @@ Havok 从 WebAssembly 包异步加载，并在返回 Scene 前注册为 Babylon 
 - 视觉过渡只更新既有 Uniform、Fog、Light 和 Particle 参数，不在每帧创建资源。
 - 优化必须基于实际 Profile 结果。
 
-## 数据和存档方向
+## Save Foundation v0.1
 
 Item、Recipe 与 Weather 定义已使用 JSON 和稳定 ID；Loot 仍是未来方向。核心逻辑不得使用展示名称作为业务键。
 
-未来存档使用 IndexedDB 并携带 Schema Version。规划中的存档外层预留 player、world、time、weather、inventory、buildings 字段，但本阶段不实现这些接口或行为。
+`SaveSnapshotBuilder → SaveGameV1 → migrateSave/validateSaveGame → IndexedDbSaveRepository` 是保存链；加载先校验，再由 `SaveRestoreCoordinator` 恢复 Domain 和窄 Presentation Port。Repository 不导入业务系统，Game 只暴露 player/presentation bindings，完整契约见 [SAVE_FORMAT.md](SAVE_FORMAT.md)。
+
+Schema `version=1`、DB version `1`、游戏版本 `0.1.0` 相互独立。数据库 `stormhaven`、store `saves`、唯一 key `slot_1`；单条 put 事务完成才反馈成功，禁止先删旧档。时间戳使用 Unix 毫秒，覆盖保留 createdAt。迁移边界目前只有 v1，未来版本明确拒绝，不猜测兼容。
+
+Snapshot 覆盖 24 个库存 Slot（含 null）、所有 Scenario Pickup ID/余量、稳定建筑 ID/Transform/Snap 引用、篝火燃料/状态、8 格 Hotbar 绑定/选中格、玩家坐标/yaw/pitch、GameClock、Weather Transition 和 Thermal Reserve。已耗尽 Pickup 的运行记录虽被删除，Builder 仍从场景清单生成 quantity=0；Restore 不复用 Craft/Build 付费事务。新建建筑编号跳过已恢复 ID。
+
+Restore 先完整解析并在独立 Inventory/Building Registry 上验证容量/引用，然后恢复库存→资源→建筑→篝火→Hotbar/玩家→时间/天气/体热→表现。失败重放恢复前快照，若回滚也失败则要求刷新且不放行输入。固定 Scenario/Shelter 不重复创建；Heat/Interaction/碰撞/降水障碍由组件和表现重新注册。速度清零，落地重新探测；离线不消耗燃料或推进模拟。Forecast 按保存时刻重建已消费 action，v1 校验天气与确定性 Scenario Timeline 一致。
 
 ## 测试策略
 
-不对 Babylon 渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan 与 Atomic Transaction 已由纯测试覆盖；Wetness 和存档仅在未来获得授权时测试。
+不对 Babylon 像素渲染做大量低价值单元测试。Item、Inventory、Pickup、Recipe Validation、Requirement、Craft Plan、Atomic Transaction 和 Save Round Trip 已由纯测试覆盖；Wetness 仍未实现。
 
-当前共 37 个测试文件、243 个测试。Hotbar 覆盖默认配置、数字键、滚轮、边界、空槽、Item/Build 类型、运行时覆盖/清空/交换、Drag Payload 校验、订阅通知和 Shell Mode 输入门控；共享 Inventory 集成覆盖 Craft/Build 后状态更新；GameIcon 测试覆盖首批语义 ID、Item JSON 边界和未知 ID 回退。类型检查、单元测试、生产构建和浏览器验收必须分别记录；本轮 typecheck、test 与 build 由用户执行，AI 只执行 diff 检查，浏览器视觉仍由用户验收。
+当前共 40 个测试文件、288 个测试。Save 新增完整存取集成、非法数据/未来版本、库存顺序、资源余量、建筑不重复扣费和稳定 ID、燃料/热量、Hotbar、天气时间线、回滚/重试测试；NullEngine 验证真实建筑/资源表现重建但不验收像素；IndexedDB 注入边界测试验证 commit/abort 契约但不替代浏览器。原 Hotbar、Craft/Build、GameIcon 等回归仍保留。本轮 AI 实际通过 typecheck、test 和 diff check；生产 build 和浏览器验证仍待用户完成。
 
 ## Weather Presentation 已知边界
 
 - 降水阻挡已支持固定场景与动态建筑的增量 AABB 注册；复杂旋转/凹形 Mesh 仍不是精确三角形碰撞。
-- Building 只有 Foundation/Wall/Campfire、Ground 与一级 Foundation Edge Snap；没有二楼、斜坡、Support Graph、Roof、Door、Window、拆除、维修、升级、伤害或存档。
+- Building 只有 Foundation/Wall/Campfire、Ground 与一级 Foundation Edge Snap；已有单槽存档，没有二楼、斜坡、Support Graph、Roof、Door、Window、拆除、维修、升级或伤害。
 - 已有游戏化体感温度、风寒、Shelter、Heat Source 和 Thermal Reserve；没有湿度、伤害、移动惩罚或其他 Survival Consequence。
 - 没有音频、屏幕结霜、镜头抖动、积雪、脚印、闪电伤害或树木破坏。
 - 没有 GPU/移动端 Profile；容量和 Emit Rate 是桌面 Vertical Slice 的保守初值，需以用户浏览器实际表现校准。
-- Thermal 已接入 Campfire/Fuel 动态热源，但尚未接入 Wetness、Clothing、Health、Hypothermia Debuff 或存档。
+- Thermal 已接入 Campfire/Fuel 动态热源并保存当前储备，但尚未接入 Wetness、Clothing、Health 或 Hypothermia Debuff。
 
 ## 跨机器开发约定
 

@@ -122,13 +122,26 @@ export class BuildingPresentation implements BuildingPresentationFactory {
   }
 
   dispose(): void {
-    for (const presented of [...this.#presented.values()]) presented.dispose();
-    this.#presented.clear();
-    this.#interactionMeshes.clear();
+    this.clear();
     this.#woodMaterial.dispose();
     this.#campfireStoneMaterial.dispose();
     this.#campfireLogMaterial.dispose();
     this.#campfireFlameMaterial.dispose();
+  }
+
+  clear(): void {
+    for (const presented of [...this.#presented.values()]) presented.dispose();
+    this.#presented.clear();
+    this.#interactionMeshes.clear();
+  }
+
+  restore(entities: readonly WorldBuilding[]): void {
+    for (const entity of entities) {
+      const candidate = this.prepare(entity);
+      try { candidate.activate(); }
+      catch (error) { candidate.dispose(); throw error; }
+    }
+    this.update();
   }
 
   #createBoxVisual(entity: WorldBuilding, definition: BuildDefinition): BuildingVisual {

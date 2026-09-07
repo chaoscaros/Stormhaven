@@ -327,7 +327,7 @@ Recipe 必须 Data Driven，至少包含：
 
 ## 9. 当前仓库真实状态
 
-基础工程至 HUD + UX Overhaul v0.1 已经建立，目前包含：
+基础工程至 Save Foundation v0.1 已经建立，目前包含：
 
 - Vite + TypeScript 严格模式
 - Babylon.js 9 与 Havok Physics 依赖
@@ -384,7 +384,10 @@ Recipe 必须 Data Driven，至少包含：
 - FuelCatalog、wood 180 秒/件、Campfire 900 秒容量与稳定状态机
 - 篝火原子建造/加柴、点燃/熄灭/耗尽、E 鼠标菜单和动态 HeatSource → Thermal 链路
 - 真实秒且暂停感知的燃料消耗、基础石圈/木柴/火焰/点光源表现
-- 37 个测试文件、243 个单元/集成测试
+- SaveGame Schema v1、IndexedDB 单槽原子写入、Migration Boundary 与完整 Runtime Validation
+- 暂停手动保存、标题页 Continue、新游戏覆盖说明、真实恢复 Stage、输入冻结和失败回滚/重试
+- 库存 Slot/空位、资源耗尽/余量、建筑 ID/连接、篝火燃料/状态、Hotbar、玩家位置/视角、时间/天气过渡/Forecast 与体热恢复；离线不模拟，不保存派生表现
+- 40 个测试文件、288 个单元/集成测试
 - README、技术设计、游戏设计、命令手册和 AI 交接文档
 - 后续系统的目录占位
 
@@ -398,9 +401,9 @@ Recipe 必须 Data Driven，至少包含：
 - Tool Gameplay、Stone Axe Equip/Use、Durability Runtime
 - Building 扩展：Roof、Door、Window、二楼/Support Graph、Upgrade、Damage、Repair、Demolish
 - 自建建筑 Shelter Enclosure/Room Detection
-- IndexedDB Save
-- Hotbar 多套快捷栏、快捷栏持久化与 Item Use；当前会话已支持拖入、交换、点击覆盖与逐格清空
-- Load/Continue、Save Slot、Autosave、Settings 与完整 Loading Pipeline
+- 多存档 UI、云存档、导出/导入、Autosave；当前仅一个手动 `slot_1`
+- Hotbar 多套快捷栏与 Item Use；单套布局已支持手动存档恢复
+- Settings/Settings Persistence 与完整 Loading Pipeline
 - 完整地图内容
 - 音效和最终美术
 
@@ -444,6 +447,12 @@ src/main.ts
 - `docs/TECH_DESIGN.md`
 
 ## 11. 当前验证边界
+
+2026-09-07 Save Foundation v0.1：AI 在本次明确授权范围内执行 `pnpm exec tsc -b --pretty false`、`pnpm test`、`git diff --check` 均通过；40 文件/288 测试。新增 39 个纯存档集成用例、1 个真实 Babylon NullEngine 表现重建用例和 1 个 IndexedDB 注入事务边界用例（另有树枝图标 4 个回归）。没有 install/dev/build/preview 或真实浏览器操作。
+
+本轮 production build、实际 IndexedDB Save→Refresh→Continue、Pointer Lock、渲染/碰撞/降雪遮挡和跨浏览器兼容均待用户手动验收。NullEngine/模拟存储事件不能替代浏览器；历史 build 成功不代表 Save 版本已验收。详细格式/恢复顺序/错误边界见 `docs/SAVE_FORMAT.md`，实际验收步骤见 `docs/COMMAND_RUNBOOK.md`。
+
+以下是历史结果：
 
 在项目切换到 pnpm 之前，以下 npm 命令曾通过：
 
@@ -548,7 +557,7 @@ src/main.ts
 
 规划时不得把这些未验证内容视为已验收完成。
 
-当前推荐下一独立 Issue 是 **Save Foundation v0.1**：版本化 IndexedDB Snapshot、Schema Version 与 Inventory/World Building/Campfire/Player Position/Game Time/Weather/Thermal 的序列化边界。该建议只是后续规划入口，本次 HUD Issue 未实现任何存档代码，也不得将 Shelter Enclosure、Storage、Equipment 或 Hotbar 多套布局混入其中。
+**Save Foundation v0.1 已实现，不能再次规划为尚未开始。** 当前下一步是用户完成生产构建和完整保存→刷新→继续验收，然后再明确选择新 Issue。请勿因已有存档边界而自动扩展 Autosave、多槽、云存档、Settings、Shelter Enclosure、Storage、Equipment、Tool Gameplay、Wetness 或 Hotbar 多套布局。
 
 ## 12. 协作与交付约束
 

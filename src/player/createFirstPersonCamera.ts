@@ -6,6 +6,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import { PLAYER_CONFIG } from "../core/config";
 import { toBabylonCameraSpeed } from "./cameraSpeed";
 import { PlayerVerticalMotion } from "./PlayerVerticalMotion";
+import type { PlayerTransformPort } from "./PlayerTransform";
 
 const KEY_W = 87;
 const KEY_A = 65;
@@ -21,7 +22,7 @@ export function createFirstPersonCamera(
   scene: Scene,
   canvas: HTMLCanvasElement,
   isInputEnabled: () => boolean = () => true,
-): UniversalCamera {
+): UniversalCamera & PlayerTransformPort {
   const spawn = PLAYER_CONFIG.spawnPosition;
   const camera = new UniversalCamera(
     "first-person-camera",
@@ -95,5 +96,20 @@ export function createFirstPersonCamera(
   });
 
   scene.activeCamera = camera;
-  return camera;
+  return Object.assign(camera, {
+    captureTransform: () => ({
+      position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+      rotation: { yaw: camera.rotation.y, pitch: camera.rotation.x },
+    }),
+    restoreTransform: ((transform) => {
+      verticalMotion.reset();
+      camera.cameraDirection.setAll(0);
+      camera.cameraRotation.setAll(0);
+      camera.speed = toBabylonCameraSpeed(PLAYER_CONFIG.walkSpeedMetersPerSecond);
+      camera.position.copyFromFloats(transform.position.x, transform.position.y, transform.position.z);
+      camera.rotation.copyFromFloats(transform.rotation.pitch, transform.rotation.yaw, 0);
+      camera.getViewMatrix(true);
+      // Grounding is reprobed from rebuilt collision meshes on the next active frame.
+    }) satisfies PlayerTransformPort["restoreTransform"],
+  });
 }

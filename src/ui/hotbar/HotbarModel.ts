@@ -47,6 +47,16 @@ export class HotbarModel {
     return this.#slots;
   }
 
+  restore(slots: readonly HotbarSlot[], selectedIndex: number): void {
+    validateSlots(slots);
+    if (!isValidSlotIndex(selectedIndex)) throw new Error("Invalid selected hotbar index");
+    this.#slots = Object.freeze(slots.map((slot) => Object.freeze({
+      slotIndex: slot.slotIndex, entry: Object.freeze({ ...slot.entry }),
+    })));
+    this.#selectedIndex = selectedIndex;
+    this.#notify();
+  }
+
   get selectedIndex(): number {
     return this.#selectedIndex;
   }

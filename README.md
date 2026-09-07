@@ -2,7 +2,7 @@
 
 Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。长期体验核心不是战斗，而是让玩家把寒冷、恶劣、危险的外部世界，逐步转变为安全、温暖、先进的家园。
 
-当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链，并完成 **HUD + UX Overhaul v0.1** 与首轮 **Phosphor Icon Visual Pass**。正常游玩界面现在使用高对比状态准星、8 格物品/建造快捷栏、简化状态摘要与可切换调试遥测；统一生存菜单以图标卡片和详情区展示背包、制造与建造。存档与读取尚未实现。
+当前仓库已完成 Vertical Slice v0.1「第一场暴雪」的基础玩法链、HUD/UI 图标与 **Save Foundation v0.1**。支持 Esc 暂停后手动保存，刷新后从标题页继续上次进度。存档恢复背包、资源余量、建筑、篝火燃料/燃烧状态、快捷栏、玩家位置/视角、时间、天气过渡和体热；实际浏览器读写及画面验收仍待用户完成。
 
 ## 当前完成内容
 
@@ -61,6 +61,8 @@ Stormhaven 是一款浏览器优先的第一人称 3D 单机 PvE 生存建造游
 - 低模石圈、交叉木柴、火焰与点光源表现；视觉仅消费 Campfire State，不持有燃料或热量规则
 - GameTime、Forecast、Weather、Thermal、Item、Inventory、Pickup/Campfire Transaction、Camera Speed 和配置的 Vitest 单元测试
 - 为后续系统预留的模块目录
+- SaveGame Schema v1、单槽 IndexedDB 原子写入、运行时校验、迁移边界和失败回滚
+- Pause Save / Main Menu Continue、真实恢复阶段与 Hotbar 布局持久化；不模拟离线燃料消耗
 
 ## 环境要求
 
@@ -77,7 +79,7 @@ pnpm install
 pnpm dev
 ```
 
-默认打开 `http://localhost:9999`。如果该端口被占用，请以 Vite 终端实际输出的地址为准。等待初始化完成后点击「开始游戏」锁定鼠标。
+默认打开 `http://localhost:9999`。如果该端口被占用，请以 Vite 终端实际输出的地址为准。等待初始化完成后点击「开始新游戏」，或在有本地存档时点击「继续游戏」。浏览器拒绝异步 Pointer Lock 时会保持暂停，再点击「继续游戏」即可请求锁定鼠标。
 
 | 输入 | 操作 |
 | --- | --- |
@@ -101,7 +103,13 @@ pnpm dev
 | 鼠标滚轮 | 循环选择 Hotbar 槽位 |
 | `F6` | 显示或隐藏完整 Debug Telemetry |
 
-打开背包或建造页后，Hotbar 不嵌入弹窗，而是继续作为屏幕底部独立 HUD 显示。可将物品卡片或建筑卡片拖入任意槽位，槽位之间拖动会交换内容；选择卡片后点击槽位也可快速覆盖。每格 `×` 或右侧“拖到这里清空”区域用于清空。配置仅存在当前会话，刷新页面后恢复默认布局。
+打开背包或建造页后，Hotbar 不嵌入弹窗，而是继续作为屏幕底部独立 HUD 显示。可将物品卡片或建筑卡片拖入任意槽位，槽位之间拖动会交换内容；选择卡片后点击槽位也可快速覆盖。每格 `×` 或右侧“拖到这里清空”区域用于清空。手动保存包含快捷栏布局；选择「继续游戏」会恢复，选择「开始新游戏」使用默认布局。
+
+## 保存与继续
+
+游玩后按 Esc，点击「保存游戏」，看到「游戏已保存」再刷新或关闭页面。重新进入后选择「继续游戏」；页面不会自动读档。开始新游戏不立即删除旧档，但下次手动保存会覆盖唯一的 `slot_1`，标题页会明确提示。
+
+存档仅存在当前浏览器、当前网站来源（协议/主机/端口）的 IndexedDB 中，不随 Git 同步，不跨电脑，不自动保存。不要清理网站数据；切换 localhost/127.0.0.1 或端口会进入不同存档空间。离线期间不会扣除燃料或推进游戏时间。格式与故障边界见 [存档契约](docs/SAVE_FORMAT.md)。
 
 ## 质量检查
 
@@ -119,6 +127,7 @@ pnpm build
 - [GPT 规划 Brief](docs/GPT_PLANNING_BRIEF.md)：提供给 GPT 制定后续开发路线图的完整项目上下文
 - [AI 交接记录](docs/AI_HANDOFF.md)：当前状态、验证情况、已知问题和下一步建议
 - [开发规范](AGENTS.md)：所有开发者和 AI 必须遵守的工作规则
+- [存档契约](docs/SAVE_FORMAT.md)：Schema v1、恢复顺序、失败语义和迁移边界
 
 ## 架构概览
 
@@ -128,4 +137,4 @@ Thermal 只输出体热状态，不扣除生命。Crafting 运行链为 Recipe J
 
 ## 当前阶段限制
 
-本 Issue 已完成并停止。未经新 Issue 明确授权，不要扩展 HUD/Hotbar、Game Shell、Campfire/Fuel 或 Building/Crafting，也不要实现 Save/Load/Continue、快捷栏持久化/多套布局、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Wetness 或工具使用。下一步建议见 [AI 交接记录](docs/AI_HANDOFF.md)。
+Save Foundation v0.1 代码与自动检查已完成，生产构建和浏览器验收由用户操作。未经新 Issue 明确授权，不要扩展为 Autosave、多存档/多套快捷栏 UI、云存档、导出导入、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage、Equipment、Wetness 或工具玩法。下一步先按 [命令手册](docs/COMMAND_RUNBOOK.md) 完成保存→刷新→继续验收。

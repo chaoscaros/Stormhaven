@@ -25,6 +25,13 @@ export type GameUiStateListener = (state: GameUiState) => void;
 export class GameUiStateMachine {
   readonly #listeners = new Set<GameUiStateListener>();
   #state: GameUiState = freezeState({ mode: "boot" });
+  #operationPending = false;
+
+  setOperationPending(pending: boolean): void {
+    this.#operationPending = pending;
+  }
+
+  get operationPending(): boolean { return this.#operationPending; }
 
   get state(): GameUiState {
     return this.#state;
@@ -104,6 +111,7 @@ export class GameUiStateMachine {
   }
 
   #setState(state: GameUiState): void {
+    if (this.#operationPending) return;
     const next = freezeState(state);
     if (sameState(this.#state, next)) return;
     this.#state = next;
@@ -120,6 +128,9 @@ export class GameUiModeController {
   get state(): GameUiState {
     return this.#machine.state;
   }
+
+  setOperationPending(pending: boolean): void { this.#machine.setOperationPending(pending); }
+  get operationPending(): boolean { return this.#machine.operationPending; }
 
   get mode(): GameUiMode {
     return this.state.mode;
@@ -194,7 +205,13 @@ export class GameUiModeController {
   }
 
   #requestPointerLock(): void {
-    if (document.pointerLockElement !== this.canvas) void this.canvas.requestPointerLock();
+    if (document.pointerLockElement !== this.canvas) {
+      // Async Continue may lose the browser user gesture. Stay paused and allow an explicit Resume click.
+      try {
+        const request = this.canvas.requestPointerLock();
+        request?.catch(() => this.#machine.pause());
+      } catch { this.#machine.pause(); }
+    }
   }
 
   #releasePointerLock(): void {

@@ -26,7 +26,9 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 
 当前已完成基础工程至 **HUD + UX Overhaul v0.1**。正常 Gameplay 使用高对比状态准星、8 格 Hotbar、简化玩家状态 HUD 与可用 F6 切换的 Debug Telemetry；Tab/C/B 进入统一生存菜单，Inventory 按真实 24 Slot 显示多列方格，悬停/聚焦立即显示 Tooltip 与详情，E 篝火继续使用独立 Interaction Menu。Hotbar 初始 1–3 为木制地基、木制墙体和篝火；Player Menu 打开时快捷栏仍作为独立底部 HUD 显示，背包物品和建造项可拖入任意槽位，槽位间可交换并可独立清空，1–8/滚轮负责 Gameplay 选择。
 
-本 Issue 已达到停止条件。在新的 Issue 明确授权之前，不得继续扩展 HUD/Hotbar、Game Shell、Campfire、Fuel、Building 或 Crafting，也不得实现 Save/IndexedDB、Load/Continue、快捷栏持久化/多套布局、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Wetness 或其他范围禁止项。
+已在上述基础上完成 **Save Foundation v0.1**：版本化单槽 IndexedDB、Pause 手动保存、Main Menu 继续游戏、库存/资源/建筑/篝火/快捷栏/玩家/时间/天气/体热恢复。存档只保存 Source of Truth；具体契约见 `docs/SAVE_FORMAT.md`。自动检查与浏览器验收必须分开记录。
+
+本 Issue 开发停止，后续先完成人工保存→刷新→继续验收。在新的 Issue 明确授权之前，不得继续扩展 Autosave、多存档 UI、云存档、导出导入、多套快捷栏、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Item Use/Equipment、Tool Gameplay、Wetness 或其他范围禁止项。
 
 ## 包管理和命令
 
@@ -37,6 +39,8 @@ Stormhaven 是浏览器优先的第一人称 3D 单机 PvE 生存建造游戏。
 - 不在脚本中写死开发者本机路径
 
 当前用户要求：涉及启动、编译、重启或浏览器操作时，先告诉用户需要执行的命令，由用户亲自操作；除非用户之后明确授权，否则 AI 不要自行运行这些操作。
+
+Save Foundation v0.1 任务明确允许 AI 运行 typecheck、test、diff check 和 Git status/commit/push；仍禁止主动 install/dev/build/preview 和浏览器操作。本次授权不自动扩展到未来任务的其他命令。
 
 完成一轮开发或修复后，应使用中文 Commit Message 提交，并在检查无误后推送到当前跟踪的 Git 远端，方便定位问题、修改和回退版本。若推送失败，必须明确报告本地提交和远端之间的差异。
 

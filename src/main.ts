@@ -10,6 +10,9 @@ import { setupCampfireUi } from "./ui/setupCampfireUi";
 import { setupHotbarUi } from "./ui/hotbar/setupHotbarUi";
 import { HotbarModel } from "./ui/hotbar/HotbarModel";
 import { hydrateGameIcons } from "./ui/icons/iconRegistry";
+import { IndexedDbSaveRepository } from "./save/IndexedDbSaveRepository";
+import { SaveService } from "./save/SaveService";
+import { setupSaveUi } from "./ui/setupSaveUi";
 
 hydrateGameIcons();
 
@@ -133,9 +136,25 @@ hotbarUi = setupHotbarUi(
   },
 );
 
+let saveUi: ReturnType<typeof setupSaveUi> | undefined;
 try {
   ui.setLoadingStage("正在创建世界与天气系统……");
   await game.start();
+  const saveService = new SaveService(new IndexedDbSaveRepository(), {
+    gameplay, simulation, hotbar, ...game.getSaveBindings(),
+  }, {
+    canSave: () => ui.modes.mode === "paused",
+    canLoad: () => ui.modes.mode === "main_menu",
+  });
+  saveUi = setupSaveUi(saveService, ui, () => {
+    ui.updateInventory(gameplay.inventory.snapshot, gameplay.itemCatalog);
+    ui.updateInteractionPrompt();
+    craftingUi.refresh();
+    buildingUi.refresh();
+    campfireUi.refresh();
+    hotbarUi?.refresh();
+  });
+  await saveUi.initialize();
   ui.showReady();
 } catch (error: unknown) {
   const message = error instanceof Error ? error.message : "未知的初始化错误。";
@@ -148,6 +167,7 @@ const disposeApplication = (): void => {
   disposed = true;
   window.removeEventListener("beforeunload", disposeApplication);
   game?.dispose();
+  saveUi?.dispose();
   hotbarUi?.dispose();
   campfireUi.dispose();
   buildingUi.dispose();

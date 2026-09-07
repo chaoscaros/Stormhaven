@@ -23,7 +23,7 @@ export type FirstBlizzardGameplayFoundation = ReturnType<
   typeof createFirstBlizzardGameplayFoundation
 >;
 
-/** 从 Item 与 Scenario JSON 装配本地、非持久化的拾取玩法基础。 */
+/** 从 Item 与 Scenario JSON 装配玩法基础；持久化由独立 Save 层组合。 */
 export function createFirstBlizzardGameplayFoundation(heatSourceSystem: HeatSourceSystem) {
   const itemCatalog = ItemCatalog.fromUnknown(itemDefinitionsData);
   const pickupPlacements = parseWorldPickupPlacements(pickupPlacementsData, itemCatalog);

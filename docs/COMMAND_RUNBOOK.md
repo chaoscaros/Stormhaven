@@ -13,6 +13,8 @@ When a user asks how to install, start, build, test, preview, or troubleshoot th
 5. For the current project owner, do not start the server, compile, restart, or open a browser unless the user explicitly authorizes it. Provide commands for the user to run.
 6. Use repository-relative instructions. Do not include a developer-specific absolute path in reusable documentation.
 
+Save Foundation v0.1 explicitly authorizes the AI to run typecheck/test/diff and Git checks/commit/push. It does **not** authorize install/dev/build/preview or browser operation. Record this issue-specific exception separately from future task permissions.
+
 ## Toolchain baseline
 
 | Tool | Required version | Source of truth |
@@ -128,8 +130,8 @@ pnpm preview
 After `pnpm dev` or `pnpm preview`, ask the user to verify:
 
 1. 初始化期间只显示真实阶段文案的 Stormhaven Loading Overlay，不出现虚假百分比或故意延时。
-2. 初始化完成后显示“第一场暴雪”标题页和“开始游戏”；没有启动失败面板，也没有假的继续游戏/读取存档按钮。
-3. 在标题页等待数秒，时间必须保持 `14:00`；点击“开始游戏”后才进入场景并请求 Pointer Lock。
+2. 初始化完成后显示“第一场暴雪”标题页和“开始新游戏”；存在本地存档时“继续游戏”可点击，否则 Disabled；不会自动读档。
+3. 在标题页等待数秒，初始时间必须保持 `14:00`；点击“开始新游戏”后才进入场景并请求 Pointer Lock；Continue 则先完整恢复存档。
 4. 开始后移动鼠标会相对四个校准标杆改变第一人称视角。
 5. `W A S D` changes the distance and direction to those beacons.
 6. Holding `Shift` increases movement speed.
@@ -155,14 +157,14 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 26. 每按一次 `E` 只触发一次拾取；完全拾取后 Mesh 消失，容量或重量只允许部分拾取时 Mesh 保留且 Prompt 显示余量。
 27. 按 `Tab` 打开统一生存菜单的背包 Tab：Pointer Lock 主动释放、鼠标出现；顶部可切换“背包 / 制造 / 建造”，任意时刻只显示一个 Tab。背包应显示多列方形槽位，已占用和空槽合计 24 格。
 28. 重复拾取木材确认 Stack 合并；接近容量上限时，未被接受的世界物品不得消失。
-29. 刷新页面后背包恢复为空，这是当前未实现 Save 的预期行为。
+29. 手动保存后刷新并点击“继续游戏”，背包应准确恢复；点击“开始新游戏”才使用空背包。
 30. 回归确认 WASD、Shift、Space、Pointer Lock、Weather、雪粒子、木屋碰撞和 Shelter HUD 均正常。
 31. 拾取至少树枝 ×2、石头 ×2；按 `C` 直接打开统一生存菜单的制造 Tab，确认石斧配方显示所需数量、持有数量和产出。
 32. 材料不足时状态明确列出缺失材料；拾取补足后重新打开面板，状态变为“可以制作”。
 33. 用鼠标点击石斧配方和“制作当前物品”，确认只制作一次并显示“制作完成：石斧 ×1”；菜单内 E 拾取不会触发。
 34. 按 `Tab` 确认树枝/石头减少且石斧增加；石斧不能装备、使用、挥舞或砍树，这是当前预期。
 35. 制造 Tab 中按 C 保持/切回制造页；按 Tab、Esc 或点击“返回游戏”关闭整个生存菜单并恢复 Pointer Lock；重新进入不会一次点击制作多次。
-36. 刷新页面后 Inventory 与 Crafting State 清空，这是当前未实现 Save 的预期行为。
+36. 制作石斧后保存→刷新→继续，材料和石斧数量保持一致；不会再次执行制作事务。
 37. 收集至少 16 个木材和 6 个石头；按 `B` 直接打开生存菜单的建造 Tab，确认可选择木制地基、木制墙体或篝火；Tab/C/B 只切换同一菜单，篝火 Interaction Menu 不与其叠加。
 38. 选择木制地基后确认菜单关闭、Pointer Lock 恢复且出现半透明 Ghost；对准雪地时 Ghost 吸附 2m Grid，合法/非法颜色和状态文字明显不同；在固定木屋四周放置时，地基应能与木屋外沿贴合，不应出现约 1m 间隙或因网格错位被迫插入墙体。
 39. 按 `R` 确认 Ghost 以 90° 步进旋转；左键成功放置后木材减少 4、正式地基出现，Ghost 保持以便连续建造。
@@ -171,7 +173,7 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 42. 左键放置墙体后木材减少 3；同一 Snap Point 不能重复占用。B 或 Esc 退出 Placement，恢复正常 Gameplay。
 43. 走向正式墙体确认玩家不能穿过；站上地基确认仍可落地和跳跃。Ghost 本身不能阻挡玩家或干扰 E Pickup。
 44. 使用 F4 预览暴雪，确认新建墙体/地基会按现有 AABB 规则阻挡降雪粒子；这不代表自建结构已成为 Shelter。
-45. 刷新页面后所有玩家建筑消失，这是当前 WorldBuildingRegistry 未接入 Save 的预期行为。
+45. 保存→刷新→继续后玩家建筑原位恢复，材料不重复消耗，墙体连接点仍占用；可继续新建而不会 ID 冲突。
 46. 按 `B` 选择篝火，对准雪地或固定木屋地板确认 Ghost 保留实际命中位置而不吸附 2m Grid；与玩家身体、固定墙体或已有建筑重叠时应显示非法且不扣材料。
 47. 在合法位置放置篝火，确认一次扣除石头 ×4、木材 ×2，并出现石圈和交叉木柴；刷新前它应一直存在。
 48. 准星在 2.75m 内对准篝火应显示 `[E] 使用 篝火`；隔着实体墙体不应看到 Prompt 或打开菜单。
@@ -182,10 +184,10 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 53. 点击熄灭，确认火焰、光与 Heat 加成立即消失但燃料保留；再次点燃应从剩余燃料继续燃烧。
 54. 让燃料耗尽，确认显示无燃料、燃料精确停在 0、火焰和 Heat 消失且不会出现负数；重新加柴后可以再次点燃。
 55. 使用 F4 预览暴雪，在木屋内点燃篝火，确认“室外快速失温 → 无火木屋减缓 → 火旁回暖”的完整链路；雪仍由屋顶/墙体/建筑 AABB 阻挡，而不是因篝火或 Shelter 全局停掉。
-56. 刷新页面后篝火、燃料与 Inventory 一并清空，这是当前未实现 Save 的预期行为。
+56. 保存→刷新→继续后篝火、燃料和 Inventory 准确恢复，燃烧中的篝火立即有火光和热量；离线不扣燃料。
 57. 回归确认 WASD、Shift、Space、E 拾取、Tab、C、B、Pointer Lock、Weather、Snow、Thermal、固定 Cabin Shelter 和动态 Campfire Heat 均正常。
 58. 点燃篝火后在 Gameplay 按 Esc：暂停菜单出现，记录 HUD 时间、体热和燃料；等待数秒后三者应完全不变，继续游戏后恢复变化。
-59. 暂停期间 Tab/C/B/E/WASD/Shift/Space 不应产生 Gameplay 行为；保存游戏、设置和返回标题均明确 Disabled。
+59. 暂停期间 Tab/C/B/E/WASD/Shift/Space 不应产生 Gameplay 行为；保存游戏可用，设置和返回标题 Disabled。保存处理中不能通过 Esc 或继续按钮解除暂停。
 60. 分别验证 Esc 层级：BuildPlacement 只退出放置；Campfire Menu 只关闭交互；Player Menu 只关闭菜单；Gameplay 才暂停；Paused 才恢复。
 61. 在背包、制造、建造 Tab 间切换并执行制作/建造，确认三个页面立即读取同一个最新 Inventory，不出现旧数量或叠层。
 62. Browser console has no uncaught error.
@@ -203,10 +205,49 @@ After `pnpm dev` or `pnpm preview`, ask the user to verify:
 74. 选择背包物品后直接点击 Hotbar 槽，确认可作为拖拽之外的快速覆盖方式。
 75. 按 B 打开建造页，将木制地基、木制墙体或篝火卡片拖到任意槽；也可选择建筑后点击槽位覆盖。关闭菜单后按对应数字键应进入该建筑的放置模式。
 76. 在 Player Menu 内拖拽、点击绑定、交换或清空时，不应进入 BuildPlacement、锁定鼠标或产生 Gameplay 行为；菜单继续允许鼠标交互。
-77. 刷新页面后快捷栏恢复初始前三格建筑、其余为空，这是当前未实现快捷栏持久化的预期行为。
+77. 保存→刷新→继续后快捷栏自定义顺序、空槽和选中槽保持不变；只有开始新游戏恢复初始布局。
 78. 检查 Player Menu 页签、9 类物品、3 类建筑、HUD 温度/庇护/天气/负重，以及关闭/暂停/继续/警告/信息均显示统一 Registry 图标，不再出现 CSS 字符几何占位；树枝必须显示无叶片、带分叉的枯枝轮廓，不能显示关系节点、树叶、整棵树或工具。
 79. 检查菜单卡片默认是 duotone、选中项切换为 fill；Hotbar 默认 bold、当前槽 fill；Tooltip 为 regular。Hover/Selected/Disabled/Warning 颜色由 UI 状态改变，同一图标不加载白/橙/绿多份资源。
 80. 在浏览器 Network 面板中过滤 `phosphoricons.com` 和常见 CDN 域名，应没有图标运行时请求；断网刷新已构建页面时图标仍应由本地资源显示。
+
+## Save Foundation manual acceptance
+
+No new dependencies were added for Save. The user runs from the repository root:
+
+```bash
+pnpm build
+pnpm dev
+```
+
+If the server is already running, a page refresh is enough to begin acceptance; AI must not restart it or open a browser. Use the **same origin and browser profile** throughout.
+
+1. 无存档时确认 Continue Disabled。开始新游戏，拾取两堆木材、树枝和石头，制作一把石斧。
+2. 建地基、吸附木墙、建篝火，添加燃料并点燃；自定义 Hotbar 的物品/建筑顺序和空槽。
+3. 移动并转向，在 17:30–18:00 天气过渡期间按 Esc（理想为 17:45）。记录位置/方向、库存格子、资源余量、建筑、燃料、时间、过渡百分比和体热。
+4. 点击保存，等待“游戏已保存”。保存和等待期间时间/燃料不动；成功后不自动返回 Gameplay。
+5. 刷新：仍先显示标题，不自动恢复。Continue 可用，新游戏覆盖说明可见。点击 Continue，观察真实恢复阶段。
+6. 对照保存记录：所有来源状态一致；已耗尽资源不重生，剩余资源数量一致；库存材料不再扣一次；自定义 Hotbar 不被默认布局覆盖。
+7. 恢复后 17:30 事件不重播、天气继续当前过渡；燃料不扣离线时间。燃烧篝火有火光、热量和 E 菜单；无火/耗尽状态不发热。
+8. 走向木墙、站上地基、跳跃；确认碰撞与落地。F4 仅预览暴雪，验证恢复建筑仍挡雪；F5 回到存档恢复的天气计划。
+9. 再建一块地基，确认正常扣一次材料并生成新 ID；修改背包/快捷栏后再次保存、刷新、继续，验证覆盖最新状态。
+10. 如果 Continue 后浏览器不允许自动锁定鼠标，应看到暂停界面；手动点击“继续游戏”后 WASD/视角/跳跃恢复，不出现未处理 Promise 错误。
+11. 在**可丢弃的测试浏览器配置**中验证 IndexedDB 被禁用/配额不足、损坏字段和未来版本：显示中文失败提示，不进入残缺世界、不静默删除旧档；不要为测试修改有价值的唯一存档。
+12. 当前自动测试不等于真实浏览器存储验证；至少在实际目标浏览器记录 Save→Refresh→Continue 结果，其他 Chrome/Edge/Safari/Firefox 未测试时明确标为待验收。
+
+### User asks: “存档怎么用 / 为什么换电脑没有？”
+
+```text
+游戏里按 Esc → 保存游戏，看到“游戏已保存”后再退出。下次打开同一地址，点击标题页的“继续游戏”。
+目前只有一个本地手动存档，没有自动保存。存档在当前浏览器的网站数据里，不随 Git、电脑或浏览器账号自动同步；更换域名或端口也会使用不同空间。不要清理该网站的数据。
+```
+
+### Save errors
+
+- `存档损坏或版本不兼容`: raw data rejected before restore. Future schemas require a compatible game version; do not downgrade or clear valuable data to troubleshoot.
+- `无法访问本地存储`: check site storage permissions/free space and close other game tabs if a database upgrade is blocked. Opening New Game still works if initial storage access fails.
+- `世界恢复失败，已还原初始世界`: safe to retry Continue or start New Game; on-disk save was not changed.
+- `请刷新页面后重试`: rollback itself failed; UI stays locked to prevent partial-world gameplay. Refresh recreates the static world and offers Continue again.
+- A different port/hostname or browser profile means a different origin storage namespace, not necessarily a missing/deleted save.
 
 ## CI or reproducible installation
 

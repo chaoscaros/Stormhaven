@@ -4,12 +4,13 @@
 
 ## 当前状态
 
-- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 HUD + UX Overhaul v0.1 + Phosphor Icon Visual Pass
+- 当前里程碑：Vertical Slice v0.1「第一场暴雪」的 Save Foundation v0.1（代码与自动检查完成，浏览器人工验收待完成）
 - 当前版本：`0.1.0`
 - 包管理器：pnpm
 - Git 状态：`main` 跟踪 `origin/main`；完成开发或修复后使用中文提交信息，并推送远端，方便问题定位与版本回退
 - 功能状态：Gameplay 已收敛为高对比状态准星、Interaction Prompt、8 格 Hotbar、简化 Player Status；F6 切换完整 Debug Telemetry。Player Menu 的 Inventory 按真实 24 Slot 显示多列方格与空槽，悬停/聚焦立即显示 Tooltip 并更新详情；Hotbar 不嵌入弹窗而保持为独立底部 HUD，Inventory/Building 卡片可拖入槽位，槽位可交换、点击覆盖并逐格清空；UI 首批图标通过 Registry 统一为本地构建的 Phosphor SVG，并为语义不匹配的 `stick` 提供 Stormhaven 专用枯枝 SVG，Domain 只保存稳定游戏语义 ID；Inventory/Crafting/Building 仍实时共享 Inventory，Pause 与 Esc 契约不变
-- 明确未实现：Save/IndexedDB、Load/Continue、Hotbar 持久化/多套布局、Equipment/Item Use、Save Slot、Autosave、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
+- 存档状态：`slot_1` / IndexedDB `stormhaven.saves` / Schema v1；Esc 手动保存，标题页显式 Continue，恢复库存/资源/建筑/燃料/快捷栏/玩家/时间/天气/体热。完整格式、恢复与错误边界见 `docs/SAVE_FORMAT.md`。
+- 明确未实现：Autosave、多存档 UI、云存档/导出导入、Hotbar 多套布局、Equipment/Item Use、Settings、完整 Loading Pipeline、Shelter Enclosure、Storage/Container、Tool Gameplay、Wetness
 
 ## 已完成内容
 
@@ -86,13 +87,23 @@
 - CampfireSystem 的原子加柴、点燃、熄灭、重燃、燃料耗尽与动态 HeatSource 生命周期
 - E 篝火鼠标菜单、稳定反馈、石圈/木柴/火焰/点光源状态表现
 - 燃料和 Thermal 共用 Clamp 后真实 Delta；Pause 为零且不受 `timeScale=240` 影响
-- 37 个测试文件、243 个单元与集成测试
+- SaveGame v1 纯数据 Snapshot、Runtime Validation、Migration Boundary 和单槽原子 IndexedDB Repository
+- Pause Save、Main Continue、真实恢复 Stage、串行操作/输入冻结和失败回滚/重试
+- Inventory 空槽/顺序、Pickup 耗尽/部分余量、建筑 ID/Snap、Campfire 状态/燃料/Heat、Hotbar 自定义、Player Transform、Time/Weather/Forecast/Thermal Restore
+- 40 个测试文件、288 个单元与集成测试
 
 ## 关键架构入口
 
 | 文件 | 作用 |
 | --- | --- |
 | `src/main.ts` | 浏览器入口，初始化 UI 和 Game |
+| `src/save/schema/` | SaveGame v1、完全校验及 future/older schema 拒绝边界 |
+| `src/save/SaveSnapshotBuilder.ts` | 将领域 Source of Truth 组合成纯数据存档 |
+| `src/save/SaveService.ts` | 单槽操作、权限状态、并发保护与稳定失败 Reason |
+| `src/save/SaveRestoreCoordinator.ts` | 有序恢复和完整前态回滚；不重走付费事务 |
+| `src/save/IndexedDbSaveRepository.ts` | 原子 put，等事务 complete 后才报告成功 |
+| `src/ui/setupSaveUi.ts` | Pause 保存、Main Continue、真实恢复 Stage、中文反馈 |
+| `src/player/PlayerTransform.ts` | Babylon 无关的坐标/视角快照与恢复 Port |
 | `src/core/Game.ts` | Engine/Scene 生命周期编排 |
 | `src/core/config.ts` | 世界和玩家共享配置 |
 | `src/core/time/GameClock.ts` | 确定性游戏时钟、Pause 和 Time Scale |
@@ -186,6 +197,19 @@ pnpm dev
 如果环境不允许执行 `corepack enable`，请按该环境的标准方式安装 `package.json` 中声明的 pnpm 版本。
 
 ## 当前验证状态
+
+2026-09-07 Save Foundation v0.1（本次附件明确允许 AI 执行 typecheck/test/Git）：
+
+- `pnpm exec tsc -b --pretty false`：通过。
+- `pnpm test`：40 个测试文件、288 个测试通过（包括树枝图标 4 个新增回归）。
+- `git diff --check`：通过。
+- 存档专项先发现“完全拾取后 Registry 删除记录，快照遗漏 zero Pickup”问题，已改为按场景 ID 清单输出余量并通过完整往返测试。
+- NullEngine 集成实际覆盖建筑碰撞标记、降水障碍、拾取 lookup、篝火光/热/Interaction 与重复恢复无重复注册；没有运行真实浏览器或 WebGL 像素验收。
+- IndexedDB Adapter 测试使用注入事件边界验证事务完成/中止，不是浏览器磁盘持久化验收。完整保存→刷新→继续、Pointer Lock、碰撞手感、雪花遮挡与各浏览器兼容性仍待用户手动验证。
+- 未执行 install、dev、build、preview、重启或浏览器操作；本轮无新依赖。旧 Phosphor build 成功记录不能代表本轮生产构建已通过。
+- 门禁文件 `docs/QUALITY_GATES.md`、`docs/GATE_CHANGELOG.md`、`docs/GATE_MIGRATIONS.md`、`.gate-version` 及 `pnpm gate` 脚本在本次仓库基线中均不存在。
+
+以下为历史验证记录，不代替上述本轮验证边界。
 
 2026-08-29 的基础开发过程中，以下 npm 命令曾在切换 pnpm 之前通过：
 
@@ -354,29 +378,42 @@ pnpm dev
 - Weather Domain 的温度与风力已与 Shelter/Heat Source 共同驱动 Effective Temperature 和 Thermal Reserve；Wetness、移动、伤害及其他 Gameplay 仍未接入。
 - F1–F4 只覆盖 Presentation 输入，F5 恢复 Schedule；它们不修改 Domain、Forecast 或 Transition。
 - 固定木屋不是 Building System；原常开测试炉已移除，正常运行时热量只来自点燃的玩家篝火。
-- Inventory 当前只在内存中存在，刷新即丢失；面板按真实 Slot 只读展示，物品格可拖到 Hotbar，但不支持背包格内移动/合并/拆分、丢弃、装备、使用、容器或持久化。
+- Inventory 已随手动存档恢复 Slot 顺序与空位；未保存的更改仍会丢失。面板按真实 Slot 展示，物品格可拖到 Hotbar，但不支持背包格内移动/合并/拆分 UI、丢弃、装备、使用或容器。
 - Crafting 当前只有一个即时 `hand` 石斧配方；没有耗时制作、Queue、Workbench、Station Radius、音效或动画。
 - 当前输入契约由单一 Game Shell State 管理；Player Menu 内只有一个 active Tab，Campfire 为独立 Interaction Menu。
 - Building 当前只有木制地基、墙体和篝火、Ground、2m Foundation Grid 与一级 Foundation Edge Snap；没有 Roof、Door、Window、二楼或 Support Graph。
 - 玩家建筑只进入 WorldBuildingRegistry、Camera Collision 和降水障碍，不进入 ShelterSystem；自建房间没有挡风/温度加成。
-- WorldBuildingRegistry 只存在内存，刷新页面后玩家建筑消失；没有 Save、Demolish、Repair、Upgrade 或 Building Damage。
+- WorldBuildingRegistry 来源字段已接入手动 Save；Restore 不扣材料，重建 Bounds/Snap/碰撞/降水障碍。没有 Demolish、Repair、Upgrade 或 Building Damage。
 - Stone Axe durability 仅是 Definition 最大值；ItemStack 没有实例耐久，石斧不能装备、使用、砍树或挖矿。
 - Raycast 先拾取场景最近 Mesh 再解析 Target，墙体可阻挡 Pickup/Campfire；当前没有通用 NPC/门交互或复杂 Interaction Framework。
 - Thermal Reserve 是 `0..100` 的游戏化资源，不是摄氏度核心体温，也不是医学模拟。
 - Wind Strength 继续使用既有无单位 Gameplay Index（当前 `3..28`），只在 Thermal Config 中归一化，不代表 km/h 或 m/s。
 - Thermal 与 Campfire Fuel 目前按 Render Loop 提供的 Clamp 后真实 Delta 更新；Pause 时均为零，未来系统增多时可评估 Fixed Simulation Tick。
-- Campfire 当前只有 wood 单一 Fuel、即时点火和基础 Primitive 表现；没有点火物、烹饪、灰烬、烟雾伤害、音效或存档。
-- Pause Menu 的保存、设置和返回标题明确 Disabled；没有伪造行为。完整 Session Reset、Save/Load 与 Loading Pipeline 尚未实现。
-- Hotbar 初始布局默认放置三个 Build Shortcut；当前会话支持从 Inventory/Building 卡片拖入、槽位交换、点击覆盖及逐格清空，但不支持保存、多套栏位或 Item Use，刷新页面会恢复默认布局。
+- Campfire 当前只有 wood 单一 Fuel、即时点火和基础 Primitive 表现；燃料/状态可恢复，离线不燃烧。没有点火物、烹饪、灰烬、烟雾伤害或音效。
+- Pause Menu 保存已启用，设置和返回标题仍 Disabled。Main Menu 提供新游戏/Continue，不提供运行中返回标题和完整 Session Reset。
+- Hotbar 8 格布局/选中格随手动存档恢复；未知物品/建筑 ID 清空该槽并提示，合法但库存为零的绑定保留。不支持多套布局或 Item Use。
+- IndexedDB 仅此浏览器/网站 Origin，Git 不备份存档，切换主机/端口/电脑不会共享。无 Autosave；并行标签页最后成功手动保存覆盖之前记录。
+- v1 天气校验依赖当前确定性 First Blizzard Schedule；以后改变计划或加入 Domain Override 必须审视存档兼容/迁移，不能静默读取为错误天气。
+- 读档恢复出错会回滚，若回滚本身失败则锁定并要求刷新；磁盘旧存档不改动。异步 Pointer Lock 拒绝时进入 Pause，用户点击 Resume。
 - F3 保留为降雪视觉预览；为避免输入冲突，Debug Telemetry 使用 F6，而不是 F3。
 
 ## 推荐下一步
 
-本 Issue 已达到停止条件。不要在当前任务继续开发。
+Save Foundation v0.1 开发到此停止；尚未完成的是用户操作的 production build 与浏览器验收，而不是新的玩法开发。
 
-推荐下一独立 Issue：**Save Foundation v0.1**，为 Inventory、World Building 与 Campfire State 设计版本化 IndexedDB 快照和迁移边界；是否执行必须由用户另行授权。不得顺带进入 Shelter Enclosure、Storage、工具玩法、Wetness 或建筑扩展。
+用户先执行 `pnpm build`，按 `docs/COMMAND_RUNBOOK.md` 的 Save Foundation 手工清单验收保存→刷新→继续及再次覆盖保存。记录浏览器版本/实际 URL 与结果后，再由用户/GPT 选择下一独立 Issue；不得顺带进入 Autosave、多槽、Settings、Shelter Enclosure、Storage、Equipment、工具玩法、Wetness 或建筑扩展。
 
 ## 变更记录
+
+### 2026-09-07 — Save Foundation v0.1
+
+- 新增版本化 `SaveGameV1`、单槽元数据、`SaveSnapshotBuilder`、`migrateSave`/校验器、`SaveService`、`SaveRestoreCoordinator` 和 IndexedDB Adapter；无额外依赖，无 localStorage/运行时网络存档。
+- 通过窄 Domain restore API 保留 24 Slot/空位、所有资源余量、稳定建筑/Snap/篝火引用、燃料/状态、8 Slot Hotbar、自定义选中格、玩家坐标/朝向、GameClock/Weather Transition 和 Thermal Reserve。
+- 恢复不走 Build/Craft/Fuel 消费事务；完全拾取的资源不会重生；已发生 Forecast Action 按保存时刻消费；新建筑 ID 跳过恢复编号；离线不模拟。
+- 真实 Presentation 重建 Camera Collision、Precipitation Obstacle、Pickup Target、Campfire Interaction/火光/Heat；固定木屋/Shelter 不重复保存或重建。
+- 启用暂停保存、标题页 Continue、损坏/版本/存储错误中文反馈；处理中冻结模式，失败回滚，回滚失败要求刷新；新游戏覆盖提示和异步 Pointer Lock 失败回到 Pause。
+- 补齐以公开保存/恢复行为为核心的集成测试（含 NullEngine 与存储事件边界）；typecheck、全部 288 测试、diff 检查通过；build/浏览器验收由用户执行。
+- 同步 README、AGENTS、游戏/技术设计、规划 Brief、Runbook，并新增 `docs/SAVE_FORMAT.md`。之前未提交的专用树枝图标已单独归档为中文提交，避免与存档系统混为一个回退点。
 
 ### 2026-08-31 — 树枝专用图标
 

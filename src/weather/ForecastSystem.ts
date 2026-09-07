@@ -28,6 +28,12 @@ export class ForecastSystem {
     );
   }
 
+  /** The scenario is deterministic: all actions through the saved instant are consumed. */
+  restoreThrough(time: GameTimeSnapshot): void {
+    this.#consumedActionIds.clear();
+    this.update({ ...time, totalGameMinutes: 0 }, time);
+  }
+
   update(
     previous: GameTimeSnapshot,
     current: GameTimeSnapshot,

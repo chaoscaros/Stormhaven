@@ -26,6 +26,8 @@ import {
 } from "../building/presentation/BuildingPresentation";
 import { BuildingPlacementController } from "../building/presentation/BuildingPlacementController";
 import { CampfireBuildingBinding } from "../survival/campfire/CampfireBuildingBinding";
+import type { PlayerTransformPort } from "../player/PlayerTransform";
+import type { SaveRuntime } from "../save/SaveRuntime";
 
 /** 管理 Babylon 运行时生命周期，并将功能初始化委托给各自模块。 */
 export class Game {
@@ -37,6 +39,7 @@ export class Game {
   #buildingPresentation: BuildingPresentation | undefined;
   #buildingPlacement: BuildingPlacementController | undefined;
   #unsubscribeUiMode: (() => void) | undefined;
+  #player: PlayerTransformPort | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -67,6 +70,7 @@ export class Game {
     const isPlayerInputEnabled = (): boolean =>
       this.uiModes.mode === "gameplay" || this.uiModes.mode === "build_placement";
     const camera = createFirstPersonCamera(world.scene, this.canvas, isPlayerInputEnabled);
+    this.#player = camera;
     let controlsAttached = true;
     this.#unsubscribeUiMode = this.uiModes.subscribe(() => {
       const shouldAttach = isPlayerInputEnabled();
@@ -172,6 +176,28 @@ export class Game {
 
   beginBuildingPlacement(definitionId: string): void {
     this.#buildingPlacement?.begin(definitionId);
+  }
+
+  /** Narrow runtime handles; save orchestration stays outside Game. */
+  getSaveBindings(): Pick<SaveRuntime, "player" | "presentation"> {
+    const player = this.#player;
+    const buildings = this.#buildingPresentation;
+    const pickups = this.#worldPickups;
+    if (!player || !buildings || !pickups) throw new Error("World is not ready");
+    return {
+      player,
+      presentation: {
+        clearBuildings: () => buildings.clear(),
+        restoreBuildings: (entities) => buildings.restore(entities),
+        restorePickups: () => pickups.restore((id) => (this.gameplay.pickupRegistry.get(id)?.quantity ?? 0) > 0),
+        refresh: () => {
+          buildings.update();
+          this.#weatherPresentation?.resetPreview();
+          const visual = this.#weatherPresentation?.update(this.simulation.snapshot);
+          if (visual) this.onSimulationUpdate(this.simulation.snapshot, visual);
+        },
+      },
+    };
   }
 
   cancelBuildingPlacement(): void {

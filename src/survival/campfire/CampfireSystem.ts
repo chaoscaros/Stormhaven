@@ -84,6 +84,27 @@ export class CampfireSystem implements InteractionTargetProvider {
     return Object.freeze([...this.#states.values()]);
   }
 
+  get fuelCapacitySeconds(): number {
+    return this.config.fuelCapacitySeconds;
+  }
+
+  clear(): void {
+    for (const buildingId of [...this.#buildingToCampfire.keys()]) this.removeByWorldBuildingId(buildingId);
+  }
+
+  /** No inventory transaction and no offline burn; bindings and heat follow restored state. */
+  restoreState(id: string, fuelSecondsRemaining: number, status: CampfireState["status"]): void {
+    const current = this.get(id);
+    if (!Number.isFinite(fuelSecondsRemaining) || fuelSecondsRemaining < 0 || fuelSecondsRemaining > current.fuelCapacitySeconds
+      || (status === "burning" && fuelSecondsRemaining === 0)
+      || (status === "out_of_fuel" && fuelSecondsRemaining !== 0)
+      || !["burning", "unlit", "out_of_fuel"].includes(status)) throw new Error("Invalid campfire restore");
+    const next = freezeState({ ...current, fuelSecondsRemaining, status, isLit: status === "burning" });
+    this.#states.set(id, next);
+    this.heatSources.setEnabled(toHeatSourceId(id), next.isLit);
+    this.#notify(next);
+  }
+
   getInteractionTarget(targetId: string): InteractionTarget | undefined {
     const campfireId = this.#targetToCampfire.get(targetId);
     const state = campfireId ? this.#states.get(campfireId) : undefined;

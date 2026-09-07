@@ -38,6 +38,12 @@ export class GameClock {
     return this.#timeScale;
   }
 
+  restore(totalGameMinutes: number, timeScale: number): void {
+    createGameTimeSnapshot(totalGameMinutes);
+    this.#timeScale = validateTimeScale(timeScale);
+    this.#totalGameMinutes = totalGameMinutes;
+  }
+
   get paused(): boolean {
     return this.#paused;
   }

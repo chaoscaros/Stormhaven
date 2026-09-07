@@ -1,4 +1,5 @@
 import { GameClock, type GameClockConfig } from "../time/GameClock";
+import type { SimulationPersistenceState } from "./SimulationPersistenceState";
 import type { GameTimeSnapshot } from "../time/GameTime";
 import { toTotalGameMinutes } from "../time/GameTime";
 import { ForecastSystem, type WeatherForecastEntry } from "../../weather/ForecastSystem";
@@ -252,6 +253,36 @@ export class GameSimulation {
 
   setPaused(paused: boolean): void {
     this.#clock.setPaused(paused);
+  }
+
+  capturePersistentState(): SimulationPersistenceState {
+    const transition = this.#weather.transition;
+    return {
+      time: { totalGameMinutes: this.#clock.snapshot.totalGameMinutes, timeScale: this.#clock.timeScale },
+      weather: {
+        currentWeatherId: this.#weather.currentWeather.id,
+        transition: transition ? {
+          targetWeatherId: transition.targetWeatherId,
+          durationGameSeconds: transition.durationGameSeconds,
+          elapsedGameSeconds: transition.elapsedGameSeconds,
+        } : null,
+      },
+      thermalReserve: this.#thermal.snapshot.currentValue,
+    };
+  }
+
+  /** Caller validates the complete save before invoking this frozen-world restore boundary. */
+  restorePersistentState(state: SimulationPersistenceState, position: SpatialPoint): void {
+    this.#clock.restore(state.time.totalGameMinutes, state.time.timeScale);
+    this.#forecast.restoreThrough(this.#clock.snapshot);
+    this.#weather.setWeather(state.weather.currentWeatherId);
+    const transition = state.weather.transition;
+    if (transition) {
+      this.#weather.transitionTo(transition.targetWeatherId, transition.durationGameSeconds);
+      this.#weather.update(transition.elapsedGameSeconds);
+    }
+    this.#thermal.restoreValue(state.thermalReserve);
+    this.update(0, position);
   }
 
   setTimeScale(timeScale: number): void {

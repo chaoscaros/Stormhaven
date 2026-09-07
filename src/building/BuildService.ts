@@ -95,6 +95,10 @@ export class BuildService {
       });
     }
     const definition = this.definitions.get(request.definitionId);
+    // Loaded stable IDs may occupy numbers that this session has not allocated yet.
+    while (this.registry.has(`building_${String(this.#nextEntityNumber).padStart(6, "0")}`)) {
+      this.#nextEntityNumber += 1;
+    }
     const entity = Object.freeze({
       id: `building_${String(this.#nextEntityNumber).padStart(6, "0")}`,
       definitionId: definition.id,

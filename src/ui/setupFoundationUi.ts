@@ -135,6 +135,7 @@ export function setupFoundationUi(
   const modes = new GameUiModeController(canvas);
 
   const requestControl = (): void => {
+    if (modes.operationPending) return;
     if (modes.mode === "main_menu") modes.startGame();
     else if (modes.mode === "gameplay") void canvas.requestPointerLock();
   };
@@ -185,6 +186,7 @@ export function setupFoundationUi(
       modes.openPlayerMenu("building");
     }
   };
+  const handlePointerLockError = (): void => modes.pauseFromPointerUnlock();
   const openPlayerTab = (tab: "inventory" | "crafting" | "building"): void =>
     modes.openPlayerMenu(tab);
   const unsubscribeMode = modes.subscribe((state) => {
@@ -224,6 +226,7 @@ export function setupFoundationUi(
   craftingTabButton.addEventListener("click", craftingTabClick);
   buildingTabButton.addEventListener("click", buildingTabClick);
   document.addEventListener("pointerlockchange", handlePointerLockChange);
+  document.addEventListener("pointerlockerror", handlePointerLockError);
   window.addEventListener("keydown", handleShellKeyDown);
 
   return {
@@ -240,7 +243,7 @@ export function setupFoundationUi(
     },
     showReady(): void {
       enterButton.disabled = false;
-      enterButton.querySelector("span")?.replaceChildren("开始游戏");
+      enterButton.querySelector("span")?.replaceChildren("开始新游戏");
       loadingOverlay.hidden = true;
       modes.showMainMenu();
     },
@@ -449,6 +452,7 @@ export function setupFoundationUi(
       craftingTabButton.removeEventListener("click", craftingTabClick);
       buildingTabButton.removeEventListener("click", buildingTabClick);
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
+      document.removeEventListener("pointerlockerror", handlePointerLockError);
       window.removeEventListener("keydown", handleShellKeyDown);
       unsubscribeMode();
       if (feedbackTimeout !== undefined) window.clearTimeout(feedbackTimeout);

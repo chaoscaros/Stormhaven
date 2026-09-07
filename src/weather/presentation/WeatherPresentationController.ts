@@ -82,6 +82,10 @@ export class WeatherPresentationController {
     this.#snow.dispose();
   }
 
+  resetPreview(): void {
+    this.#previewWeatherId = undefined;
+  }
+
   readonly #handlePreviewKey = (event: KeyboardEvent): void => {
     const weatherId = PREVIEW_KEYS[event.code];
     if (weatherId) {

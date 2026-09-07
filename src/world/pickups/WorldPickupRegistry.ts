@@ -3,6 +3,7 @@ import { createWorldPickup, type WorldPickup } from "./WorldPickup";
 /** 世界 Pickup 剩余数量的纯领域 Registry；不持有 Babylon Mesh。 */
 export class WorldPickupRegistry {
   readonly #pickups = new Map<string, WorldPickup>();
+  readonly #initialPickups = new Map<string, WorldPickup>();
 
   constructor(pickups: readonly WorldPickup[]) {
     for (const pickup of pickups) {
@@ -12,11 +13,29 @@ export class WorldPickupRegistry {
         pickup.itemId,
         pickup.quantity,
       ));
+      this.#initialPickups.set(pickup.id, this.#pickups.get(pickup.id)!);
     }
   }
 
   get(id: string): WorldPickup | undefined {
     return this.#pickups.get(id);
+  }
+
+  getAll(): readonly WorldPickup[] {
+    return Object.freeze([...this.#pickups.values()]);
+  }
+
+  restoreQuantities(quantities: readonly { readonly id: string; readonly quantity: number }[]): void {
+    if (quantities.length !== this.#initialPickups.size || new Set(quantities.map((entry) => entry.id)).size !== quantities.length) {
+      throw new Error("Pickup restore IDs mismatch");
+    }
+    const next = quantities.map(({ id, quantity }) => {
+      const current = this.#initialPickups.get(id);
+      if (!current || !Number.isSafeInteger(quantity) || quantity < 0 || quantity > current.quantity) throw new Error("Invalid pickup restore");
+      return Object.freeze({ ...current, quantity, consumed: quantity === 0 });
+    });
+    this.#pickups.clear();
+    for (const pickup of next) if (!pickup.consumed) this.#pickups.set(pickup.id, pickup);
   }
 
   consume(id: string, quantity: number): WorldPickup {

@@ -16,24 +16,30 @@ export class WorldPickupPresentation {
   readonly #meshes = new Map<string, AbstractMesh>();
 
   constructor(
-    scene: Scene,
-    placements: readonly WorldPickupPlacement[],
-    catalog: ItemCatalog,
+    private readonly scene: Scene,
+    private readonly placements: readonly WorldPickupPlacement[],
+    private readonly catalog: ItemCatalog,
   ) {
-    for (const placement of placements) {
-      const mesh = createPickupMesh(scene, placement.pickup.itemId);
+    this.restore(() => true);
+  }
+
+  restore(isAvailable: (id: string) => boolean): void {
+    this.dispose();
+    for (const placement of this.placements) {
+      if (!isAvailable(placement.pickup.id)) continue;
+      const mesh = createPickupMesh(this.scene, placement.pickup.itemId);
       mesh.name = `world-pickup-${placement.pickup.id}`;
       mesh.position.copyFromFloats(
         placement.position.x,
         placement.position.y,
         placement.position.z,
       );
-      mesh.material = createPickupMaterial(scene, placement.pickup.itemId);
+      mesh.material = createPickupMaterial(this.scene, placement.pickup.itemId);
       mesh.metadata = Object.freeze({ interactionTargetId: placement.pickup.id });
       mesh.isPickable = true;
       mesh.checkCollisions = false;
       this.#meshes.set(placement.pickup.id, mesh);
-      catalog.get(placement.pickup.itemId);
+      this.catalog.get(placement.pickup.itemId);
     }
   }
 

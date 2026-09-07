@@ -36,6 +36,11 @@
             <span>准备中</span>
             <kbd>点击</kbd>
           </button>
+          <button id="continue-button" type="button" disabled>
+            <span>继续游戏</span><kbd>本地存档</kbd>
+          </button>
+          <p id="save-slot-status" class="save-feedback" role="status">正在检查本地存档……</p>
+          <p id="new-game-warning" class="save-feedback" hidden>开始新游戏不会立即删除旧档；下次手动保存将覆盖现有进度。</p>
           <p class="start-screen__controls">
             <span><kbd>W A S D</kbd> 移动</span>
             <span><kbd>鼠标</kbd> 视角</span>
@@ -46,7 +51,7 @@
             <span><kbd>ESC</kbd> 暂停</span>
           </p>
         </div>
-        <p class="start-screen__footer">NO SAVE DATA // LOCAL SESSION ONLY</p>
+        <p class="start-screen__footer">LOCAL SAVE // 单一手动存档 · 仅此浏览器</p>
       </section>
 
       <div id="hud" class="hud" hidden>
@@ -268,7 +273,8 @@
           <h2 id="pause-title">已暂停</h2>
           <strong>STORMHAVEN</strong>
           <button id="resume-button" type="button"><span class="game-icon" data-game-icon="resume" data-game-icon-weight="bold" data-game-icon-size="20"></span>继续游戏 <kbd>ESC</kbd></button>
-          <button type="button" disabled>保存游戏 <small>存档功能将在下一阶段开放</small></button>
+          <button id="save-button" type="button">保存游戏 <small>覆盖本地存档</small></button>
+          <p id="save-feedback" class="save-feedback" role="status"></p>
           <button type="button" disabled>设置 <small>尚未开放</small></button>
           <button type="button" disabled>返回标题 <small>等待会话重置能力</small></button>
         </aside>

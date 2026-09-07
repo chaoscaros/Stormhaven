@@ -36,7 +36,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 
 ## 当前已完成阶段边界
 
-当前已完成现代桌面浏览器技术基础至 HUD + UX Overhaul v0.1：
+当前已完成现代桌面浏览器技术基础至 Save Foundation v0.1：
 
 - 工程工具和模块边界
 - Babylon.js 场景及 Havok 启动
@@ -64,7 +64,7 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 玩家可按 B 打开鼠标建造菜单，直接用 Inventory 材料选择木制地基、墙体或篝火
 - 木制地基使用与固定测试木屋外沿对齐的 2m 世界 Grid，能贴合木屋边缘而不重叠或留缝；木墙只能吸附到地基 North/East/South/West 边缘
 - Placement Mode 使用单一半透明 Ghost，合法/非法状态不同；左键放置、R 旋转、B/Esc 退出
-- 成功建造会原子扣除材料并生成当前运行会话内的 World Building；刷新页面后消失
+- 成功建造会原子扣除材料并生成 World Building；手动保存后可通过标题页继续游戏恢复，恢复不重复扣材料
 - 正式建筑参与玩家碰撞和降水 AABB 阻挡，但自建建筑尚不提供 Shelter/挡风/保温
 - 篝火花费石头 ×4、木材 ×2，放置成功后生成独立 Campfire State 和可交互目标；与玩家身体、固定墙体或现有建筑重叠时拒绝放置且不扣材料
 - 对准篝火按 E 打开鼠标菜单；每份木材提供 180 个真实燃烧秒，容量 900 秒，可点燃、熄灭和重新点燃
@@ -83,11 +83,15 @@ Stormhaven 是一款浏览器运行的第一人称 3D 单机 PvE 生存建造游
 - 首轮 UI 图标默认使用随项目构建的 Phosphor SVG：HUD、快捷栏、菜单、物品、建筑和系统操作保持一致权重与状态色；若通用库图标与道具外形明显不符，则通过同一 Registry 使用 Stormhaven 专用图标，当前 `stick` 已使用无叶片的分叉枯枝 SVG
 - 可重复执行的类型检查、测试和生产构建
 
-当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime、容器或存档。Thermal Reserve 是游戏化资源，不是医学核心体温。
+当前 Shelter 仍仅是固定 Scenario Volume；HeatSource 已由燃烧中的玩家篝火动态注册，固定木屋不再提供常开测试炉。Crafting 只处理 Inventory Item → Inventory Item，Building/Campfire 分别处理 Inventory Materials → World Entity 和 Inventory Wood → Fuel State；明确不包含工作站、队列、耗时制作、工具使用、装备、耐久 Runtime 或容器。存档作为独立服务读取和恢复这些状态。Thermal Reserve 是游戏化资源，不是医学核心体温。
 
 Tab Inventory、C Crafting 与 B Building 是统一 Player Survival Menu 的三个子 Tab；E Campfire 是独立 Interaction Menu。它们和 Pause/BuildPlacement 由单一 Shell State 互斥管理。菜单态释放 Pointer Lock，选择建筑后进入锁定鼠标的 BuildPlacement。
 
-Game Shell + Unified Menu + Pause v0.1 只完成“标题 → 开始会话 → Gameplay → 统一生存菜单/对象交互 → 真正暂停/恢复”。保存、读取、继续游戏、存档槽、自动保存、设置和正式 Asset Loading Pipeline 均未实现；自建结构转化为 Shelter Zone 仍留给独立 Issue。
+Save Foundation v0.1 完成“游玩 → Esc 暂停 → 保存 → 刷新 → 标题页继续”。只提供一个手动存档；保存不自动恢复游玩，读档期间冻结输入与模拟。新游戏不立即覆盖旧档，下一次手动保存才覆盖，并提前显示警告。没有存档时不能继续；坏档/未来版本显示明确错误且不破坏旧档。
+
+存档保留 24 格库存顺序与空格、资源剩余数量、建筑及连接、燃料和燃烧状态、8 格快捷栏及选中格、玩家坐标/朝向、游戏时间/天气过渡和体热。已拾取资源不重生，建筑不重复收费，离线不烧燃料、不推进时间。恢复后速度清零、重新探测落地；派生热量、庇护和天气画面重新计算，F1–F4 视觉预览不保存。
+
+自动保存、多存档 UI、云存档、设置和正式 Asset Loading Pipeline 均未实现；自建结构转化为 Shelter Zone 仍留给独立 Issue。
 
 ## 非目标
 

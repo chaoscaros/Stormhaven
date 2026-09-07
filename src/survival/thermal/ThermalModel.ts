@@ -35,6 +35,13 @@ export class ThermalModel {
     return this.#snapshot;
   }
 
+  restoreValue(value: number): void {
+    if (!Number.isFinite(value) || value < this.config.minThermalValue || value > this.config.maxThermalValue) {
+      throw new Error("Invalid thermal reserve");
+    }
+    this.#currentValue = value;
+  }
+
   update(inputs: ThermalUpdateInputs): ThermalSnapshot {
     if (!Number.isFinite(inputs.deltaSeconds) || inputs.deltaSeconds < 0) {
       throw new Error("Thermal deltaSeconds 必须是大于或等于 0 的有限数值。");
